@@ -14,6 +14,8 @@
 
 ![AutomatedWith](https://img.shields.io/static/v1?label=Automated%20with&message=GitHub%20Actions&color=blue&?style=for-the-badge&logo=github)
 
+![TargetJDK](https://img.shields.io/static/v1?label=Tested%20with&message=Java%2021&color=00AA13&?style=for-the-badge&logo=openjdk)
+
 💻This project provides different utilities methods to apply processing from a security perspective. These code snippet:
 
 * Can be used, as "foundation", to customize the validation to the app context.
