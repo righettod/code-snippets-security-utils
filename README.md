@@ -24,7 +24,9 @@
 
 # Content
 
-📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java) and related uni tests into the
+📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
+
+🧪Unit tests are centralized into the
 class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
 
 # Usage
