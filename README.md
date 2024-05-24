@@ -20,9 +20,9 @@
 
 * Can be used, as "foundation", to customize the validation to the app context.
 * Were implemented in a way to facilitate adding or removal of validations depending on usage context.
-* Were centralized on one class to be able to enhance them across time as well as missing case/bug identification.
+* Were centralized into [one class](src/main/java/eu/righettod/SecurityUtils.java) to be able to enhance them across time as well as handle missing case/bug.
 
-🔬I uses it, as a sandbox, to create, test and provide remediation code proposals when I perform web assessment or secure code review activities.
+🔬I uses it, as a sandbox, to create/test/provide remediation code proposals when I perform web assessment or secure code review activities.
 
 # Content
 
