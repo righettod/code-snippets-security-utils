@@ -1,0 +1,3 @@
+@echo off
+echo "TEST"
+exit 0

@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE data [ <!ENTITY xxe SYSTEM "https://test.com/test.xsd"> ]>
+<data>&xxe;</data>
