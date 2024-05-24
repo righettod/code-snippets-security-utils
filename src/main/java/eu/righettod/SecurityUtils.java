@@ -30,7 +30,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -51,7 +50,7 @@ public class SecurityUtils {
         //System.out.println(isXMLSafe("test-data/testXXE.xml"));
         //System.out.println(extractAllPDFLinks("test-data/MaliciousTestDoc.pdf"));
         //System.out.println(identifyMimeType(Files.readAllBytes(Paths.get("test-data/putty-fixed.exe"))));
-        System.out.println(isZIPSafe("TestZipSlip.zip", 2, true));
+        //System.out.println(isZIPSafe("TestZipSlip.zip", 2, true));
         //System.out.println(isRelativeURL("//righettod.eu"));
         //System.out.println(isRelativeURL("ssh://righettod.eu"));
         //System.out.println(isRelativeURL("/righettod.eu"));
