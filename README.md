@@ -29,7 +29,7 @@ class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
 
 # Usage
 
-👨‍💻The repository can be open directly into [Intellij Community Edition](https://www.jetbrains.com/idea/download).
+👨‍💻The repository can be open directly into [Intellij IDEA](https://www.jetbrains.com/idea/download).
 
 
 
