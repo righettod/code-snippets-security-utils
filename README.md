@@ -20,12 +20,16 @@
 * Were implemented in a way to facilitate adding or removal of validations depending on usage context.
 * Were centralized on one class to be able to enhance them across time as well as missing case/bug identification.
 
+🔬I uses it, as a sandbox, to create, test and provide remediation code proposals when I perform web assessment or secure code review activities.
+
+# Content
+
 📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java) and related uni tests into the
 class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
 
-🔬I uses it, as a sandbox, to create, test and provide remediation code proposals when I perform web assessment or secure code review activities.
+# Usage
 
-👨‍💻[Intellij Community Edition](https://www.jetbrains.com/idea/download) is used as IDE.
+👨‍💻The repository can be open directly into [Intellij Community Edition](https://www.jetbrains.com/idea/download).
 
 
 
