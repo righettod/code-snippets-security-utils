@@ -43,24 +43,10 @@ import java.util.zip.ZipFile;
  */
 public class SecurityUtils {
 
-    //For quick testing purpose...
-    public static void main(String[] args) throws Exception {
-        //System.out.println(isWeakPINCode(("00000000")));
-        //System.out.println(isWord972003DocumentSafe("test-data/test-nomacro.docx"));
-        //System.out.println(isXMLSafe("test-data/testXXE.xml"));
-        //System.out.println(extractAllPDFLinks("test-data/MaliciousTestDoc.pdf"));
-        //System.out.println(identifyMimeType(Files.readAllBytes(Paths.get("test-data/putty-fixed.exe"))));
-        //System.out.println(isZIPSafe("TestZipSlip.zip", 2, true));
-        //System.out.println(isRelativeURL("//righettod.eu"));
-        //System.out.println(isRelativeURL("ssh://righettod.eu"));
-        //System.out.println(isRelativeURL("/righettod.eu"));
-        //System.out.println(isPDFSafe("dummy.pdf"));
-        /*
-        try (PDDocument document = Loader.loadPDF(new File("CleanTestDoc.pdf"))) {
-            clearPDFMetadata(document);
-            document.save("output.pdf");
-        }
-        */
+    /**
+     * Default constructor: Not needed as the class only provided static methods.
+     */
+    private SecurityUtils() {
     }
 
     /**
