@@ -6,15 +6,7 @@
 > [!NOTE]
 > Java was chosen but the ideas behind the proposed code can be applied to other languages.
 
-[![Test](https://github.com/righettod/code-snippets-security-utils/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/righettod/code-snippets-security-utils/actions/workflows/test.yml)
-
-![MadeWithIntelliJ](https://img.shields.io/static/v1?label=Made%20with&message=Intellij%20IDEA%20Community%20Edition&color=000000&?style=for-the-badge&logo=intellijidea)
-
-![MadeWithMaven](https://img.shields.io/static/v1?label=Made%20with&message=Maven&color=C71A36&?style=for-the-badge&logo=apachemaven)
-
-![AutomatedWith](https://img.shields.io/static/v1?label=Automated%20with&message=GitHub%20Actions&color=blue&?style=for-the-badge&logo=github)
-
-![TargetJDK](https://img.shields.io/static/v1?label=Tested%20with&message=Java%20OpenJDK%2021&color=00AA13&?style=for-the-badge&logo=openjdk)
+[![Test](https://github.com/righettod/code-snippets-security-utils/actions/workflows/test.yml/badge.svg?branch=main)](https://github.com/righettod/code-snippets-security-utils/actions/workflows/test.yml) ![MadeWithIntelliJ](https://img.shields.io/static/v1?label=Made%20with&message=Intellij%20IDEA%20Community%20Edition&color=000000&?style=for-the-badge&logo=intellijidea) ![MadeWithMaven](https://img.shields.io/static/v1?label=Made%20with&message=Maven&color=C71A36&?style=for-the-badge&logo=apachemaven) ![AutomatedWith](https://img.shields.io/static/v1?label=Automated%20with&message=GitHub%20Actions&color=blue&?style=for-the-badge&logo=github) ![TargetJDK](https://img.shields.io/static/v1?label=Tested%20with&message=Java%20OpenJDK%2021&color=00AA13&?style=for-the-badge&logo=openjdk)
 
 💻This project provides different utilities methods to apply processing from a security perspective. These code snippet:
 
