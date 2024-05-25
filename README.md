@@ -24,12 +24,22 @@
 
 🔬I uses it, as a sandbox, to create/test/provide remediation code proposals when I perform web assessment or secure code review activities.
 
-# Content
+# Content & conventions
 
 📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
 
 🧪Unit tests are centralized into the
 class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
+
+📖Conventions used:
+
+* One utility methods in **SecurityUtils** class == One unit test methods in **TestSecurityUtils** class both with the same name.
+* All tests data are stored into the [resources](src/test/resources) folder of the test area.
+* Each utility methods have a single goal and is fully documented in terms of usage as well as Internet references used.
+
+# Documentation
+
+The javadoc of the class **SecurityUtils** is exposed [here](https://righettod.github.io/code-snippets-security-utils).
 
 # Usage
 
