@@ -33,7 +33,7 @@ class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
 
 📖Conventions used:
 
-* One utility methods in **SecurityUtils** class == One unit test methods in **TestSecurityUtils** class both with the same name.
+* One utility methods in **SecurityUtils** class is associated to one unit test methods in **TestSecurityUtils** class: Both with the same name.
 * All tests data are stored into the [resources](src/test/resources) folder of the test area.
 * Each utility methods have a single goal and is fully documented in terms of usage as well as Internet references used.
 
@@ -44,6 +44,17 @@ The javadoc of the class **SecurityUtils** is exposed [here](https://righettod.g
 # Usage
 
 👨‍💻The repository can be open directly into [Intellij IDEA](https://www.jetbrains.com/idea/download).
+
+💻Maven command to run all the unit tests:
+
+```shell
+$ mvn clean test
+[INFO] ------------------------------------------------
+[INFO]  T E S T S
+[INFO] ------------------------------------------------
+[INFO] Running eu.righettod.TestSecurityUtils
+[INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
+```
 
 
 
