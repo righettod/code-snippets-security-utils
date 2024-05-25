@@ -8,6 +8,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v4
     - name: Install system requirements
@@ -19,7 +21,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Execute unit tests suite
-      run: mvn clean test -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn --file pom.xml
+      run: mvn clean test --file pom.xml
     - name: Update javadoc
       run: dos2unix update-javadoc.sh; chmod +x update-javadoc.sh; bash update-javadoc.sh
 
