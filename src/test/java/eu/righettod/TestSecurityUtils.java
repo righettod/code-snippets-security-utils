@@ -1,8 +1,11 @@
 package eu.righettod;
 
 
+import org.apache.pdfbox.Loader;
+import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -154,5 +157,26 @@ public class TestSecurityUtils {
             String testFile = getTestFilePath(f);
             assertTrue(SecurityUtils.isPDFSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
         });
+    }
+
+    @Test
+    public void clearPDFMetadata() throws Exception {
+        String testFile = getTestFilePath("test-doc-with-metadata.pdf");
+        try (PDDocument document = Loader.loadPDF(new File(testFile))) {
+            //Ensure that the source PDF has the expected metadata
+            assertEquals("PDFKit.NET 4.0.9.0", document.getDocumentInformation().getProducer());
+            assertEquals("RIGHETTOD", document.getDocumentInformation().getAuthor());
+            assertEquals("My Java API 12.5", document.getDocumentInformation().getCreator());
+            assertEquals("holidays,internal", document.getDocumentInformation().getKeywords());
+            assertEquals("MyValue", document.getDocumentInformation().getCustomMetadataValue("CustomMetadata"));
+            //Clear the metadata
+            SecurityUtils.clearPDFMetadata(document);
+            //Ensure that the result PDF has not expected metadata anymore
+            assertNull(document.getDocumentInformation().getProducer(), "The metadata PRODUCER was expected to be NULL!");
+            assertNull(document.getDocumentInformation().getAuthor(), "The metadata AUTHOR was expected to be NULL!");
+            assertNull(document.getDocumentInformation().getKeywords(), "The metadata KEYWORDS was expected to be NULL!");
+            assertNull(document.getDocumentInformation().getCreator(), "The metadata CREATOR was expected to be NULL!");
+            assertNull(document.getDocumentInformation().getCustomMetadataValue("CustomMetadata"), "The custom metadata 'CustomMetadata' was expected to be NULL!");
+        }
     }
 }

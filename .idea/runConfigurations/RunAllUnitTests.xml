@@ -1,0 +1,18 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="RunAllUnitTests" type="JUnit" factoryName="JUnit">
+    <module name="code-snippets-security-utils" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="eu.righettod.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <option name="PACKAGE_NAME" value="eu.righettod" />
+    <option name="MAIN_CLASS_NAME" value="eu.righettod.TestSecurityUtils" />
+    <option name="METHOD_NAME" value="" />
+    <option name="TEST_OBJECT" value="class" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
