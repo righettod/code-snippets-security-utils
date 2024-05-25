@@ -2,9 +2,6 @@
 
 # Description
 
-> [!CAUTION]
-> I do not claim (and will never claim) that the proposed code is 100% effective, these are simply practical tests of ideas regarding security issues I have encountered.
-
 > [!NOTE]
 > Java was chosen but the ideas behind the proposed code can be applied to other languages.
 
@@ -15,6 +12,11 @@
 * Were centralized into [one class](src/main/java/eu/righettod/SecurityUtils.java) to be able to enhance them across time as well as handle missing case/bug.
 
 🔬I uses it, as a sandbox, to create/test/provide remediation code proposals when I perform web assessment or secure code review activities.
+
+# Disclaimer
+
+> [!CAUTION]
+> I do not claim (and will never claim) that the proposed code is 100% effective, these are simply practical tests of ideas regarding security issues I have encountered.
 
 # Content & conventions
 
