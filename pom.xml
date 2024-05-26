@@ -10,6 +10,21 @@
 
     <dependencies>
         <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.8.0</version>
+            <exclusions>
+                <!--
+				To prevent exposure to the vulnerability present into version 3.2.2
+				See https://devhub.checkmarx.com/cve-details/Cx78f40514-81ff/
+				-->
+                <exclusion>
+                    <groupId>commons-collections</groupId>
+                    <artifactId>commons-collections</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>jakarta.xml.bind</groupId>
             <artifactId>jakarta.xml.bind-api</artifactId>
             <version>4.0.2</version>

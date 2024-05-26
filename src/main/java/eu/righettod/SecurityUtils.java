@@ -1,5 +1,6 @@
 package eu.righettod;
 
+import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDDocumentCatalog;
@@ -27,6 +28,8 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.Inet6Address;
+import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -37,14 +40,16 @@ import java.util.zip.ZipFile;
 
 /**
  * Provides different utilities methods to apply processing from a security perspective.<br>
- * These code snippet can be used, as "foundation", to customize the validation to the app context.<br>
- * These code snippet were implemented in a way to facilitate adding or removal of validations depending on usage context.<br>
- * These code snippet were centralized on one class to be able to enhance them across time as well as missing case/bug identification.<br>
+ * <ul>
+ *     <li>These code snippet can be used, as "foundation", to customize the validation to the app context.</li>
+ *     <li>These code snippet were implemented in a way to facilitate adding or removal of validations depending on usage context.</li>
+ *     <li>These code snippet were centralized on one class to be able to enhance them across time as well as missing case/bug identification.</li>
+ * </ul>
  */
 public class SecurityUtils {
 
     /**
-     * Default constructor: Not needed as the class only provided static methods.
+     * Default constructor: Not needed as the class only provides static methods.
      */
     private SecurityUtils() {
     }
@@ -452,5 +457,78 @@ public class SecurityUtils {
             }
         }
         return mimeType;
+    }
+
+    /**
+     * Apply a collection of validations on a string expected to be an public IP address:<br>
+     * - Is a valid IP v4 or v6 address.<br>
+     * - Is public from an Internet perspective.<br><br>
+     * <b>Note:</b> I often see missing such validation in the value read from HTTP request headers like "X-Forwarded-For" or "Forwarded".
+     *
+     * @param ip String expected to be a valid IP address.
+     * @return True only if the string pass all validations.
+     * @apiNote For IPv6: I used documentation found so it is really experimental!
+     * @see "https://commons.apache.org/proper/commons-validator/"
+     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html"
+     * @see "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
+     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf"
+     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf"
+     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For"
+     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded"
+     * @see "https://ipcisco.com/lesson/ipv6-address/"
+     * @see "https://www.juniper.net/documentation/us/en/software/junos/interfaces-security-devices/topics/topic-map/security-interface-ipv4-ipv6-protocol.html"
+     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/InetAddress.html#getByName(java.lang.String)"
+     * @see "https://www.arin.net/reference/research/statistics/address_filters/"
+     * @see "https://en.wikipedia.org/wiki/Multicast_address"
+     * @see "https://stackoverflow.com/a/5619409"
+     * @see "https://www.ripe.net/media/documents/ipv6-address-types.pdf"
+     * @see "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml"
+     * @see "https://developer.android.com/reference/java/net/Inet6Address"
+     * @see "https://en.wikipedia.org/wiki/Unique_local_address"
+     */
+    public static boolean isPublicIPAddress(String ip) {
+        boolean isValid = false;
+        try {
+            //Quick validation on the string itself based on characters used to compose an IP v4/v6 address
+            if (Pattern.matches("[0-9a-fA-F:.]+", ip)) {
+                //If OK then use the dedicated InetAddressValidator from Apache Commons Validator
+                if (InetAddressValidator.getInstance().isValid(ip)) {
+                    //If OK then validate that is an public IP address
+                    //From Javadoc for "InetAddress.getByName": If a literal IP address is supplied, only the validity of the address format is checked.
+                    InetAddress addr = InetAddress.getByName(ip);
+                    isValid = (!addr.isAnyLocalAddress() && !addr.isLinkLocalAddress()
+                            && !addr.isLoopbackAddress() && !addr.isMulticastAddress()
+                            && !addr.isSiteLocalAddress());
+                    //If OK and the IP is an V6 one then make additional validation because the built-in Java API will let pass some V6 IP
+                    //For the prefix map, the start of the key indicates if the value is a regex or a string
+                    if (isValid && (addr instanceof Inet6Address)) {
+                        Map<String, String> prefixes = new HashMap<>();
+                        prefixes.put("REGEX_LOOPBACK", "^(0|:)+1$");
+                        prefixes.put("REGEX_UNIQUE-LOCAL-ADDRESSES", "^f(c|d)[a-f0-9]{2}:.*$");
+                        prefixes.put("STRING_LINK-LOCAL-ADDRESSES", "fe80:");
+                        prefixes.put("REGEX_TEREDO", "^2001:[0]*:.*$");
+                        prefixes.put("REGEX_BENCHMARKING", "^2001:[0]*2:.*$");
+                        prefixes.put("REGEX_ORCHID", "^2001:[0]*10:.*$");
+                        prefixes.put("STRING_DOCUMENTATION", "2001:db8:");
+                        prefixes.put("STRING_GLOBAL-UNICAST", "2000:");
+                        prefixes.put("REGEX_MULTICAST", "^ff[0-9]{2}:.*$");
+                        final List<Boolean> results = new ArrayList<>();
+                        final String ipLower = ip.trim().toLowerCase(Locale.ROOT);
+                        prefixes.forEach((addressType, expr) -> {
+                            String exprLower = expr.trim().toLowerCase();
+                            if (addressType.startsWith("STRING_")) {
+                                results.add(ipLower.startsWith(exprLower));
+                            } else {
+                                results.add(Pattern.matches(exprLower, ipLower));
+                            }
+                        });
+                        isValid = ((results.size() == prefixes.size()) && !results.contains(Boolean.TRUE));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            isValid = false;
+        }
+        return isValid;
     }
 }

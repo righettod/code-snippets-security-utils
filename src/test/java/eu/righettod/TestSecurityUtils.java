@@ -179,4 +179,46 @@ public class TestSecurityUtils {
             assertNull(document.getDocumentInformation().getCustomMetadataValue("CustomMetadata"), "The custom metadata 'CustomMetadata' was expected to be NULL!");
         }
     }
+
+    @Test
+    public void isPublicIPAddress() throws Exception {
+        final String templateMsgIPFalseNegative = "IP address '%s' must be detected as NOT public!";
+        final String templateMsgIPFalsePositive = "IP address '%s' must be detected as public!";
+        //----Test IP V4
+        //Standard private IPv4 addresses: https://www.arin.net/reference/research/statistics/address_filters/
+        List<String> ipV4AddressesList = Arrays.asList("127.0.1.1", "10.10.10.10", "172.16.5.5", "192.168.178.5");
+        ipV4AddressesList.forEach(ip -> {
+            assertFalse(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalseNegative, ip));
+        });
+        //Encoded version of an private IPv4 address: https://www.vultr.com/resources/ipv4-converter/?ip_address=10.10.10.10
+        //10.10.10.10 => 168430090  (Integer representation)
+        //10.10.10.10 => 0x0A0A0A0A (Hex representation)
+        ipV4AddressesList = Arrays.asList("168430090", "0x0A0A0A0A");
+        ipV4AddressesList.forEach(ip -> {
+            assertFalse(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalseNegative, ip));
+        });
+        //Multicast IPv4 addresses: https://en.wikipedia.org/wiki/Multicast_address
+        ipV4AddressesList = Arrays.asList("224.0.0.0", "224.0.0.1", "224.0.0.2", "224.0.0.4", "224.0.0.5", "224.0.0.6", "224.0.0.9", "224.0.0.10", "224.0.0.13", "224.0.0.18", "224.0.0.19", "224.0.0.20", "224.0.0.21", "224.0.0.22", "224.0.0.102", "224.0.0.107", "224.0.0.251", "224.0.0.252", "224.0.0.253");
+        ipV4AddressesList.forEach(ip -> {
+            assertFalse(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalseNegative, ip));
+        });
+        //Valid public IPv4 addresses
+        ipV4AddressesList = Arrays.asList("213.186.33.87", "172.217.23.110", "192.17.85.45");
+        ipV4AddressesList.forEach(ip -> {
+            assertTrue(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalsePositive, ip));
+        });
+        //----Test IP V6
+        //Non public IPv6 addresses: https://www.ripe.net/media/documents/ipv6-address-types.pdf
+        List<String> ipV6AddressesList = Arrays.asList("fdf8:f53b:82e4::53", "fe80::200:5aee:feaa:20a2", "fd38:5d06:4217:2ef7:ffff:ffff:ffff:ffff", "ff01:0:0:0:0:0:0:2", "0:0:0:0:0:0:0:1", "::1");
+        ipV6AddressesList.forEach(ip -> {
+            assertFalse(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalseNegative, ip));
+        });
+        //Public IPv6 addresses: https://www.lddgo.net/en/network/randomip
+        String dataFile = getTestFilePath("test-public-ipv6.txt");
+        ipV6AddressesList = Files.readAllLines(Paths.get(dataFile));
+        ipV6AddressesList.forEach(ip -> {
+            assertTrue(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalsePositive, ip));
+        });
+    }
 }
+
