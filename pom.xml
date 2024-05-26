@@ -94,6 +94,7 @@
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
                     <windowtitle>Javadoc</windowtitle>
+                    <bottom>${project.artifactId} - ${project.version}</bottom>
                 </configuration>
             </plugin>
         </plugins>
