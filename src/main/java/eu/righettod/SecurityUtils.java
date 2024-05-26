@@ -464,10 +464,11 @@ public class SecurityUtils {
      * - Is a valid IP v4 or v6 address.<br>
      * - Is public from an Internet perspective.<br><br>
      * <b>Note:</b> I often see missing such validation in the value read from HTTP request headers like "X-Forwarded-For" or "Forwarded".
+     * <br>
+     * <b>Note for IPv6:</b> I used documentation found so it is really experimental!
      *
      * @param ip String expected to be a valid IP address.
      * @return True only if the string pass all validations.
-     * @apiNote For IPv6: I used documentation found so it is really experimental!
      * @see "https://commons.apache.org/proper/commons-validator/"
      * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html"
      * @see "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"
