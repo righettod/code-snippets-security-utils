@@ -477,74 +477,75 @@
 <span class="source-line-no">464</span><span id="line-464">     * - Is a valid IP v4 or v6 address.&lt;br&gt;</span>
 <span class="source-line-no">465</span><span id="line-465">     * - Is public from an Internet perspective.&lt;br&gt;&lt;br&gt;</span>
 <span class="source-line-no">466</span><span id="line-466">     * &lt;b&gt;Note:&lt;/b&gt; I often see missing such validation in the value read from HTTP request headers like "X-Forwarded-For" or "Forwarded".</span>
-<span class="source-line-no">467</span><span id="line-467">     *</span>
-<span class="source-line-no">468</span><span id="line-468">     * @param ip String expected to be a valid IP address.</span>
-<span class="source-line-no">469</span><span id="line-469">     * @return True only if the string pass all validations.</span>
-<span class="source-line-no">470</span><span id="line-470">     * @apiNote For IPv6: I used documentation found so it is really experimental!</span>
-<span class="source-line-no">471</span><span id="line-471">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
-<span class="source-line-no">472</span><span id="line-472">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html"</span>
-<span class="source-line-no">473</span><span id="line-473">     * @see "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"</span>
-<span class="source-line-no">474</span><span id="line-474">     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf"</span>
-<span class="source-line-no">475</span><span id="line-475">     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf"</span>
-<span class="source-line-no">476</span><span id="line-476">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For"</span>
-<span class="source-line-no">477</span><span id="line-477">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded"</span>
-<span class="source-line-no">478</span><span id="line-478">     * @see "https://ipcisco.com/lesson/ipv6-address/"</span>
-<span class="source-line-no">479</span><span id="line-479">     * @see "https://www.juniper.net/documentation/us/en/software/junos/interfaces-security-devices/topics/topic-map/security-interface-ipv4-ipv6-protocol.html"</span>
-<span class="source-line-no">480</span><span id="line-480">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/InetAddress.html#getByName(java.lang.String)"</span>
-<span class="source-line-no">481</span><span id="line-481">     * @see "https://www.arin.net/reference/research/statistics/address_filters/"</span>
-<span class="source-line-no">482</span><span id="line-482">     * @see "https://en.wikipedia.org/wiki/Multicast_address"</span>
-<span class="source-line-no">483</span><span id="line-483">     * @see "https://stackoverflow.com/a/5619409"</span>
-<span class="source-line-no">484</span><span id="line-484">     * @see "https://www.ripe.net/media/documents/ipv6-address-types.pdf"</span>
-<span class="source-line-no">485</span><span id="line-485">     * @see "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml"</span>
-<span class="source-line-no">486</span><span id="line-486">     * @see "https://developer.android.com/reference/java/net/Inet6Address"</span>
-<span class="source-line-no">487</span><span id="line-487">     * @see "https://en.wikipedia.org/wiki/Unique_local_address"</span>
-<span class="source-line-no">488</span><span id="line-488">     */</span>
-<span class="source-line-no">489</span><span id="line-489">    public static boolean isPublicIPAddress(String ip) {</span>
-<span class="source-line-no">490</span><span id="line-490">        boolean isValid = false;</span>
-<span class="source-line-no">491</span><span id="line-491">        try {</span>
-<span class="source-line-no">492</span><span id="line-492">            //Quick validation on the string itself based on characters used to compose an IP v4/v6 address</span>
-<span class="source-line-no">493</span><span id="line-493">            if (Pattern.matches("[0-9a-fA-F:.]+", ip)) {</span>
-<span class="source-line-no">494</span><span id="line-494">                //If OK then use the dedicated InetAddressValidator from Apache Commons Validator</span>
-<span class="source-line-no">495</span><span id="line-495">                if (InetAddressValidator.getInstance().isValid(ip)) {</span>
-<span class="source-line-no">496</span><span id="line-496">                    //If OK then validate that is an public IP address</span>
-<span class="source-line-no">497</span><span id="line-497">                    //From Javadoc for "InetAddress.getByName": If a literal IP address is supplied, only the validity of the address format is checked.</span>
-<span class="source-line-no">498</span><span id="line-498">                    InetAddress addr = InetAddress.getByName(ip);</span>
-<span class="source-line-no">499</span><span id="line-499">                    isValid = (!addr.isAnyLocalAddress() &amp;&amp; !addr.isLinkLocalAddress()</span>
-<span class="source-line-no">500</span><span id="line-500">                            &amp;&amp; !addr.isLoopbackAddress() &amp;&amp; !addr.isMulticastAddress()</span>
-<span class="source-line-no">501</span><span id="line-501">                            &amp;&amp; !addr.isSiteLocalAddress());</span>
-<span class="source-line-no">502</span><span id="line-502">                    //If OK and the IP is an V6 one then make additional validation because the built-in Java API will let pass some V6 IP</span>
-<span class="source-line-no">503</span><span id="line-503">                    //For the prefix map, the start of the key indicates if the value is a regex or a string</span>
-<span class="source-line-no">504</span><span id="line-504">                    if (isValid &amp;&amp; (addr instanceof Inet6Address)) {</span>
-<span class="source-line-no">505</span><span id="line-505">                        Map&lt;String, String&gt; prefixes = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">506</span><span id="line-506">                        prefixes.put("REGEX_LOOPBACK", "^(0|:)+1$");</span>
-<span class="source-line-no">507</span><span id="line-507">                        prefixes.put("REGEX_UNIQUE-LOCAL-ADDRESSES", "^f(c|d)[a-f0-9]{2}:.*$");</span>
-<span class="source-line-no">508</span><span id="line-508">                        prefixes.put("STRING_LINK-LOCAL-ADDRESSES", "fe80:");</span>
-<span class="source-line-no">509</span><span id="line-509">                        prefixes.put("REGEX_TEREDO", "^2001:[0]*:.*$");</span>
-<span class="source-line-no">510</span><span id="line-510">                        prefixes.put("REGEX_BENCHMARKING", "^2001:[0]*2:.*$");</span>
-<span class="source-line-no">511</span><span id="line-511">                        prefixes.put("REGEX_ORCHID", "^2001:[0]*10:.*$");</span>
-<span class="source-line-no">512</span><span id="line-512">                        prefixes.put("STRING_DOCUMENTATION", "2001:db8:");</span>
-<span class="source-line-no">513</span><span id="line-513">                        prefixes.put("STRING_GLOBAL-UNICAST", "2000:");</span>
-<span class="source-line-no">514</span><span id="line-514">                        prefixes.put("REGEX_MULTICAST", "^ff[0-9]{2}:.*$");</span>
-<span class="source-line-no">515</span><span id="line-515">                        final List&lt;Boolean&gt; results = new ArrayList&lt;&gt;();</span>
-<span class="source-line-no">516</span><span id="line-516">                        final String ipLower = ip.trim().toLowerCase(Locale.ROOT);</span>
-<span class="source-line-no">517</span><span id="line-517">                        prefixes.forEach((addressType, expr) -&gt; {</span>
-<span class="source-line-no">518</span><span id="line-518">                            String exprLower = expr.trim().toLowerCase();</span>
-<span class="source-line-no">519</span><span id="line-519">                            if (addressType.startsWith("STRING_")) {</span>
-<span class="source-line-no">520</span><span id="line-520">                                results.add(ipLower.startsWith(exprLower));</span>
-<span class="source-line-no">521</span><span id="line-521">                            } else {</span>
-<span class="source-line-no">522</span><span id="line-522">                                results.add(Pattern.matches(exprLower, ipLower));</span>
-<span class="source-line-no">523</span><span id="line-523">                            }</span>
-<span class="source-line-no">524</span><span id="line-524">                        });</span>
-<span class="source-line-no">525</span><span id="line-525">                        isValid = ((results.size() == prefixes.size()) &amp;&amp; !results.contains(Boolean.TRUE));</span>
-<span class="source-line-no">526</span><span id="line-526">                    }</span>
-<span class="source-line-no">527</span><span id="line-527">                }</span>
-<span class="source-line-no">528</span><span id="line-528">            }</span>
-<span class="source-line-no">529</span><span id="line-529">        } catch (Exception e) {</span>
-<span class="source-line-no">530</span><span id="line-530">            isValid = false;</span>
-<span class="source-line-no">531</span><span id="line-531">        }</span>
-<span class="source-line-no">532</span><span id="line-532">        return isValid;</span>
-<span class="source-line-no">533</span><span id="line-533">    }</span>
-<span class="source-line-no">534</span><span id="line-534">}</span>
+<span class="source-line-no">467</span><span id="line-467">     * &lt;br&gt;</span>
+<span class="source-line-no">468</span><span id="line-468">     * &lt;b&gt;Note for IPv6:&lt;/b&gt; I used documentation found so it is really experimental!</span>
+<span class="source-line-no">469</span><span id="line-469">     *</span>
+<span class="source-line-no">470</span><span id="line-470">     * @param ip String expected to be a valid IP address.</span>
+<span class="source-line-no">471</span><span id="line-471">     * @return True only if the string pass all validations.</span>
+<span class="source-line-no">472</span><span id="line-472">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
+<span class="source-line-no">473</span><span id="line-473">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/InetAddressValidator.html"</span>
+<span class="source-line-no">474</span><span id="line-474">     * @see "https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html"</span>
+<span class="source-line-no">475</span><span id="line-475">     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_Orange_Tsai_Talk.pdf"</span>
+<span class="source-line-no">476</span><span id="line-476">     * @see "https://cheatsheetseries.owasp.org/assets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet_SSRF_Bible.pdf"</span>
+<span class="source-line-no">477</span><span id="line-477">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-For"</span>
+<span class="source-line-no">478</span><span id="line-478">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Forwarded"</span>
+<span class="source-line-no">479</span><span id="line-479">     * @see "https://ipcisco.com/lesson/ipv6-address/"</span>
+<span class="source-line-no">480</span><span id="line-480">     * @see "https://www.juniper.net/documentation/us/en/software/junos/interfaces-security-devices/topics/topic-map/security-interface-ipv4-ipv6-protocol.html"</span>
+<span class="source-line-no">481</span><span id="line-481">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.base/java/net/InetAddress.html#getByName(java.lang.String)"</span>
+<span class="source-line-no">482</span><span id="line-482">     * @see "https://www.arin.net/reference/research/statistics/address_filters/"</span>
+<span class="source-line-no">483</span><span id="line-483">     * @see "https://en.wikipedia.org/wiki/Multicast_address"</span>
+<span class="source-line-no">484</span><span id="line-484">     * @see "https://stackoverflow.com/a/5619409"</span>
+<span class="source-line-no">485</span><span id="line-485">     * @see "https://www.ripe.net/media/documents/ipv6-address-types.pdf"</span>
+<span class="source-line-no">486</span><span id="line-486">     * @see "https://www.iana.org/assignments/ipv6-unicast-address-assignments/ipv6-unicast-address-assignments.xhtml"</span>
+<span class="source-line-no">487</span><span id="line-487">     * @see "https://developer.android.com/reference/java/net/Inet6Address"</span>
+<span class="source-line-no">488</span><span id="line-488">     * @see "https://en.wikipedia.org/wiki/Unique_local_address"</span>
+<span class="source-line-no">489</span><span id="line-489">     */</span>
+<span class="source-line-no">490</span><span id="line-490">    public static boolean isPublicIPAddress(String ip) {</span>
+<span class="source-line-no">491</span><span id="line-491">        boolean isValid = false;</span>
+<span class="source-line-no">492</span><span id="line-492">        try {</span>
+<span class="source-line-no">493</span><span id="line-493">            //Quick validation on the string itself based on characters used to compose an IP v4/v6 address</span>
+<span class="source-line-no">494</span><span id="line-494">            if (Pattern.matches("[0-9a-fA-F:.]+", ip)) {</span>
+<span class="source-line-no">495</span><span id="line-495">                //If OK then use the dedicated InetAddressValidator from Apache Commons Validator</span>
+<span class="source-line-no">496</span><span id="line-496">                if (InetAddressValidator.getInstance().isValid(ip)) {</span>
+<span class="source-line-no">497</span><span id="line-497">                    //If OK then validate that is an public IP address</span>
+<span class="source-line-no">498</span><span id="line-498">                    //From Javadoc for "InetAddress.getByName": If a literal IP address is supplied, only the validity of the address format is checked.</span>
+<span class="source-line-no">499</span><span id="line-499">                    InetAddress addr = InetAddress.getByName(ip);</span>
+<span class="source-line-no">500</span><span id="line-500">                    isValid = (!addr.isAnyLocalAddress() &amp;&amp; !addr.isLinkLocalAddress()</span>
+<span class="source-line-no">501</span><span id="line-501">                            &amp;&amp; !addr.isLoopbackAddress() &amp;&amp; !addr.isMulticastAddress()</span>
+<span class="source-line-no">502</span><span id="line-502">                            &amp;&amp; !addr.isSiteLocalAddress());</span>
+<span class="source-line-no">503</span><span id="line-503">                    //If OK and the IP is an V6 one then make additional validation because the built-in Java API will let pass some V6 IP</span>
+<span class="source-line-no">504</span><span id="line-504">                    //For the prefix map, the start of the key indicates if the value is a regex or a string</span>
+<span class="source-line-no">505</span><span id="line-505">                    if (isValid &amp;&amp; (addr instanceof Inet6Address)) {</span>
+<span class="source-line-no">506</span><span id="line-506">                        Map&lt;String, String&gt; prefixes = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">507</span><span id="line-507">                        prefixes.put("REGEX_LOOPBACK", "^(0|:)+1$");</span>
+<span class="source-line-no">508</span><span id="line-508">                        prefixes.put("REGEX_UNIQUE-LOCAL-ADDRESSES", "^f(c|d)[a-f0-9]{2}:.*$");</span>
+<span class="source-line-no">509</span><span id="line-509">                        prefixes.put("STRING_LINK-LOCAL-ADDRESSES", "fe80:");</span>
+<span class="source-line-no">510</span><span id="line-510">                        prefixes.put("REGEX_TEREDO", "^2001:[0]*:.*$");</span>
+<span class="source-line-no">511</span><span id="line-511">                        prefixes.put("REGEX_BENCHMARKING", "^2001:[0]*2:.*$");</span>
+<span class="source-line-no">512</span><span id="line-512">                        prefixes.put("REGEX_ORCHID", "^2001:[0]*10:.*$");</span>
+<span class="source-line-no">513</span><span id="line-513">                        prefixes.put("STRING_DOCUMENTATION", "2001:db8:");</span>
+<span class="source-line-no">514</span><span id="line-514">                        prefixes.put("STRING_GLOBAL-UNICAST", "2000:");</span>
+<span class="source-line-no">515</span><span id="line-515">                        prefixes.put("REGEX_MULTICAST", "^ff[0-9]{2}:.*$");</span>
+<span class="source-line-no">516</span><span id="line-516">                        final List&lt;Boolean&gt; results = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">517</span><span id="line-517">                        final String ipLower = ip.trim().toLowerCase(Locale.ROOT);</span>
+<span class="source-line-no">518</span><span id="line-518">                        prefixes.forEach((addressType, expr) -&gt; {</span>
+<span class="source-line-no">519</span><span id="line-519">                            String exprLower = expr.trim().toLowerCase();</span>
+<span class="source-line-no">520</span><span id="line-520">                            if (addressType.startsWith("STRING_")) {</span>
+<span class="source-line-no">521</span><span id="line-521">                                results.add(ipLower.startsWith(exprLower));</span>
+<span class="source-line-no">522</span><span id="line-522">                            } else {</span>
+<span class="source-line-no">523</span><span id="line-523">                                results.add(Pattern.matches(exprLower, ipLower));</span>
+<span class="source-line-no">524</span><span id="line-524">                            }</span>
+<span class="source-line-no">525</span><span id="line-525">                        });</span>
+<span class="source-line-no">526</span><span id="line-526">                        isValid = ((results.size() == prefixes.size()) &amp;&amp; !results.contains(Boolean.TRUE));</span>
+<span class="source-line-no">527</span><span id="line-527">                    }</span>
+<span class="source-line-no">528</span><span id="line-528">                }</span>
+<span class="source-line-no">529</span><span id="line-529">            }</span>
+<span class="source-line-no">530</span><span id="line-530">        } catch (Exception e) {</span>
+<span class="source-line-no">531</span><span id="line-531">            isValid = false;</span>
+<span class="source-line-no">532</span><span id="line-532">        }</span>
+<span class="source-line-no">533</span><span id="line-533">        return isValid;</span>
+<span class="source-line-no">534</span><span id="line-534">    }</span>
+<span class="source-line-no">535</span><span id="line-535">}</span>
 
 
 
