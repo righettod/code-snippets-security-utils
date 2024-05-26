@@ -93,6 +93,7 @@
                     <target>${jdk.target}</target>
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
+                    <windowtitle>Javadoc</windowtitle>
                 </configuration>
             </plugin>
         </plugins>
