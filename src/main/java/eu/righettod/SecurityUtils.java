@@ -32,7 +32,9 @@ import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -531,5 +533,35 @@ public class SecurityUtils {
             isValid = false;
         }
         return isValid;
+    }
+
+    /**
+     * Compute a SHA256 hash from an input composed of a collection of strings.<br>
+     * This method take care to build the source string in a way to prevent this source string to be prone to abuse<br>
+     * targeting the different parts composing it.<br>
+     * Example of abuse:<br>
+     * <code>SHA256("Hello" + "My" + "World!!!")</code> is not equals to <code>SHA256("Hell" + "oMyW" + "orld!!!")</code>
+     *
+     * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
+     * @return The hash, as an array of bytes, to allow caller to convert it to the final representation wanted (HEX, Base64, etc.). If the collection passed is null or empty then the method return null.
+     * @throws Exception If any exception occurs
+     * @see "https://pentesterlab.com/badges/codereview"
+     */
+    public static byte[] computeHashNoProneToAbuseOnParts(List<String> parts) throws Exception {
+        byte[] hash = null;
+        if (parts != null && !parts.isEmpty()) {
+            //Ensure that not part is null
+            if (parts.stream().anyMatch(Objects::isNull)) {
+                throw new IllegalArgumentException("No part must be null!");
+            }
+            String separator = "|";
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            final StringBuilder buffer = new StringBuilder(separator);
+            parts.forEach(p -> {
+                buffer.append(p).append(separator);
+            });
+            hash = digest.digest(buffer.toString().getBytes(StandardCharsets.UTF_8));
+        }
+        return hash;
     }
 }

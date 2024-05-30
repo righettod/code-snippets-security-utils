@@ -220,5 +220,34 @@ public class TestSecurityUtils {
             assertTrue(SecurityUtils.isPublicIPAddress(ip), String.format(templateMsgIPFalsePositive, ip));
         });
     }
+
+    @Test
+    public void computeHashNoProneToAbuseOnParts() throws Exception {
+        final String msgError = "Hash are expected to be different!";
+        final String exceptionMsg = "No part must be null!";
+        //Test cases for valid input passed
+        List<String> reference = Arrays.asList("Hello from", " my amazing country", " in europe!");
+        List<String> abuse1 = Arrays.asList("Hello fro", "m my amazing count", "ry in europe!");
+        List<String> abuse2 = Arrays.asList("", "Hello from my amazing country in europe!", "");
+        //--Ensure that source string are the sames when parts are joined
+        assertEquals(String.join("", reference), String.join("", abuse1));
+        assertEquals(String.join("", reference), String.join("", abuse2));
+        assertEquals(String.join("", abuse1), String.join("", abuse2));
+        //--Compute and validate hashes
+        byte[] hashReference = SecurityUtils.computeHashNoProneToAbuseOnParts(reference);
+        byte[] hashAbuse1 = SecurityUtils.computeHashNoProneToAbuseOnParts(abuse1);
+        byte[] hashAbuse2 = SecurityUtils.computeHashNoProneToAbuseOnParts(abuse2);
+        assertFalse(Arrays.equals(hashReference, hashAbuse1), msgError);
+        assertFalse(Arrays.equals(hashReference, hashAbuse2), msgError);
+        assertFalse(Arrays.equals(hashAbuse1, hashAbuse2), msgError);
+        //Test case for invalid input passed
+        List<String> invalidInput = Arrays.asList("Hello from", " my amazing country", " in europe!", null);
+        IllegalArgumentException thrown = assertThrows(
+                IllegalArgumentException.class,
+                () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput),
+                "Expected IllegalArgumentException() to throw but invalid input was accepted!"
+        );
+        assertTrue(thrown.getMessage().contains(exceptionMsg));
+    }
 }
 
