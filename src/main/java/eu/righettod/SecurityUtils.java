@@ -540,7 +540,7 @@ public class SecurityUtils {
      * This method take care to build the source string in a way to prevent this source string to be prone to abuse<br>
      * targeting the different parts composing it.<br>
      * Example of abuse:<br>
-     * <code>SHA256("Hello" + "My" + "World!!!")</code> is not equals to <code>SHA256("Hell" + "oMyW" + "orld!!!")</code>
+     * <code>SHA256("Hello", "My", "World!!!")</code> is not equals to <code>SHA256("Hell", "oMyW", "orld!!!")</code>
      *
      * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
      * @return The hash, as an array of bytes, to allow caller to convert it to the final representation wanted (HEX, Base64, etc.). If the collection passed is null or empty then the method return null.
