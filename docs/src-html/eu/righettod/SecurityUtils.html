@@ -553,7 +553,7 @@
 <span class="source-line-no">540</span><span id="line-540">     * This method take care to build the source string in a way to prevent this source string to be prone to abuse&lt;br&gt;</span>
 <span class="source-line-no">541</span><span id="line-541">     * targeting the different parts composing it.&lt;br&gt;</span>
 <span class="source-line-no">542</span><span id="line-542">     * Example of abuse:&lt;br&gt;</span>
-<span class="source-line-no">543</span><span id="line-543">     * &lt;code&gt;SHA256("Hello" + "My" + "World!!!")&lt;/code&gt; is not equals to &lt;code&gt;SHA256("Hell" + "oMyW" + "orld!!!")&lt;/code&gt;</span>
+<span class="source-line-no">543</span><span id="line-543">     * &lt;code&gt;SHA256("Hello", "My", "World!!!")&lt;/code&gt; is not equals to &lt;code&gt;SHA256("Hell", "oMyW", "orld!!!")&lt;/code&gt;</span>
 <span class="source-line-no">544</span><span id="line-544">     *</span>
 <span class="source-line-no">545</span><span id="line-545">     * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.</span>
 <span class="source-line-no">546</span><span id="line-546">     * @return The hash, as an array of bytes, to allow caller to convert it to the final representation wanted (HEX, Base64, etc.). If the collection passed is null or empty then the method return null.</span>
