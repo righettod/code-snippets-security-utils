@@ -18,6 +18,10 @@
 > [!CAUTION]
 > I do not claim (and will never claim) that the proposed code is 100% effective, these are simply practical tests of ideas regarding security issues I have encountered.
 
+📍The project will not be deployed, as an artefact, into the Maven repository or the GitHub Package repository because the code provided is intended to be tailored to the business and technical context
+of the
+application.
+
 # Content & conventions
 
 📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
@@ -49,6 +53,7 @@ $ mvn clean test
 [INFO] Running eu.righettod.TestSecurityUtils
 [INFO] Tests run: 8, Failures: 0, Errors: 0, Skipped: 0
 ```
+
 
 
 
