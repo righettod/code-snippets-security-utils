@@ -573,7 +573,7 @@ public class SecurityUtils {
     /**
      * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.<br>
      * The code is based on the validation implemented into the OpenJDK 21, by the class <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java">java.util.prefs.XmlSupport</a></b>, in the method <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240">loadPrefsDoc()</a></b>.<br>
-     * The method also ensure that not Public Identifier is used to prevent potential bypasses of the validations.
+     * The method also ensure that no Public Identifier is used to prevent potential bypasses of the validations.
      *
      * @param xmlFilePath              Filename of the XML file to check.
      * @param allowedSystemIdentifiers List of URL allowed for System Identifier specified for any XSD/DTD references.
