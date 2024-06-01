@@ -90,7 +90,6 @@
                     <applyJavadocSecurityFix>true</applyJavadocSecurityFix>
                     <detectJavaApiLink>true</detectJavaApiLink>
                     <source>${jdk.target}</source>
-                    <target>${jdk.target}</target>
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
                     <windowtitle>Javadoc</windowtitle>

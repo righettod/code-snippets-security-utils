@@ -47,10 +47,11 @@ import java.util.zip.ZipFile;
 
 /**
  * Provides different utilities methods to apply processing from a security perspective.<br>
+ * These code snippet:
  * <ul>
- *     <li>These code snippet can be used, as "foundation", to customize the validation to the app context.</li>
- *     <li>These code snippet were implemented in a way to facilitate adding or removal of validations depending on usage context.</li>
- *     <li>These code snippet were centralized on one class to be able to enhance them across time as well as missing case/bug identification.</li>
+ *     <li>Can be used, as "foundation", to customize the validation to the app context.</li>
+ *     <li>Were implemented in a way to facilitate adding or removal of validations depending on usage context.</li>
+ *     <li>Were centralized on one class to be able to enhance them across time as well as <a href="https://github.com/righettod/code-snippets-security-utils/issues">missing case/bug identification</a>.</li>
  * </ul>
  */
 public class SecurityUtils {
