@@ -249,5 +249,31 @@ public class TestSecurityUtils {
         );
         assertTrue(thrown.getMessage().contains(exceptionMsg));
     }
+
+    @Test
+    public void isXMLOnlyUseAllowedXSDorDTD() throws Exception {
+        final String msgErrorFalseNegative = "Reference to an invalid DTD/XSD must be detected!";
+        final String msgErrorFalsePositive = "Reference to an invalid DTD/XSD must NOT be detected!";
+        //Non allowed DTD
+        String testFile = getTestFilePath("test-allowed-sid-in-dtd.xml");
+        boolean isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://righettod.eu/official.dtd"));
+        assertFalse(isSafe, msgErrorFalseNegative);
+        //Non allowed XSD
+        testFile = getTestFilePath("test-allowed-sid-in-xsd.xml");
+        isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://righettod.eu/official.xsd"));
+        assertFalse(isSafe, msgErrorFalseNegative);
+        //Non allowed Public Identifier
+        testFile = getTestFilePath("test-nonallowed-pid.xml");
+        isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://righettod.eu/official.dtd"));
+        assertFalse(isSafe, msgErrorFalseNegative);
+        //Allowed DTD
+        testFile = getTestFilePath("test-allowed-sid-in-dtd.xml");
+        isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://company.com/test.dtd"));
+        assertTrue(isSafe, msgErrorFalsePositive);
+        //Allowed XSD
+        testFile = getTestFilePath("test-allowed-sid-in-xsd.xml");
+        isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://company.com/test.xsd"));
+        assertTrue(isSafe, msgErrorFalsePositive);
+    }
 }
 

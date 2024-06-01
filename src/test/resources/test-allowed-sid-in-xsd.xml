@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE data [ <!ENTITY tty SYSTEM "https://company.com/test.xsd"> ]>
+<people_list>
+    <person>
+        <name>Fred Bloggs</name>
+        <birthdate>27/11/2008</birthdate>
+        <gender>&tty;</gender>
+    </person>
+</people_list>

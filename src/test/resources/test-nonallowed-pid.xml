@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE catalog
+        PUBLIC "-//OASIS/DTD Entity Resolution XML Catalog V1.0//EN"
+        "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<people_list>
+    <person>
+        <name>Fred Bloggs</name>
+        <birthdate>27/11/2008</birthdate>
+        <gender>Male</gender>
+    </person>
+</people_list>

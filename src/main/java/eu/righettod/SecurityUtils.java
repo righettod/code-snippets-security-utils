@@ -22,12 +22,17 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.w3c.dom.Document;
+import org.xml.sax.EntityResolver;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -563,5 +568,60 @@ public class SecurityUtils {
             hash = digest.digest(buffer.toString().getBytes(StandardCharsets.UTF_8));
         }
         return hash;
+    }
+
+    /**
+     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.<br>
+     * The code is based on the validation implemented into the OpenJDK 21, by the class <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java">java.util.prefs.XmlSupport</a></b>, in the method <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240">loadPrefsDoc()</a></b>.<br>
+     * The method also ensure that not Public Identifier is used to prevent potential bypasses of the validations.
+     *
+     * @param xmlFilePath              Filename of the XML file to check.
+     * @param allowedSystemIdentifiers List of URL allowed for System Identifier specified for any XSD/DTD references.
+     * @return True only if the file pass all validations.
+     * @see "https://www.w3schools.com/xml/prop_documenttype_systemid.asp"
+     * @see "https://www.ibm.com/docs/en/integration-bus/9.0.0?topic=doctypedecl-xml-systemid"
+     * @see "https://www.liquid-technologies.com/Reference/Glossary/XML_DocType.html"
+     * @see "https://www.xml.com/pub/98/08/xmlqna0.html"
+     * @see "https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L397"
+     * @see "https://en.wikipedia.org/wiki/Formal_Public_Identifier"
+     */
+    public static boolean isXMLOnlyUseAllowedXSDorDTD(String xmlFilePath, final List<String> allowedSystemIdentifiers) {
+        boolean isSafe = false;
+        final String errorTemplate = "Non allowed %s ID detected!";
+        final String emptyFakeDTD = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><!ELEMENT dummy EMPTY>";
+        final String emptyFakeXSD = "<xs:schema xmlns:xs=\"http://www.w3.org/2001/XMLSchema\"> <xs:element name=\"dummy\"/></xs:schema>";
+
+        if (allowedSystemIdentifiers == null || allowedSystemIdentifiers.isEmpty()) {
+            throw new IllegalArgumentException("At least one SID must be specified!");
+        }
+        File xmlFile = new File(xmlFilePath);
+        if (xmlFile.exists() && xmlFile.canRead() && xmlFile.isFile()) {
+            try {
+                EntityResolver resolverValidator = (publicId, systemId) -> {
+                    if (publicId != null) {
+                        throw new SAXException(String.format(errorTemplate, "PUBLIC"));
+                    }
+                    if (!allowedSystemIdentifiers.contains(systemId)) {
+                        throw new SAXException(String.format(errorTemplate, "SYSTEM"));
+                    }
+                    //If it is OK then return a empty DTD/XSD
+                    return new InputSource(new StringReader(systemId.toLowerCase().endsWith(".dtd") ? emptyFakeDTD : emptyFakeXSD));
+                };
+                DocumentBuilderFactory dbfInstance = DocumentBuilderFactory.newInstance();
+                dbfInstance.setIgnoringElementContentWhitespace(true);
+                dbfInstance.setXIncludeAware(false);
+                dbfInstance.setValidating(false);
+                dbfInstance.setCoalescing(true);
+                dbfInstance.setIgnoringComments(false);
+                DocumentBuilder builder = dbfInstance.newDocumentBuilder();
+                builder.setEntityResolver(resolverValidator);
+                Document doc = builder.parse(xmlFile);
+                isSafe = (doc != null);
+            } catch (SAXException | IOException | ParserConfigurationException e) {
+                isSafe = false;
+            }
+        }
+
+        return isSafe;
     }
 }
