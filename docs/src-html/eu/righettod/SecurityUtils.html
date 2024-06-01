@@ -586,7 +586,7 @@
 <span class="source-line-no">573</span><span id="line-573">    /**</span>
 <span class="source-line-no">574</span><span id="line-574">     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.&lt;br&gt;</span>
 <span class="source-line-no">575</span><span id="line-575">     * The code is based on the validation implemented into the OpenJDK 21, by the class &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java"&gt;java.util.prefs.XmlSupport&lt;/a&gt;&lt;/b&gt;, in the method &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240"&gt;loadPrefsDoc()&lt;/a&gt;&lt;/b&gt;.&lt;br&gt;</span>
-<span class="source-line-no">576</span><span id="line-576">     * The method also ensure that not Public Identifier is used to prevent potential bypasses of the validations.</span>
+<span class="source-line-no">576</span><span id="line-576">     * The method also ensure that no Public Identifier is used to prevent potential bypasses of the validations.</span>
 <span class="source-line-no">577</span><span id="line-577">     *</span>
 <span class="source-line-no">578</span><span id="line-578">     * @param xmlFilePath              Filename of the XML file to check.</span>
 <span class="source-line-no">579</span><span id="line-579">     * @param allowedSystemIdentifiers List of URL allowed for System Identifier specified for any XSD/DTD references.</span>
