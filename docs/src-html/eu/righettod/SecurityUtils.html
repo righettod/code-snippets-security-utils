@@ -13,47 +13,47 @@
 <div class="source-container">
 <pre><span class="source-line-no">001</span><span id="line-1">package eu.righettod;</span>
 <span class="source-line-no">002</span><span id="line-2"></span>
-<span class="source-line-no">003</span><span id="line-3">import org.apache.commons.validator.routines.InetAddressValidator;</span>
-<span class="source-line-no">004</span><span id="line-4">import org.apache.pdfbox.Loader;</span>
-<span class="source-line-no">005</span><span id="line-5">import org.apache.pdfbox.pdmodel.PDDocument;</span>
-<span class="source-line-no">006</span><span id="line-6">import org.apache.pdfbox.pdmodel.PDDocumentCatalog;</span>
-<span class="source-line-no">007</span><span id="line-7">import org.apache.pdfbox.pdmodel.PDDocumentInformation;</span>
-<span class="source-line-no">008</span><span id="line-8">import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;</span>
-<span class="source-line-no">009</span><span id="line-9">import org.apache.pdfbox.pdmodel.common.PDMetadata;</span>
-<span class="source-line-no">010</span><span id="line-10">import org.apache.pdfbox.pdmodel.interactive.action.*;</span>
-<span class="source-line-no">011</span><span id="line-11">import org.apache.pdfbox.pdmodel.interactive.annotation.AnnotationFilter;</span>
-<span class="source-line-no">012</span><span id="line-12">import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;</span>
-<span class="source-line-no">013</span><span id="line-13">import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;</span>
-<span class="source-line-no">014</span><span id="line-14">import org.apache.poi.poifs.filesystem.DirectoryEntry;</span>
-<span class="source-line-no">015</span><span id="line-15">import org.apache.poi.poifs.filesystem.POIFSFileSystem;</span>
-<span class="source-line-no">016</span><span id="line-16">import org.apache.poi.poifs.macros.VBAMacroReader;</span>
-<span class="source-line-no">017</span><span id="line-17">import org.apache.tika.detect.DefaultDetector;</span>
-<span class="source-line-no">018</span><span id="line-18">import org.apache.tika.detect.Detector;</span>
-<span class="source-line-no">019</span><span id="line-19">import org.apache.tika.io.TemporaryResources;</span>
-<span class="source-line-no">020</span><span id="line-20">import org.apache.tika.io.TikaInputStream;</span>
-<span class="source-line-no">021</span><span id="line-21">import org.apache.tika.metadata.Metadata;</span>
-<span class="source-line-no">022</span><span id="line-22">import org.apache.tika.mime.MediaType;</span>
-<span class="source-line-no">023</span><span id="line-23">import org.apache.tika.mime.MimeTypes;</span>
-<span class="source-line-no">024</span><span id="line-24">import org.w3c.dom.Document;</span>
-<span class="source-line-no">025</span><span id="line-25">import org.xml.sax.EntityResolver;</span>
-<span class="source-line-no">026</span><span id="line-26">import org.xml.sax.InputSource;</span>
-<span class="source-line-no">027</span><span id="line-27">import org.xml.sax.SAXException;</span>
-<span class="source-line-no">028</span><span id="line-28"></span>
-<span class="source-line-no">029</span><span id="line-29">import javax.xml.parsers.DocumentBuilder;</span>
-<span class="source-line-no">030</span><span id="line-30">import javax.xml.parsers.DocumentBuilderFactory;</span>
-<span class="source-line-no">031</span><span id="line-31">import javax.xml.parsers.ParserConfigurationException;</span>
-<span class="source-line-no">032</span><span id="line-32">import java.io.ByteArrayInputStream;</span>
-<span class="source-line-no">033</span><span id="line-33">import java.io.File;</span>
-<span class="source-line-no">034</span><span id="line-34">import java.io.IOException;</span>
-<span class="source-line-no">035</span><span id="line-35">import java.io.StringReader;</span>
-<span class="source-line-no">036</span><span id="line-36">import java.net.Inet6Address;</span>
-<span class="source-line-no">037</span><span id="line-37">import java.net.InetAddress;</span>
-<span class="source-line-no">038</span><span id="line-38">import java.net.MalformedURLException;</span>
-<span class="source-line-no">039</span><span id="line-39">import java.net.URL;</span>
-<span class="source-line-no">040</span><span id="line-40">import java.nio.charset.StandardCharsets;</span>
-<span class="source-line-no">041</span><span id="line-41">import java.nio.file.Files;</span>
-<span class="source-line-no">042</span><span id="line-42">import java.security.MessageDigest;</span>
-<span class="source-line-no">043</span><span id="line-43">import java.util.*;</span>
+<span class="source-line-no">003</span><span id="line-3">import org.apache.commons.csv.CSVFormat;</span>
+<span class="source-line-no">004</span><span id="line-4">import org.apache.commons.csv.CSVRecord;</span>
+<span class="source-line-no">005</span><span id="line-5">import org.apache.commons.validator.routines.InetAddressValidator;</span>
+<span class="source-line-no">006</span><span id="line-6">import org.apache.pdfbox.Loader;</span>
+<span class="source-line-no">007</span><span id="line-7">import org.apache.pdfbox.pdmodel.PDDocument;</span>
+<span class="source-line-no">008</span><span id="line-8">import org.apache.pdfbox.pdmodel.PDDocumentCatalog;</span>
+<span class="source-line-no">009</span><span id="line-9">import org.apache.pdfbox.pdmodel.PDDocumentInformation;</span>
+<span class="source-line-no">010</span><span id="line-10">import org.apache.pdfbox.pdmodel.PDDocumentNameDictionary;</span>
+<span class="source-line-no">011</span><span id="line-11">import org.apache.pdfbox.pdmodel.common.PDMetadata;</span>
+<span class="source-line-no">012</span><span id="line-12">import org.apache.pdfbox.pdmodel.interactive.action.*;</span>
+<span class="source-line-no">013</span><span id="line-13">import org.apache.pdfbox.pdmodel.interactive.annotation.AnnotationFilter;</span>
+<span class="source-line-no">014</span><span id="line-14">import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;</span>
+<span class="source-line-no">015</span><span id="line-15">import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;</span>
+<span class="source-line-no">016</span><span id="line-16">import org.apache.poi.poifs.filesystem.DirectoryEntry;</span>
+<span class="source-line-no">017</span><span id="line-17">import org.apache.poi.poifs.filesystem.POIFSFileSystem;</span>
+<span class="source-line-no">018</span><span id="line-18">import org.apache.poi.poifs.macros.VBAMacroReader;</span>
+<span class="source-line-no">019</span><span id="line-19">import org.apache.tika.detect.DefaultDetector;</span>
+<span class="source-line-no">020</span><span id="line-20">import org.apache.tika.detect.Detector;</span>
+<span class="source-line-no">021</span><span id="line-21">import org.apache.tika.io.TemporaryResources;</span>
+<span class="source-line-no">022</span><span id="line-22">import org.apache.tika.io.TikaInputStream;</span>
+<span class="source-line-no">023</span><span id="line-23">import org.apache.tika.metadata.Metadata;</span>
+<span class="source-line-no">024</span><span id="line-24">import org.apache.tika.mime.MediaType;</span>
+<span class="source-line-no">025</span><span id="line-25">import org.apache.tika.mime.MimeTypes;</span>
+<span class="source-line-no">026</span><span id="line-26">import org.w3c.dom.Document;</span>
+<span class="source-line-no">027</span><span id="line-27">import org.xml.sax.EntityResolver;</span>
+<span class="source-line-no">028</span><span id="line-28">import org.xml.sax.InputSource;</span>
+<span class="source-line-no">029</span><span id="line-29">import org.xml.sax.SAXException;</span>
+<span class="source-line-no">030</span><span id="line-30"></span>
+<span class="source-line-no">031</span><span id="line-31">import javax.xml.parsers.DocumentBuilder;</span>
+<span class="source-line-no">032</span><span id="line-32">import javax.xml.parsers.DocumentBuilderFactory;</span>
+<span class="source-line-no">033</span><span id="line-33">import javax.xml.parsers.ParserConfigurationException;</span>
+<span class="source-line-no">034</span><span id="line-34">import java.io.*;</span>
+<span class="source-line-no">035</span><span id="line-35">import java.net.Inet6Address;</span>
+<span class="source-line-no">036</span><span id="line-36">import java.net.InetAddress;</span>
+<span class="source-line-no">037</span><span id="line-37">import java.net.MalformedURLException;</span>
+<span class="source-line-no">038</span><span id="line-38">import java.net.URL;</span>
+<span class="source-line-no">039</span><span id="line-39">import java.nio.charset.StandardCharsets;</span>
+<span class="source-line-no">040</span><span id="line-40">import java.nio.file.Files;</span>
+<span class="source-line-no">041</span><span id="line-41">import java.security.MessageDigest;</span>
+<span class="source-line-no">042</span><span id="line-42">import java.util.*;</span>
+<span class="source-line-no">043</span><span id="line-43">import java.util.concurrent.atomic.AtomicInteger;</span>
 <span class="source-line-no">044</span><span id="line-44">import java.util.regex.Pattern;</span>
 <span class="source-line-no">045</span><span id="line-45">import java.util.zip.ZipEntry;</span>
 <span class="source-line-no">046</span><span id="line-46">import java.util.zip.ZipFile;</span>
@@ -638,7 +638,51 @@
 <span class="source-line-no">625</span><span id="line-625"></span>
 <span class="source-line-no">626</span><span id="line-626">        return isSafe;</span>
 <span class="source-line-no">627</span><span id="line-627">    }</span>
-<span class="source-line-no">628</span><span id="line-628">}</span>
+<span class="source-line-no">628</span><span id="line-628"></span>
+<span class="source-line-no">629</span><span id="line-629">    /**</span>
+<span class="source-line-no">630</span><span id="line-630">     * Apply a collection of validations on a EXCEL CSV file provided (file was expected to be opened in Microsoft EXCEL):&lt;br&gt;</span>
+<span class="source-line-no">631</span><span id="line-631">     * - Real CSV file.&lt;br&gt;</span>
+<span class="source-line-no">632</span><span id="line-632">     * - Do not contains any payload related to a CSV injections.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">633</span><span id="line-633">     * Ensure that, if Apache Commons CSV does not find any record then, the file will be considered as NOT safe (prevent potential bypasses).&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">634</span><span id="line-634">     * &lt;b&gt;Note:&lt;/b&gt; Record delimiter used is the &lt;code&gt;,&lt;/code&gt; (comma) character. See the Apache Commons CSV reference provided for EXCEL.&lt;br&gt;</span>
+<span class="source-line-no">635</span><span id="line-635">     *</span>
+<span class="source-line-no">636</span><span id="line-636">     * @param csvFilePath Filename of the CSV file to check.</span>
+<span class="source-line-no">637</span><span id="line-637">     * @return True only if the file pass all validations.</span>
+<span class="source-line-no">638</span><span id="line-638">     * @see "https://commons.apache.org/proper/commons-csv/"</span>
+<span class="source-line-no">639</span><span id="line-639">     * @see "https://commons.apache.org/proper/commons-csv/apidocs/org/apache/commons/csv/CSVFormat.html#EXCEL"</span>
+<span class="source-line-no">640</span><span id="line-640">     * @see "https://www.we45.com/post/your-excel-sheets-are-not-safe-heres-how-to-beat-csv-injection"</span>
+<span class="source-line-no">641</span><span id="line-641">     * @see "https://www.whiteoaksecurity.com/blog/2020-4-23-csv-injection-whats-the-risk/"</span>
+<span class="source-line-no">642</span><span id="line-642">     * @see "https://book.hacktricks.xyz/pentesting-web/formula-csv-doc-latex-ghostscript-injection"</span>
+<span class="source-line-no">643</span><span id="line-643">     * @see "https://owasp.org/www-community/attacks/CSV_Injection"</span>
+<span class="source-line-no">644</span><span id="line-644">     * @see "https://payatu.com/blog/csv-injection-basic-to-exploit/"</span>
+<span class="source-line-no">645</span><span id="line-645">     * @see "https://cwe.mitre.org/data/definitions/1236.html"</span>
+<span class="source-line-no">646</span><span id="line-646">     */</span>
+<span class="source-line-no">647</span><span id="line-647">    public static boolean isExcelCSVSafe(String csvFilePath) {</span>
+<span class="source-line-no">648</span><span id="line-648">        boolean isSafe;</span>
+<span class="source-line-no">649</span><span id="line-649">        final AtomicInteger recordCount = new AtomicInteger();</span>
+<span class="source-line-no">650</span><span id="line-650">        final List&lt;Character&gt; payloadDetectionCharacters = List.of('=', '+', '@', '-', '\r', '\t');</span>
+<span class="source-line-no">651</span><span id="line-651"></span>
+<span class="source-line-no">652</span><span id="line-652">        try {</span>
+<span class="source-line-no">653</span><span id="line-653">            final List&lt;String&gt; payloadsIdentified = new ArrayList&lt;&gt;();</span>
+<span class="source-line-no">654</span><span id="line-654">            try (Reader in = new FileReader(csvFilePath)) {</span>
+<span class="source-line-no">655</span><span id="line-655">                Iterable&lt;CSVRecord&gt; records = CSVFormat.EXCEL.parse(in);</span>
+<span class="source-line-no">656</span><span id="line-656">                records.forEach(record -&gt; {</span>
+<span class="source-line-no">657</span><span id="line-657">                    record.forEach(recordValue -&gt; {</span>
+<span class="source-line-no">658</span><span id="line-658">                        if (recordValue != null &amp;&amp; !recordValue.trim().isEmpty() &amp;&amp; payloadDetectionCharacters.contains(recordValue.trim().charAt(0))) {</span>
+<span class="source-line-no">659</span><span id="line-659">                            payloadsIdentified.add(recordValue);</span>
+<span class="source-line-no">660</span><span id="line-660">                        }</span>
+<span class="source-line-no">661</span><span id="line-661">                        recordCount.getAndIncrement();</span>
+<span class="source-line-no">662</span><span id="line-662">                    });</span>
+<span class="source-line-no">663</span><span id="line-663">                });</span>
+<span class="source-line-no">664</span><span id="line-664">            }</span>
+<span class="source-line-no">665</span><span id="line-665">            isSafe = (payloadsIdentified.isEmpty() &amp;&amp; recordCount.get() &gt; 0);</span>
+<span class="source-line-no">666</span><span id="line-666">        } catch (Exception e) {</span>
+<span class="source-line-no">667</span><span id="line-667">            isSafe = false;</span>
+<span class="source-line-no">668</span><span id="line-668">        }</span>
+<span class="source-line-no">669</span><span id="line-669"></span>
+<span class="source-line-no">670</span><span id="line-670">        return isSafe;</span>
+<span class="source-line-no">671</span><span id="line-671">    }</span>
+<span class="source-line-no">672</span><span id="line-672">}</span>
 
 
 
