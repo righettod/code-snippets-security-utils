@@ -542,10 +542,10 @@ public class SecurityUtils {
     }
 
     /**
-     * Compute a SHA256 hash from an input composed of a collection of strings.<br>
-     * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.<br>
+     * Compute a SHA256 hash from an input composed of a collection of strings.<br><br>
+     * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.<br><br>
      * Example of possible abuse without precautions applied during the hash calculation logic:<br>
-     * Hash of <code>SHA256("Hello", "My", "World!!!")</code> will be equals to the hash of <code>SHA256("Hell", "oMyW", "orld!!!")</code>.<br>
+     * Hash of <code>SHA256("Hello", "My", "World!!!")</code> will be equals to the hash of <code>SHA256("Hell", "oMyW", "orld!!!")</code>.<br><br>
      * This method ensure that both hash above will be different.
      *
      * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
@@ -572,8 +572,8 @@ public class SecurityUtils {
     }
 
     /**
-     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.<br>
-     * The code is based on the validation implemented into the OpenJDK 21, by the class <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java">java.util.prefs.XmlSupport</a></b>, in the method <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240">loadPrefsDoc()</a></b>.<br>
+     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.<br><br>
+     * The code is based on the validation implemented into the OpenJDK 21, by the class <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java">java.util.prefs.XmlSupport</a></b>, in the method <b><a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240">loadPrefsDoc()</a></b>.<br><br>
      * The method also ensure that no Public Identifier is used to prevent potential bypasses of the validations.
      *
      * @param xmlFilePath              Filename of the XML file to check.
