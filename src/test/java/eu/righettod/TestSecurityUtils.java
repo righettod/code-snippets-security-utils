@@ -1,6 +1,7 @@
 package eu.righettod;
 
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Test;
@@ -251,7 +252,7 @@ public class TestSecurityUtils {
     }
 
     @Test
-    public void isXMLOnlyUseAllowedXSDorDTD() throws Exception {
+    public void isXMLOnlyUseAllowedXSDorDTD() {
         final String msgErrorFalseNegative = "Reference to an invalid DTD/XSD must be detected!";
         final String msgErrorFalsePositive = "Reference to an invalid DTD/XSD must NOT be detected!";
         //Non allowed DTD
@@ -274,6 +275,31 @@ public class TestSecurityUtils {
         testFile = getTestFilePath("test-allowed-sid-in-xsd.xml");
         isSafe = SecurityUtils.isXMLOnlyUseAllowedXSDorDTD(testFile, List.of("https://company.com/test.xsd"));
         assertTrue(isSafe, msgErrorFalsePositive);
+    }
+
+    @Test
+    public void isExcelCSVSafe() throws IOException {
+        String testFile;
+        boolean isSafe;
+        String caseIdentifier;
+
+        //Test unsafe CSV cases
+        int unsafeTestCaseCount = 5;
+        for (int caseId = 0; caseId < unsafeTestCaseCount; caseId++) {
+            caseIdentifier = StringUtils.leftPad(Integer.toString(caseId), 2, "0");
+            testFile = getTestFilePath(String.format("test-excel-csv-unsafe%s.csv", caseIdentifier));
+            isSafe = SecurityUtils.isExcelCSVSafe(testFile);
+            assertFalse(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, StringUtils.leftPad(Integer.toString(caseId), 2, "0")));
+        }
+        //Test safe CSV cases
+        int safeTestCaseCount = 4;
+        for (int caseId = 0; caseId < safeTestCaseCount; caseId++) {
+            caseIdentifier = StringUtils.leftPad(Integer.toString(caseId), 2, "0");
+            testFile = getTestFilePath(String.format("test-excel-csv-safe%s.csv", caseIdentifier));
+            isSafe = SecurityUtils.isExcelCSVSafe(testFile);
+            assertTrue(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
+        }
+
     }
 }
 

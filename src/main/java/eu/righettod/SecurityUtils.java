@@ -1,5 +1,7 @@
 package eu.righettod;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -29,10 +31,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.StringReader;
+import java.io.*;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
@@ -41,6 +40,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -621,6 +621,50 @@ public class SecurityUtils {
             } catch (SAXException | IOException | ParserConfigurationException e) {
                 isSafe = false;
             }
+        }
+
+        return isSafe;
+    }
+
+    /**
+     * Apply a collection of validations on a EXCEL CSV file provided (file was expected to be opened in Microsoft EXCEL):<br>
+     * - Real CSV file.<br>
+     * - Do not contains any payload related to a CSV injections.<br><br>
+     * Ensure that, if Apache Commons CSV does not find any record then, the file will be considered as NOT safe (prevent potential bypasses).<br><br>
+     * <b>Note:</b> Record delimiter used is the <code>,</code> (comma) character. See the Apache Commons CSV reference provided for EXCEL.<br>
+     *
+     * @param csvFilePath Filename of the CSV file to check.
+     * @return True only if the file pass all validations.
+     * @see "https://commons.apache.org/proper/commons-csv/"
+     * @see "https://commons.apache.org/proper/commons-csv/apidocs/org/apache/commons/csv/CSVFormat.html#EXCEL"
+     * @see "https://www.we45.com/post/your-excel-sheets-are-not-safe-heres-how-to-beat-csv-injection"
+     * @see "https://www.whiteoaksecurity.com/blog/2020-4-23-csv-injection-whats-the-risk/"
+     * @see "https://book.hacktricks.xyz/pentesting-web/formula-csv-doc-latex-ghostscript-injection"
+     * @see "https://owasp.org/www-community/attacks/CSV_Injection"
+     * @see "https://payatu.com/blog/csv-injection-basic-to-exploit/"
+     * @see "https://cwe.mitre.org/data/definitions/1236.html"
+     */
+    public static boolean isExcelCSVSafe(String csvFilePath) {
+        boolean isSafe;
+        final AtomicInteger recordCount = new AtomicInteger();
+        final List<Character> payloadDetectionCharacters = List.of('=', '+', '@', '-', '\r', '\t');
+
+        try {
+            final List<String> payloadsIdentified = new ArrayList<>();
+            try (Reader in = new FileReader(csvFilePath)) {
+                Iterable<CSVRecord> records = CSVFormat.EXCEL.parse(in);
+                records.forEach(record -> {
+                    record.forEach(recordValue -> {
+                        if (recordValue != null && !recordValue.trim().isEmpty() && payloadDetectionCharacters.contains(recordValue.trim().charAt(0))) {
+                            payloadsIdentified.add(recordValue);
+                        }
+                        recordCount.getAndIncrement();
+                    });
+                });
+            }
+            isSafe = (payloadsIdentified.isEmpty() && recordCount.get() > 0);
+        } catch (Exception e) {
+            isSafe = false;
         }
 
         return isSafe;

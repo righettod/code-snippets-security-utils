@@ -1,0 +1,2 @@
+"FIELD1","FIELD2"
+"Dom","@SUM(1+9)*cmd|' /C calc'!A0"
