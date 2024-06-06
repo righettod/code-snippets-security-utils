@@ -555,10 +555,10 @@
 <span class="source-line-no">542</span><span id="line-542">    }</span>
 <span class="source-line-no">543</span><span id="line-543"></span>
 <span class="source-line-no">544</span><span id="line-544">    /**</span>
-<span class="source-line-no">545</span><span id="line-545">     * Compute a SHA256 hash from an input composed of a collection of strings.&lt;br&gt;</span>
-<span class="source-line-no">546</span><span id="line-546">     * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.&lt;br&gt;</span>
+<span class="source-line-no">545</span><span id="line-545">     * Compute a SHA256 hash from an input composed of a collection of strings.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">546</span><span id="line-546">     * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.&lt;br&gt;&lt;br&gt;</span>
 <span class="source-line-no">547</span><span id="line-547">     * Example of possible abuse without precautions applied during the hash calculation logic:&lt;br&gt;</span>
-<span class="source-line-no">548</span><span id="line-548">     * Hash of &lt;code&gt;SHA256("Hello", "My", "World!!!")&lt;/code&gt; will be equals to the hash of &lt;code&gt;SHA256("Hell", "oMyW", "orld!!!")&lt;/code&gt;.&lt;br&gt;</span>
+<span class="source-line-no">548</span><span id="line-548">     * Hash of &lt;code&gt;SHA256("Hello", "My", "World!!!")&lt;/code&gt; will be equals to the hash of &lt;code&gt;SHA256("Hell", "oMyW", "orld!!!")&lt;/code&gt;.&lt;br&gt;&lt;br&gt;</span>
 <span class="source-line-no">549</span><span id="line-549">     * This method ensure that both hash above will be different.</span>
 <span class="source-line-no">550</span><span id="line-550">     *</span>
 <span class="source-line-no">551</span><span id="line-551">     * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.</span>
@@ -585,8 +585,8 @@
 <span class="source-line-no">572</span><span id="line-572">    }</span>
 <span class="source-line-no">573</span><span id="line-573"></span>
 <span class="source-line-no">574</span><span id="line-574">    /**</span>
-<span class="source-line-no">575</span><span id="line-575">     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.&lt;br&gt;</span>
-<span class="source-line-no">576</span><span id="line-576">     * The code is based on the validation implemented into the OpenJDK 21, by the class &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java"&gt;java.util.prefs.XmlSupport&lt;/a&gt;&lt;/b&gt;, in the method &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240"&gt;loadPrefsDoc()&lt;/a&gt;&lt;/b&gt;.&lt;br&gt;</span>
+<span class="source-line-no">575</span><span id="line-575">     * Ensure that an XML file only uses DTD/XSD references (called System Identifier) present in the allowed list provided.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">576</span><span id="line-576">     * The code is based on the validation implemented into the OpenJDK 21, by the class &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java"&gt;java.util.prefs.XmlSupport&lt;/a&gt;&lt;/b&gt;, in the method &lt;b&gt;&lt;a href="https://github.com/openjdk/jdk/blob/jdk-21%2B35/src/java.prefs/share/classes/java/util/prefs/XmlSupport.java#L240"&gt;loadPrefsDoc()&lt;/a&gt;&lt;/b&gt;.&lt;br&gt;&lt;br&gt;</span>
 <span class="source-line-no">577</span><span id="line-577">     * The method also ensure that no Public Identifier is used to prevent potential bypasses of the validations.</span>
 <span class="source-line-no">578</span><span id="line-578">     *</span>
 <span class="source-line-no">579</span><span id="line-579">     * @param xmlFilePath              Filename of the XML file to check.</span>
