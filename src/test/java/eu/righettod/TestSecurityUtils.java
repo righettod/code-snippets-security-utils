@@ -6,15 +6,15 @@ import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.junit.jupiter.api.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.security.SecureRandom;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -31,6 +31,8 @@ public class TestSecurityUtils {
     private static final String TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE = "File '%s' must be detected as NOT safe!";
 
     private static final String TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE = "File '%s' must be detected as safe!";
+
+    private final SecureRandom secureRandom = new SecureRandom();
 
     private String getTestFilePath(String testFileName) {
         return String.format("%s/%s", TEST_DATA_DIRECTORY, testFileName);
@@ -299,7 +301,50 @@ public class TestSecurityUtils {
             isSafe = SecurityUtils.isExcelCSVSafe(testFile);
             assertTrue(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
         }
+    }
 
+    @Test
+    public void ensureSerializedObjectIntegrity() throws Exception {
+        //Generate test material
+        byte[] secret = new byte[32];
+        secureRandom.nextBytes(secret);
+        ByteArrayOutputStream testUserSerializedBytes = new ByteArrayOutputStream();
+        try (ObjectOutputStream oos = new ObjectOutputStream(testUserSerializedBytes)) {
+            oos.writeObject(new User(new Date(), "RIGHETTOD"));
+            oos.flush();
+        }
+        Base64.Encoder b64Encoder = Base64.getEncoder();
+        Base64.Decoder b64Decoder = Base64.getDecoder();
+        String testUserSerializedBytesEncoded = b64Encoder.encodeToString(testUserSerializedBytes.toByteArray());
+        //Test "protect" processing
+        Map<String, Object> results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.PROTECT, testUserSerializedBytesEncoded, secret);
+        assertEquals(3, results.size());
+        assertEquals(ProcessingMode.PROTECT.toString(), results.get("PROCESSING_MODE"));
+        assertEquals(Boolean.TRUE, results.get("STATUS"));
+        String protectedSerializedObject = (String) results.get("RESULT");
+        String[] parts = protectedSerializedObject.split(":");
+        assertEquals(2, parts.length);
+        assertEquals(testUserSerializedBytesEncoded, parts[0]);
+        assertNotEquals(0, b64Decoder.decode(parts[1]).length);
+        //Test "validate" processing
+        //--Case validation succeed (HMAC match)
+        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.VALIDATE, protectedSerializedObject, secret);
+        assertEquals(3, results.size());
+        assertEquals(ProcessingMode.VALIDATE.toString(), results.get("PROCESSING_MODE"));
+        assertEquals(Boolean.TRUE, results.get("STATUS"));
+        assertEquals(protectedSerializedObject, results.get("RESULT"));
+        //--Case validation failed due to malicious serialized object provided (HMAC not match)
+        parts = protectedSerializedObject.split(":");
+        String encodedSerializedObject = parts[0];
+        String encodedHMAC = parts[1];
+        byte[] alteredObject = b64Decoder.decode(encodedSerializedObject);
+        alteredObject[0] += 1;
+        encodedSerializedObject = b64Encoder.encodeToString(alteredObject);
+        String alteredInput = encodedSerializedObject + ":" + encodedHMAC;
+        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.VALIDATE, alteredInput, secret);
+        assertEquals(ProcessingMode.VALIDATE.toString(), results.get("PROCESSING_MODE"));
+        assertEquals(Boolean.FALSE, results.get("STATUS"));
+        assertNotEquals(alteredInput, results.get("RESULT"));
     }
 }
 

@@ -28,6 +28,8 @@ import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -668,5 +670,70 @@ public class SecurityUtils {
         }
 
         return isSafe;
+    }
+
+    /**
+     * Provide a way to add an integrity marker (<a href="https://cryptobook.nakov.com/mac-and-key-derivation">HMAC</a>) to a serialized object serialized using the <a href="https://www.baeldung.com/java-serialization">java native system</a> (binary).<br>
+     * The goal is to provide <b>a temporary workaround</b> to try to prevent deserialization attacks and give time to move to a text-based serialization approach.
+     *
+     * @param processingMode Define the mode of processing i.e. protect or validate.
+     * @param input          When the processing mode is "protect" than the expected input (string) is a java serialized object encoded in Base64 otherwise (processing mode is "validate") expected input is the output of this method when the "protect" mode was used.
+     * @param secret         Secret to use to compute the HMAC.
+     * @return A map with the following keys: <ul><li><b>PROCESSING_MODE</b>: Processing mode used to compute the result.</li><li><b>STATUS</b>: A boolean indicating if the processing was successful or not.</li><li><b>RESULT</b>: Always contains a string representing the protected serialized object in the format <code>[SERIALIZED_OBJECT_BASE64_ENCODED]:[SERIALIZED_OBJECT_HMAC_BASE64_ENCODED]</code>.</li></ul>
+     * @throws Exception If any exception occurs
+     * @see "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html"
+     * @see "https://owasp.org/www-project-top-ten/2017/A8_2017-Insecure_Deserialization"
+     * @see "https://portswigger.net/web-security/deserialization"
+     * @see "https://www.baeldung.com/java-serialization-approaches"
+     * @see "https://www.baeldung.com/java-serialization"
+     * @see "https://cryptobook.nakov.com/mac-and-key-derivation"
+     * @see "https://smattme.com/posts/how-to-generate-hmac-signature-in-java/"
+     */
+    public static Map<String, Object> ensureSerializedObjectIntegrity(ProcessingMode processingMode, String input, byte[] secret) throws Exception {
+        Map<String, Object> results;
+        String resultFormatTemplate = "%s:%s";
+        //Verify input provided to be consistent
+        if (processingMode == null) {
+            throw new IllegalArgumentException("The processing mode is mandatory!");
+        }
+        if (input == null || input.trim().isEmpty()) {
+            throw new IllegalArgumentException("Input data is mandatory!");
+        }
+        if (secret == null || secret.length == 0) {
+            throw new IllegalArgumentException("The HMAC secret is mandatory!");
+        }
+        if (processingMode.equals(ProcessingMode.VALIDATE) && input.split(":").length != 2) {
+            throw new IllegalArgumentException("Input data provided is invalid for the processing mode specified!");
+        }
+        //Processing
+        Base64.Decoder b64Decoder = Base64.getDecoder();
+        Base64.Encoder b64Encoder = Base64.getEncoder();
+        String hmacAlgorithm = "HmacSHA256";
+        Mac mac = Mac.getInstance(hmacAlgorithm);
+        SecretKeySpec key = new SecretKeySpec(secret, hmacAlgorithm);
+        mac.init(key);
+        results = new HashMap<>();
+        results.put("PROCESSING_MODE", processingMode.toString());
+        switch (processingMode) {
+            case PROTECT -> {
+                byte[] objectBytes = b64Decoder.decode(input);
+                byte[] hmac = mac.doFinal(objectBytes);
+                String encodedHmac = b64Encoder.encodeToString(hmac);
+                results.put("STATUS", Boolean.TRUE);
+                results.put("RESULT", String.format(resultFormatTemplate, input, encodedHmac));
+            }
+            case VALIDATE -> {
+                String[] parts = input.split(":");
+                byte[] objectBytes = b64Decoder.decode(parts[0].trim());
+                byte[] hmacProvided = b64Decoder.decode(parts[1].trim());
+                byte[] hmacComputed = mac.doFinal(objectBytes);
+                String encodedHmacComputed = b64Encoder.encodeToString(hmacComputed);
+                Boolean hmacIsValid = Arrays.equals(hmacProvided, hmacComputed);
+                results.put("STATUS", hmacIsValid);
+                results.put("RESULT", String.format(resultFormatTemplate, parts[0].trim(), encodedHmacComputed));
+            }
+            default -> throw new IllegalArgumentException("Not supported processing mode!");
+        }
+        return results;
     }
 }
