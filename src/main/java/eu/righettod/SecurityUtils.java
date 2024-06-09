@@ -673,20 +673,21 @@ public class SecurityUtils {
     }
 
     /**
-     * Provide a way to add an integrity marker (<a href="https://cryptobook.nakov.com/mac-and-key-derivation">HMAC</a>) to a serialized object serialized using the <a href="https://www.baeldung.com/java-serialization">java native system</a> (binary).<br>
+     * Provide a way to add an integrity marker (<a href="https://en.wikipedia.org/wiki/HMAC">HMAC</a>) to a serialized object serialized using the <a href="https://www.baeldung.com/java-serialization">java native system</a> (binary).<br>
      * The goal is to provide <b>a temporary workaround</b> to try to prevent deserialization attacks and give time to move to a text-based serialization approach.
      *
-     * @param processingMode Define the mode of processing i.e. protect or validate.
+     * @param processingMode Define the mode of processing i.e. protect or validate. ({@link eu.righettod.ProcessingMode})
      * @param input          When the processing mode is "protect" than the expected input (string) is a java serialized object encoded in Base64 otherwise (processing mode is "validate") expected input is the output of this method when the "protect" mode was used.
-     * @param secret         Secret to use to compute the HMAC.
+     * @param secret         Secret to use to compute the SHA256 HMAC.
      * @return A map with the following keys: <ul><li><b>PROCESSING_MODE</b>: Processing mode used to compute the result.</li><li><b>STATUS</b>: A boolean indicating if the processing was successful or not.</li><li><b>RESULT</b>: Always contains a string representing the protected serialized object in the format <code>[SERIALIZED_OBJECT_BASE64_ENCODED]:[SERIALIZED_OBJECT_HMAC_BASE64_ENCODED]</code>.</li></ul>
-     * @throws Exception If any exception occurs
+     * @throws Exception If any exception occurs.
      * @see "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html"
      * @see "https://owasp.org/www-project-top-ten/2017/A8_2017-Insecure_Deserialization"
      * @see "https://portswigger.net/web-security/deserialization"
      * @see "https://www.baeldung.com/java-serialization-approaches"
      * @see "https://www.baeldung.com/java-serialization"
-     * @see "https://cryptobook.nakov.com/mac-and-key-derivation"
+     * @see "https://cryptobook.nakov.com/mac-and-key-derivation/hmac-and-key-derivation"
+     * @see "https://en.wikipedia.org/wiki/HMAC"
      * @see "https://smattme.com/posts/how-to-generate-hmac-signature-in-java/"
      */
     public static Map<String, Object> ensureSerializedObjectIntegrity(ProcessingMode processingMode, String input, byte[] secret) throws Exception {
