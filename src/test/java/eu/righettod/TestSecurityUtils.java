@@ -346,5 +346,43 @@ public class TestSecurityUtils {
         assertEquals(Boolean.FALSE, results.get("STATUS"));
         assertNotEquals(alteredInput, results.get("RESULT"));
     }
+
+    @Test
+    public void isJSONSafe() {
+        final int maxItems = 10;
+        //Test unsafe json files
+        List<String> testUnsafeJsonFiles = List.of("test-json-100arrayitems.json", "test-json-100nestedobjects.json", "test-json-100nestedarrays.json", "test-json-50000nestedobjects.json");
+        testUnsafeJsonFiles.forEach(f -> {
+            try {
+                String testFile = getTestFilePath(f);
+                boolean isSafe = SecurityUtils.isJSONSafe(Files.readString(Paths.get(testFile)), maxItems, maxItems);
+                assertFalse(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, f));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        //Test safe but invalid json files
+        List<String> testSafeButInvalidJsonFiles = List.of("test-json-safebutinvalid.json");
+        testSafeButInvalidJsonFiles.forEach(f -> {
+            try {
+                String testFile = getTestFilePath(f);
+                boolean isSafe = SecurityUtils.isJSONSafe(Files.readString(Paths.get(testFile)), maxItems, maxItems);
+                assertFalse(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, f));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        //Test safe json files
+        List<String> testSafeJsonFiles = List.of("test-json-escapeddoublequotes.json", "test-json-safe00.json");
+        testSafeJsonFiles.forEach(f -> {
+            try {
+                String testFile = getTestFilePath(f);
+                boolean isSafe = SecurityUtils.isJSONSafe(Files.readString(Paths.get(testFile)), maxItems, maxItems);
+                assertTrue(isSafe, String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, f));
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
 }
 

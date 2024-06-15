@@ -1,5 +1,6 @@
 package eu.righettod;
 
+
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.validator.routines.InetAddressValidator;
@@ -30,6 +31,8 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.json.Json;
+import javax.json.JsonReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -736,5 +739,114 @@ public class SecurityUtils {
             default -> throw new IllegalArgumentException("Not supported processing mode!");
         }
         return results;
+    }
+
+    /**
+     * Apply a collection of validations on a JSON string provided:<br>
+     * - Real JSON structure.<br>
+     * - Contain less than a specified number of deepness for nested objects or arrays.<br>
+     * - Contain less than a specified number of items in any arrays.<br><br>
+     *
+     * <b>Note:</b> I decided to use a parsing approach using only string processing to prevent any StackOverFlow or OutOfMemory error that can be abused.<br><br>
+     * I used the following assumption:
+     * <ul>
+     *      <li>The character <code>{</code> identify the beginning of an object.</li>
+     *      <li>The character <code>}</code> identify the end of an object.</li>
+     *      <li>The character <code>[</code> identify the beginning of an array.</li>
+     *      <li>The character <code>]</code> identify the end of an array.</li>
+     *      <li>The character <code>"</code> identify the delimiter of a string.</li>
+     *      <li>The character sequence <code>\"</code> identify the escaping of an double quote.</li>
+     * </ul>
+     *
+     * @param json                  String containing the JSON data to validate.
+     * @param maxItemsByArraysCount Maximum number of items allowed in an array.
+     * @param maxDeepnessAllowed    Maximum number nested objects or arrays allowed.
+     * @return True only if the string pass all validations.
+     * @see "https://javaee.github.io/jsonp/"
+     * @see "https://community.f5.com/discussions/technicalforum/disable-buffer-overflow-in-json-parameters/124306"
+     * @see "https://github.com/InductiveComputerScience/pbJson/issues/2"
+     */
+    public static boolean isJSONSafe(String json, int maxItemsByArraysCount, int maxDeepnessAllowed) {
+        boolean isSafe = false;
+
+        try {
+            //Step 1: Analyse the JSON string
+            int currentDeepness = 0;
+            int currentArrayItemsCount = 0;
+            int maxDeepnessReached = 0;
+            int maxArrayItemsCountReached = 0;
+            boolean currentlyInArray = false;
+            boolean currentlyInString = false;
+            int currentNestedArrayLevel = 0;
+            String jsonEscapedDoubleQuote = "\\\"";//Escaped double quote must not be considered as a string delimiter
+            String work = json.replace(jsonEscapedDoubleQuote, "'");
+            for (char c : work.toCharArray()) {
+                switch (c) {
+                    case '{': {
+                        if (!currentlyInString) {
+                            currentDeepness++;
+                        }
+                        break;
+                    }
+                    case '}': {
+                        if (!currentlyInString) {
+                            currentDeepness--;
+                        }
+                        break;
+                    }
+                    case '[': {
+                        if (!currentlyInString) {
+                            currentDeepness++;
+                            if (currentlyInArray) {
+                                currentNestedArrayLevel++;
+                            }
+                            currentlyInArray = true;
+                        }
+                        break;
+                    }
+                    case ']': {
+                        if (!currentlyInString) {
+                            currentDeepness--;
+                            currentArrayItemsCount = 0;
+                            if (currentNestedArrayLevel > 0) {
+                                currentNestedArrayLevel--;
+                            }
+                            if (currentNestedArrayLevel == 0) {
+                                currentlyInArray = false;
+                            }
+                        }
+                        break;
+                    }
+                    case '"': {
+                        currentlyInString = !currentlyInString;
+                        break;
+                    }
+                    case ',': {
+                        if (!currentlyInString && currentlyInArray) {
+                            currentArrayItemsCount++;
+                        }
+                        break;
+                    }
+                }
+                if (currentDeepness > maxDeepnessReached) {
+                    maxDeepnessReached = currentDeepness;
+                }
+                if (currentArrayItemsCount > maxArrayItemsCountReached) {
+                    maxArrayItemsCountReached = currentArrayItemsCount;
+                }
+            }
+            //Step 2: Apply validation against the value specified as limits
+            isSafe = ((maxItemsByArraysCount > maxArrayItemsCountReached) && (maxDeepnessAllowed > maxDeepnessReached));
+
+            //Step 3: If the content is safe then ensure that it is valid JSON structure using the "Java API for JSON Processing" (JSR 374) parser reference implementation.
+            if (isSafe) {
+                JsonReader reader = Json.createReader(new StringReader(json));
+                isSafe = (reader.read() != null);
+            }
+
+        } catch (Exception e) {
+            isSafe = false;
+        }
+        return isSafe;
     }
 }
