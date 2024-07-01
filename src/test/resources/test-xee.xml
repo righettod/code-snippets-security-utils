@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE foo [
+        <!ENTITY xeelevel00 "RIGHETTOD00">
+        <!ENTITY xeelevel01 "&xeelevel00;RIGHETTOD01">
+        <!ENTITY xeelevel02 "&xeelevel01;RIGHETTOD02">
+        <!ENTITY xeelevel03 "&xeelevel02;RIGHETTOD03">
+        <!ENTITY xeelevel04 "&xeelevel03;RIGHETTOD03">
+        ]>
+<root>
+    <data>&xeelevel04;</data>
+</root>

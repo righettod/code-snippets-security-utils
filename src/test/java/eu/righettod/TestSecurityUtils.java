@@ -74,12 +74,12 @@ public class TestSecurityUtils {
 
     @Test
     public void isXMLSafe() {
-        List<String> unsafeFileList = Arrays.asList("test-dtd.xml", "test-xxe.xml", "test-xinclude.xml");
+        List<String> unsafeFileList = Arrays.asList("test-dtd.xml", "test-xxe.xml", "test-xinclude.xml", "test-xee.xml");
         unsafeFileList.forEach(f -> {
             String testFile = getTestFilePath(f);
             assertFalse(SecurityUtils.isXMLSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
         });
-        List<String> safeFileList = Arrays.asList("test-nodtd-noxxe-noxinclude.xml");
+        List<String> safeFileList = Arrays.asList("test-nodtd-noxxe-noxee-noxinclude.xml");
         safeFileList.forEach(f -> {
             String testFile = getTestFilePath(f);
             assertTrue(SecurityUtils.isXMLSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
