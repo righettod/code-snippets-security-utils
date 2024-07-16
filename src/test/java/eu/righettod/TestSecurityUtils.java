@@ -384,5 +384,29 @@ public class TestSecurityUtils {
             }
         });
     }
+
+    @Test
+    public void isImageSafe() {
+        //Test safe image cases
+        List<String> safeFileList = Arrays.asList("test-img-png-clean.png", "test-img-jpeg-clean.jpg", "test-img-gif-clean.gif");
+        final List<String> imageAllowedMimeTypesCase1 = List.of("image/png", "image/jpeg", "image/gif");
+        safeFileList.forEach(f -> {
+            String testFile = getTestFilePath(f);
+            assertTrue(SecurityUtils.isImageSafe(testFile, imageAllowedMimeTypesCase1), String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
+        });
+        //Test safe image cases but with non allowed mime types
+        final List<String> imageAllowedMimeTypesCase2 = List.of("image/emf");
+        safeFileList.forEach(f -> {
+            String testFile = getTestFilePath(f);
+            assertFalse(SecurityUtils.isImageSafe(testFile, imageAllowedMimeTypesCase2), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
+        });
+        //Test unsafe image cases
+        List<String> unsafeFileList = Arrays.asList("test-img-png-phpcode-in-comments.png", "test-img-jpeg-cmd-in-artist.jpg", "test-img-jpeg-cmd-in-software.jpg", "test-img-exe-with-png-magicbytes.png", "test-img-gif-xsspayload-inserted-with-sighook-pixload.gif");
+        final List<String> imageAllowedMimeTypesCase3 = List.of("image/png", "image/jpeg", "image/gif");
+        unsafeFileList.forEach(f -> {
+            String testFile = getTestFilePath(f);
+            assertFalse(SecurityUtils.isImageSafe(testFile, imageAllowedMimeTypesCase3), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
+        });
+    }
 }
 

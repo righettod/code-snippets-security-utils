@@ -3,6 +3,9 @@ package eu.righettod;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.imaging.ImageInfo;
+import org.apache.commons.imaging.Imaging;
+import org.apache.commons.imaging.common.ImageMetadata;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -36,6 +39,7 @@ import javax.json.JsonReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -844,6 +848,65 @@ public class SecurityUtils {
                 isSafe = (reader.read() != null);
             }
 
+        } catch (Exception e) {
+            isSafe = false;
+        }
+        return isSafe;
+    }
+
+    /**
+     * Apply a collection of validations on a image file provided:<br>
+     * - Real image file.<br>
+     * - Its mime type is into the list of allowed mime types.<br>
+     * - Its metadata fields do not contains any characters related to a malicious payloads.<br>
+     *
+     * <br><br>
+     * <b>Important note:</b>This implementation is prone to bypass using the "<b>raw insertion</b>" method documented in the <a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there">blog post</a> from the Synacktiv team.<br>
+     * To handle such case, it is recommended to resize the image to remove any non image-related content, see <a href="https://github.com/righettod/document-upload-protection/blob/master/src/main/java/eu/righettod/poc/sanitizer/ImageDocumentSanitizerImpl.java#L54">here</a> for an example.<br>
+     *
+     * @param imageFilePath         Filename of the image file to check.
+     * @param imageAllowedMimeTypes List of image mime types allowed.
+     * @return True only if the file pass all validations.
+     * @see "https://commons.apache.org/proper/commons-imaging/"
+     * @see "https://commons.apache.org/proper/commons-imaging/formatsupport.html"
+     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Common_types"
+     * @see "https://www.iana.org/assignments/media-types/media-types.xhtml#image"
+     * @see "https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there"
+     * @see "https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html"
+     * @see "https://github.com/righettod/document-upload-protection/blob/master/src/main/java/eu/righettod/poc/sanitizer/ImageDocumentSanitizerImpl.java"
+     * @see "https://exiftool.org/examples.html"
+     * @see "https://en.wikipedia.org/wiki/List_of_file_signatures"
+     * @see "https://hexed.it/"
+     * @see "https://github.com/sighook/pixload"
+     */
+    public static boolean isImageSafe(String imageFilePath, List<String> imageAllowedMimeTypes) {
+        boolean isSafe = false;
+        Pattern payloadDetectionRegex = Pattern.compile("[<>${}`]+", Pattern.CASE_INSENSITIVE);
+        try {
+            File imgFile = new File(imageFilePath);
+            if (imgFile.exists() && imgFile.canRead() && imgFile.isFile() && !imageAllowedMimeTypes.isEmpty()) {
+                final byte[] imgBytes = Files.readAllBytes(imgFile.toPath());
+                //Step 1: Check the mime type of the file against the allowed ones
+                ImageInfo imgInfo = Imaging.getImageInfo(imgBytes);
+                if (imageAllowedMimeTypes.contains(imgInfo.getMimeType())) {
+                    //Step 2: Load the image into an object using the Image API
+                    BufferedImage imgObject = Imaging.getBufferedImage(imgBytes);
+                    if (imgObject != null && imgObject.getWidth() > 0 && imgObject.getHeight() > 0) {
+                        //Step 3: Check the metadata if the image format support it - Highly experimental
+                        List<String> metadataWithPayloads = new ArrayList<>();
+                        final ImageMetadata imgMetadata = Imaging.getMetadata(imgBytes);
+                        if (imgMetadata != null) {
+                            imgMetadata.getItems().forEach(item -> {
+                                String metadata = item.toString();
+                                if (payloadDetectionRegex.matcher(metadata).find()) {
+                                    metadataWithPayloads.add(metadata);
+                                }
+                            });
+                        }
+                        isSafe = metadataWithPayloads.isEmpty();
+                    }
+                }
+            }
         } catch (Exception e) {
             isSafe = false;
         }
