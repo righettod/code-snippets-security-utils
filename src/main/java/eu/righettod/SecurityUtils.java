@@ -860,8 +860,8 @@ public class SecurityUtils {
      * - Its mime type is into the list of allowed mime types.<br>
      * - Its metadata fields do not contains any characters related to a malicious payloads.<br>
      *
-     * <br><br>
-     * <b>Important note:</b>This implementation is prone to bypass using the "<b>raw insertion</b>" method documented in the <a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there">blog post</a> from the Synacktiv team.<br>
+     * <br>
+     * <b>Important note:</b> This implementation is prone to bypass using the "<b>raw insertion</b>" method documented in the <a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there">blog post</a> from the Synacktiv team.
      * To handle such case, it is recommended to resize the image to remove any non image-related content, see <a href="https://github.com/righettod/document-upload-protection/blob/master/src/main/java/eu/righettod/poc/sanitizer/ImageDocumentSanitizerImpl.java#L54">here</a> for an example.<br>
      *
      * @param imageFilePath         Filename of the image file to check.
