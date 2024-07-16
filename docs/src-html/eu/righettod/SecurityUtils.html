@@ -873,8 +873,8 @@
 <span class="source-line-no">860</span><span id="line-860">     * - Its mime type is into the list of allowed mime types.&lt;br&gt;</span>
 <span class="source-line-no">861</span><span id="line-861">     * - Its metadata fields do not contains any characters related to a malicious payloads.&lt;br&gt;</span>
 <span class="source-line-no">862</span><span id="line-862">     *</span>
-<span class="source-line-no">863</span><span id="line-863">     * &lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">864</span><span id="line-864">     * &lt;b&gt;Important note:&lt;/b&gt;This implementation is prone to bypass using the "&lt;b&gt;raw insertion&lt;/b&gt;" method documented in the &lt;a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there"&gt;blog post&lt;/a&gt; from the Synacktiv team.&lt;br&gt;</span>
+<span class="source-line-no">863</span><span id="line-863">     * &lt;br&gt;</span>
+<span class="source-line-no">864</span><span id="line-864">     * &lt;b&gt;Important note:&lt;/b&gt; This implementation is prone to bypass using the "&lt;b&gt;raw insertion&lt;/b&gt;" method documented in the &lt;a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there"&gt;blog post&lt;/a&gt; from the Synacktiv team.</span>
 <span class="source-line-no">865</span><span id="line-865">     * To handle such case, it is recommended to resize the image to remove any non image-related content, see &lt;a href="https://github.com/righettod/document-upload-protection/blob/master/src/main/java/eu/righettod/poc/sanitizer/ImageDocumentSanitizerImpl.java#L54"&gt;here&lt;/a&gt; for an example.&lt;br&gt;</span>
 <span class="source-line-no">866</span><span id="line-866">     *</span>
 <span class="source-line-no">867</span><span id="line-867">     * @param imageFilePath         Filename of the image file to check.</span>
