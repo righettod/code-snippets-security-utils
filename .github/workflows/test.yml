@@ -8,7 +8,8 @@ on:
   pull_request:
     branches: [ "main" ]
     paths:
-    - "**.java"     
+    - "**.java"
+    - "pom.xml"
 jobs:
   build:
     runs-on: ubuntu-latest
