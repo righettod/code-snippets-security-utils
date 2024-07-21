@@ -24,6 +24,9 @@ application.
 
 # Tips for validating file contents
 
+> [!NOTE]
+> The tips and code snippets provided enrich the advices provided by the [OWASP File Upload Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/File_Upload_Cheat_Sheet.html).
+
 ```mermaid
 flowchart TB
     A[File received] --> B("🔬Call corresponding isXXXSafe() methods")
