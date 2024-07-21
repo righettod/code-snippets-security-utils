@@ -426,7 +426,6 @@ public class TestSecurityUtils {
             sanitizedContent = SecurityUtils.sanitizeFile(testFile, InputFileType.PDF);
             assertNotEquals(testFileLength, sanitizedContent.length, String.format(errorMsg, pdfFile));
             //In addition: Test that the result is still a valid PDF file
-            assertTrue(sanitizedContent.length > 0);
             try (PDDocument document = Loader.loadPDF(sanitizedContent)) {
                 assertTrue(document.getNumberOfPages() > 0);
             }
@@ -439,7 +438,6 @@ public class TestSecurityUtils {
             sanitizedContent = SecurityUtils.sanitizeFile(testFile, InputFileType.IMAGE);
             assertNotEquals(testFileLength, sanitizedContent.length, String.format(errorMsg, imageFile));
             //In addition: Test that the result is still a valid image file
-            assertTrue(sanitizedContent.length > 0);
             ImageInfo imgInfo = Imaging.getImageInfo(sanitizedContent);
             assertTrue(imgInfo.getWidth() > 0 && imgInfo.getHeight() > 0);
         }

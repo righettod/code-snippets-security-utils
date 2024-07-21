@@ -970,6 +970,9 @@ public class SecurityUtils {
             }
             default -> throw new IllegalArgumentException("Type of file not supported !");
         }
+        if (sanitizedContent.size() == 0) {
+            throw new IOException("An error occur during the rewrite operation!");
+        }
         return sanitizedContent.toByteArray();
     }
 }
