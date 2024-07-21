@@ -918,7 +918,7 @@ public class SecurityUtils {
 
     /**
      * Rewrite the input file to remove any embedded files that is not embedded using a methods supported by the official format of the file.<br>
-     * Example: a file can be embedded by adding it at the end of the source file, see the reference provided for details.
+     * Example: a file can be embedded by adding it to the end of the source file, see the reference provided for details.
      *
      * @param inputFilePath Filename of the file to clean up.
      * @param inputFileType Type of the file provided.
