@@ -1,1 +1,1 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"eu.righettod","l":"ProcessingMode"},{"p":"eu.righettod","l":"SecurityUtils"}];updateSearchResults();
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"eu.righettod","l":"InputFileType"},{"p":"eu.righettod","l":"ProcessingMode"},{"p":"eu.righettod","l":"SecurityUtils"}];updateSearchResults();
