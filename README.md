@@ -26,7 +26,7 @@ application.
 
 ```mermaid
 flowchart TB
-    A[File received] --> B("🔬Call corresponding isSafeXXX() methods")
+    A[File received] --> B("🔬Call corresponding isXXXSafe() methods")
     B --> C{🤔File is safe?}
     C -->|No| E[❌Reject the file]
     C -->|Yes| D("🔬Call sanitizeFile() methods")
