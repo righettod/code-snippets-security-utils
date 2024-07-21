@@ -34,11 +34,13 @@ import org.xml.sax.SAXException;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonReader;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.Inet6Address;
@@ -48,6 +50,7 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -911,5 +914,62 @@ public class SecurityUtils {
             isSafe = false;
         }
         return isSafe;
+    }
+
+    /**
+     * Rewrite the input file to remove any embedded files that is not embedded using a methods supported by the official format of the file.<br>
+     * Example: a file can be embedded by adding it at the end of the source file, see the reference provided for details.
+     *
+     * @param inputFilePath Filename of the file to clean up.
+     * @param inputFileType Type of the file provided.
+     * @return A array of bytes with the cleaned file.
+     * @throws IllegalArgumentException If an invalid parameter is passed
+     * @throws Exception                If any technical error during the cleaning processing
+     * @see "https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there"
+     * @see "https://github.com/righettod/toolbox-pentest-web/tree/master/misc"
+     * @see "https://github.com/righettod/toolbox-pentest-web?tab=readme-ov-file#misc"
+     * @see "https://stackoverflow.com/a/13605411"
+     */
+    public static byte[] sanitizeFile(String inputFilePath, InputFileType inputFileType) throws Exception {
+        ByteArrayOutputStream sanitizedContent = new ByteArrayOutputStream();
+        File inputFile = new File(inputFilePath);
+        if (!inputFile.exists() || !inputFile.canRead() || !inputFile.isFile()) {
+            throw new IllegalArgumentException("Cannot read the content of the input file!");
+        }
+        switch (inputFileType) {
+            case PDF -> {
+                try (PDDocument document = Loader.loadPDF(inputFile)) {
+                    document.save(sanitizedContent);
+                }
+            }
+            case IMAGE -> {
+                // Load the original image
+                BufferedImage originalImage = ImageIO.read(inputFile);
+                String originalFormat = identifyMimeType(Files.readAllBytes(inputFile.toPath())).split("/")[1].trim();
+                // Check that image has been successfully loaded
+                if (originalImage == null) {
+                    throw new IOException("Cannot load the original image !");
+                }
+                // Get current Width and Height of the image
+                int originalWidth = originalImage.getWidth(null);
+                int originalHeight = originalImage.getHeight(null);
+                // Resize the image by removing 1px on Width and Height
+                Image resizedImage = originalImage.getScaledInstance(originalWidth - 1, originalHeight - 1, Image.SCALE_SMOOTH);
+                // Resize the resized image by adding 1px on Width and Height - In fact set image to is initial size
+                Image initialSizedImage = resizedImage.getScaledInstance(originalWidth, originalHeight, Image.SCALE_SMOOTH);
+                // Save image to a bytes buffer
+                int bufferedImageType = BufferedImage.TYPE_INT_ARGB;//By default use a format supporting transparency
+                if ("jpeg".equalsIgnoreCase(originalFormat) || "bmp".equalsIgnoreCase(originalFormat)) {
+                    bufferedImageType = BufferedImage.TYPE_INT_RGB;
+                }
+                BufferedImage sanitizedImage = new BufferedImage(initialSizedImage.getWidth(null), initialSizedImage.getHeight(null), bufferedImageType);
+                Graphics2D drawer = sanitizedImage.createGraphics();
+                drawer.drawImage(initialSizedImage, 0, 0, null);
+                drawer.dispose();
+                ImageIO.write(sanitizedImage, originalFormat, sanitizedContent);
+            }
+            default -> throw new IllegalArgumentException("Type of file not supported !");
+        }
+        return sanitizedContent.toByteArray();
     }
 }

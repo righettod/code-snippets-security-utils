@@ -1,6 +1,8 @@
 package eu.righettod;
 
 
+import org.apache.commons.imaging.ImageInfo;
+import org.apache.commons.imaging.Imaging;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -37,6 +39,11 @@ public class TestSecurityUtils {
     private String getTestFilePath(String testFileName) {
         return String.format("%s/%s", TEST_DATA_DIRECTORY, testFileName);
     }
+
+    private long getTestFileSize(String testFileName) {
+        return new File(getTestFilePath(testFileName)).length();
+    }
+
 
     @Test
     public void isWeakPINCode() {
@@ -245,11 +252,7 @@ public class TestSecurityUtils {
         assertFalse(Arrays.equals(hashAbuse1, hashAbuse2), msgError);
         //Test case for invalid input passed
         List<String> invalidInput = Arrays.asList("Hello from", " my amazing country", " in europe!", null);
-        IllegalArgumentException thrown = assertThrows(
-                IllegalArgumentException.class,
-                () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput),
-                "Expected IllegalArgumentException() to throw but invalid input was accepted!"
-        );
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput), "Expected IllegalArgumentException() to throw but invalid input was accepted!");
         assertTrue(thrown.getMessage().contains(exceptionMsg));
     }
 
@@ -407,6 +410,41 @@ public class TestSecurityUtils {
             String testFile = getTestFilePath(f);
             assertFalse(SecurityUtils.isImageSafe(testFile, imageAllowedMimeTypesCase3), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
         });
+    }
+
+    @Test
+    public void sanitizeFile() throws Exception {
+        String errorMsg = "The sanitized file size must be different from the original file size (%s) !";
+        String testFile;
+        long testFileLength;
+        byte[] sanitizedContent;
+        //Test PDF files
+        List<String> pdfFileList = List.of("test-sanitize-doc-pdf-with-malicious-files-concatenated.pdf");
+        for (String pdfFile : pdfFileList) {
+            testFile = getTestFilePath(pdfFile);
+            testFileLength = getTestFileSize(pdfFile);
+            sanitizedContent = SecurityUtils.sanitizeFile(testFile, InputFileType.PDF);
+            assertNotEquals(testFileLength, sanitizedContent.length, String.format(errorMsg, pdfFile));
+            //In addition: Test that the result is still a valid PDF file
+            assertTrue(sanitizedContent.length > 0);
+            try (PDDocument document = Loader.loadPDF(sanitizedContent)) {
+                assertTrue(document.getNumberOfPages() > 0);
+            }
+        }
+        //Test image files
+        List<String> imageFileList = List.of("test-sanitize-png-with-malicious-files-concatenated.png", "test-sanitize-gif-with-malicious-files-concatenated.gif", "test-sanitize-jpeg-with-malicious-files-concatenated.jpg", "test-sanitize-bitmap-with-malicious-files-concatenated.bmp");
+        for (String imageFile : imageFileList) {
+            testFile = getTestFilePath(imageFile);
+            testFileLength = getTestFileSize(imageFile);
+            sanitizedContent = SecurityUtils.sanitizeFile(testFile, InputFileType.IMAGE);
+            assertNotEquals(testFileLength, sanitizedContent.length, String.format(errorMsg, imageFile));
+            //In addition: Test that the result is still a valid image file
+            assertTrue(sanitizedContent.length > 0);
+            ImageInfo imgInfo = Imaging.getImageInfo(sanitizedContent);
+            assertTrue(imgInfo.getWidth() > 0 && imgInfo.getHeight() > 0);
+        }
+
+
     }
 }
 
