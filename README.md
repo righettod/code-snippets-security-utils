@@ -22,6 +22,19 @@
 of the
 application.
 
+# Tips for validating file contents
+
+```mermaid
+flowchart TB
+    A[File received] --> B("🔬Call corresponding isSafeXXX() methods")
+    B --> C{🤔File is safe?}
+    C -->|No| E[❌Reject the file]
+    C -->|Yes| D("🔬Call sanitizeFile() methods")
+    D --> F{🤔Exception occur?} 
+    F -->|Yes| E
+    F -->|No| G[✅File accepted]
+```
+
 # Content & conventions
 
 📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
