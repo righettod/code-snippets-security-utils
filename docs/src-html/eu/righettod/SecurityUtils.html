@@ -983,9 +983,12 @@
 <span class="source-line-no">970</span><span id="line-970">            }</span>
 <span class="source-line-no">971</span><span id="line-971">            default -&gt; throw new IllegalArgumentException("Type of file not supported !");</span>
 <span class="source-line-no">972</span><span id="line-972">        }</span>
-<span class="source-line-no">973</span><span id="line-973">        return sanitizedContent.toByteArray();</span>
-<span class="source-line-no">974</span><span id="line-974">    }</span>
-<span class="source-line-no">975</span><span id="line-975">}</span>
+<span class="source-line-no">973</span><span id="line-973">        if (sanitizedContent.size() == 0) {</span>
+<span class="source-line-no">974</span><span id="line-974">            throw new IOException("An error occur during the rewrite operation!");</span>
+<span class="source-line-no">975</span><span id="line-975">        }</span>
+<span class="source-line-no">976</span><span id="line-976">        return sanitizedContent.toByteArray();</span>
+<span class="source-line-no">977</span><span id="line-977">    }</span>
+<span class="source-line-no">978</span><span id="line-978">}</span>
 
 
 
