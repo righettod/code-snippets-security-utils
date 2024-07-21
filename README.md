@@ -31,7 +31,7 @@ application.
 flowchart TB
     A[File received] --> B("🔬Call corresponding isXXXSafe() methods")
     B --> C{🤔File is safe?}
-    C -->|No| E[❌Reject the file]
+    C -->|No| E[❌File rejected]
     C -->|Yes| D("🔬Call sanitizeFile() methods")
     D --> F{🤔Exception occur?} 
     F -->|Yes| E
