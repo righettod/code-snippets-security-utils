@@ -6,6 +6,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
@@ -302,11 +303,7 @@ public class SecurityUtils {
                                     if (annotation instanceof PDAnnotationLink) {
                                         PDAnnotationLink link = (PDAnnotationLink) annotation;
                                         PDAction action = link.getAction();
-                                        if ((action instanceof PDActionURI)
-                                                || (action instanceof PDActionLaunch)
-                                                || (action instanceof PDActionRemoteGoTo)
-                                                || (action instanceof PDActionImportData)
-                                        ) {
+                                        if ((action instanceof PDActionURI) || (action instanceof PDActionLaunch) || (action instanceof PDActionRemoteGoTo) || (action instanceof PDActionImportData)) {
                                             keep = true;
                                         }
                                     }
@@ -517,9 +514,7 @@ public class SecurityUtils {
                     //If OK then validate that is an public IP address
                     //From Javadoc for "InetAddress.getByName": If a literal IP address is supplied, only the validity of the address format is checked.
                     InetAddress addr = InetAddress.getByName(ip);
-                    isValid = (!addr.isAnyLocalAddress() && !addr.isLinkLocalAddress()
-                            && !addr.isLoopbackAddress() && !addr.isMulticastAddress()
-                            && !addr.isSiteLocalAddress());
+                    isValid = (!addr.isAnyLocalAddress() && !addr.isLinkLocalAddress() && !addr.isLoopbackAddress() && !addr.isMulticastAddress() && !addr.isSiteLocalAddress());
                     //If OK and the IP is an V6 one then make additional validation because the built-in Java API will let pass some V6 IP
                     //For the prefix map, the start of the key indicates if the value is a regex or a string
                     if (isValid && (addr instanceof Inet6Address)) {
@@ -975,4 +970,59 @@ public class SecurityUtils {
         }
         return sanitizedContent.toByteArray();
     }
+
+    /**
+     * Apply a collection of validations on a string expected to be an email address:<br>
+     * - Is a valid email address, from a parser perspective, following RFCs on email addresses.<br>
+     * - Is not using "Encoded-word" format.<br>
+     * - Is not using comment format.<br>
+     * - Is not using "Punycode" format.<br>
+     * - Is not using UUCP style addresses.<br>
+     * - Is not using address literals.<br>
+     * - Is not using source routes.<br>
+     * - Is not using the "percent hack".<br><br>
+     * This is based on the research work from <a href="https://portswigger.net/research/gareth-heyes">Gareth Heyes</a> added in references (Portswigger).<br><br>
+     *
+     * <b>Note:</b> The notion of valid, here, is to take from a secure usage of the data perspective.
+     *
+     * @param addr String expected to be a valid email address.
+     * @return True only if the string pass all validations.
+     * @see "https://commons.apache.org/proper/commons-validator/"
+     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/EmailValidator.html"
+     * @see "https://datatracker.ietf.org/doc/html/rfc2047#section-2"
+     * @see "https://portswigger.net/research/splitting-the-email-atom"
+     * @see "https://www.jochentopf.com/email/address.html"
+     * @see "https://en.wikipedia.org/wiki/Email_address"
+     */
+    public static boolean isEmailAddress(String addr) {
+        boolean isValid = false;
+        String work = addr.toLowerCase(Locale.ROOT);
+        Pattern encodedWordRegex = Pattern.compile("[=?]+", Pattern.CASE_INSENSITIVE);
+        Pattern forbiddenCharacterRegex = Pattern.compile("[():!%\\[\\],;]+", Pattern.CASE_INSENSITIVE);
+        try {
+            //Start with the use of the dedicated EmailValidator from Apache Commons Validator
+            if (EmailValidator.getInstance(true, true).isValid(work)) {
+                //If OK then validate it does not contains "Encoded-word" patterns using an aggressive approach
+                if (!encodedWordRegex.matcher(work).find()) {
+                    //If OK then validate it does not contains punycode
+                    if (!work.contains("xn--")) {
+                        //If OK then validate it does not use:
+                        // UUCP style addresses,
+                        // Comment format,
+                        // Address literals,
+                        // Source routes,
+                        // The percent hack.
+                        if (!forbiddenCharacterRegex.matcher(work).find()) {
+                            isValid = true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            isValid = false;
+        }
+        return isValid;
+    }
+
+
 }

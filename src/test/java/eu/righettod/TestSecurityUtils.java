@@ -441,8 +441,41 @@ public class TestSecurityUtils {
             ImageInfo imgInfo = Imaging.getImageInfo(sanitizedContent);
             assertTrue(imgInfo.getWidth() > 0 && imgInfo.getHeight() > 0);
         }
+    }
 
-
+    @Test
+    public void isEmailAddress() {
+        final String templateMsgIPFalseNegative = "Email address '%s' must be detected as invalid!";
+        final String templateMsgIPFalsePositive = "Email address '%s' must be detected as valid!";
+        //Test invalid email addresses
+        List<String> invalidEmailAddressesList = Arrays.asList(
+                "=?utf-8?q?=41=42=43?=test@test.com",
+                "=?utf-7?q?=41GYAbwBvAGIAYBy-?=@test@com",
+                "=?utf-8?b?Zm9vYmFy?=@test.com",
+                "@mail.mit.edu:peter@hotmail.com",
+                "peter%hotmail.com@mail.mit.edu",
+                "rusx!umoskva!kgbvax!dimitri@gateway.ru",
+                "test@example.com@evil.com",
+                "(foo)user@(bar)example.com",
+                "postmaster@[123.123.123.123]",
+                "postmaster@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
+                "foo@xn--mnchen-2ya.com");
+        invalidEmailAddressesList.forEach(addr -> {
+            assertFalse(SecurityUtils.isEmailAddress(addr), String.format(templateMsgIPFalseNegative, addr));
+        });
+        //Test valid email addresses
+        List<String> validEmailAddressesList = Arrays.asList(
+                "test@test.com",
+                "test-test@test.com",
+                "test.test@test.com",
+                "test_test@test.com",
+                "test132@test.com",
+                "test+label@test.com",
+                "\"John..Doe\"@example.com",
+                "\"@\"@example.com");
+        validEmailAddressesList.forEach(addr -> {
+            assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgIPFalsePositive, addr));
+        });
     }
 }
 
