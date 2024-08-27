@@ -553,21 +553,28 @@ public class SecurityUtils {
      * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.<br><br>
      * Example of possible abuse without precautions applied during the hash calculation logic:<br>
      * Hash of <code>SHA256("Hello", "My", "World!!!")</code> will be equals to the hash of <code>SHA256("Hell", "oMyW", "orld!!!")</code>.<br><br>
-     * This method ensure that both hash above will be different.
+     * This method ensure that both hash above will be different.<br><br>
+     * <b>Note:</b> The character <code>|</code> is used, as separator, of every parts so a part is not allowed to contains this character.
      *
      * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
      * @return The hash, as an array of bytes, to allow caller to convert it to the final representation wanted (HEX, Base64, etc.). If the collection passed is null or empty then the method return null.
      * @throws Exception If any exception occurs
      * @see "https://pentesterlab.com/badges/codereview"
+     * @see "https://blog.trailofbits.com/2024/08/21/yolo-is-not-a-valid-hash-construction/"
+     * @see "https://www.nist.gov/publications/sha-3-derived-functions-cshake-kmac-tuplehash-and-parallelhash"
      */
     public static byte[] computeHashNoProneToAbuseOnParts(List<String> parts) throws Exception {
         byte[] hash = null;
+        String separator = "|";
         if (parts != null && !parts.isEmpty()) {
             //Ensure that not part is null
             if (parts.stream().anyMatch(Objects::isNull)) {
                 throw new IllegalArgumentException("No part must be null!");
             }
-            String separator = "|";
+            //Ensure that the separator is absent from every part
+            if (parts.stream().anyMatch(part -> part.contains(separator))) {
+                throw new IllegalArgumentException(String.format("The character '%s', used as parts separator, must be absent from every parts!", separator));
+            }
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             final StringBuilder buffer = new StringBuilder(separator);
             parts.forEach(p -> {

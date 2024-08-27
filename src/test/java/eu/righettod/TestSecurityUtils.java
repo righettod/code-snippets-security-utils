@@ -234,7 +234,6 @@ public class TestSecurityUtils {
     @Test
     public void computeHashNoProneToAbuseOnParts() throws Exception {
         final String msgError = "Hash are expected to be different!";
-        final String exceptionMsg = "No part must be null!";
         //Test cases for valid input passed
         List<String> reference = Arrays.asList("Hello from", " my amazing country", " in europe!");
         List<String> abuse1 = Arrays.asList("Hello fro", "m my amazing count", "ry in europe!");
@@ -251,8 +250,17 @@ public class TestSecurityUtils {
         assertFalse(Arrays.equals(hashReference, hashAbuse2), msgError);
         assertFalse(Arrays.equals(hashAbuse1, hashAbuse2), msgError);
         //Test case for invalid input passed
-        List<String> invalidInput = Arrays.asList("Hello from", " my amazing country", " in europe!", null);
-        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput), "Expected IllegalArgumentException() to throw but invalid input was accepted!");
+        String exceptionMsg;
+        String assertErrorMsg = "Expected IllegalArgumentException() to throw but invalid input was accepted!";
+        //--Null string passed as a part
+        exceptionMsg = "No part must be null!";
+        final List<String> invalidInput1 = Arrays.asList("Hello from", " my amazing country", " in europe!", null);
+        IllegalArgumentException thrown = assertThrows(IllegalArgumentException.class, () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput1), assertErrorMsg);
+        assertTrue(thrown.getMessage().contains(exceptionMsg));
+        //--A part contain the separator character
+        exceptionMsg = "The character '|', used as parts separator, must be absent from every parts!";
+        final List<String> invalidInput2 = Arrays.asList("Hello from", " my amazing | country");
+        thrown = assertThrows(IllegalArgumentException.class, () -> SecurityUtils.computeHashNoProneToAbuseOnParts(invalidInput2), assertErrorMsg);
         assertTrue(thrown.getMessage().contains(exceptionMsg));
     }
 
