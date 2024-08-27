@@ -115,6 +115,8 @@
                     <linksource>true</linksource>
                     <windowtitle>Javadoc</windowtitle>
                     <bottom>${project.artifactId} - ${project.version}</bottom>
+                    <javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
+                    <docfilessubdirs>true</docfilessubdirs>
                 </configuration>
             </plugin>
         </plugins>
