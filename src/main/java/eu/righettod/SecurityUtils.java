@@ -559,6 +559,7 @@ public class SecurityUtils {
      * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
      * @return The hash, as an array of bytes, to allow caller to convert it to the final representation wanted (HEX, Base64, etc.). If the collection passed is null or empty then the method return null.
      * @throws Exception If any exception occurs
+     * @see "https://github.com/righettod/code-snippets-security-utils/issues/16"
      * @see "https://pentesterlab.com/badges/codereview"
      * @see "https://blog.trailofbits.com/2024/08/21/yolo-is-not-a-valid-hash-construction/"
      * @see "https://www.nist.gov/publications/sha-3-derived-functions-cshake-kmac-tuplehash-and-parallelhash"
