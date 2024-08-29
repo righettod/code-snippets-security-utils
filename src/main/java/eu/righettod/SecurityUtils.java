@@ -44,13 +44,14 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.util.List;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1022,6 +1023,72 @@ public class SecurityUtils {
                         // The percent hack.
                         if (!forbiddenCharacterRegex.matcher(work).find()) {
                             isValid = true;
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            isValid = false;
+        }
+        return isValid;
+    }
+
+    /**
+     * The <a href="https://www.stet.eu/en/psd2/">PSD2 STET</a> specification require to use <a href="https://datatracker.ietf.org/doc/draft-cavage-http-signatures/">HTTP Signature</a>.
+     * <br>
+     * Section <b>3.5.1.2</b> of the document <a href="https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf">Documentation Framework</a> version <b>1.6.3</b>.
+     * <br>
+     * The problem is that, by design, the HTTP Signature specification is prone to blind SSRF.
+     * <br>
+     * URL example taken from the STET specification: <code>https://path.to/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f</code>.
+     * <br>
+     * The objective of this code is to try to decrease the "exploitability/interest" of this SSRF for an attacker.
+     *
+     * @param certificateUrl Url pointing to a Qualified Certificate (QSealC) encoded in PEM format and respecting the ETSI/TS119495 technical Specification .
+     * @return TRUE only if the url point to a Qualified Certificate in PEM format.
+     * @see "https://www.stet.eu/en/psd2/"
+     * @see "https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf"
+     * @see "https://datatracker.ietf.org/doc/draft-cavage-http-signatures/"
+     * @see "https://datatracker.ietf.org/doc/rfc9421/"
+     * @see "https://openjdk.org/groups/net/httpclient/intro.html"
+     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.net.http/java/net/http/package-summary.html"
+     * @see "https://portswigger.net/web-security/ssrf"
+     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"
+     */
+    public static boolean isPSD2StetSafeCertificateURL(String certificateUrl) {
+        boolean isValid = false;
+        long connectionTimeoutInSeconds = 10;
+        String userAgent = "PSD2-STET-HTTPSignature-CertificateRequest";
+        try {
+            //1. Ensure that the URL end with the SHA-256 fingerprint encoded in HEX of the certificate like requested by STET
+            if (certificateUrl != null && certificateUrl.lastIndexOf("_") != -1) {
+                String digestPart = certificateUrl.substring(certificateUrl.lastIndexOf("_") + 1);
+                if (Pattern.matches("^[0-9a-f]{64}$", digestPart)) {
+                    //2. Ensure that the URL is a valid url by creating a instance of the class URI
+                    URI uri = URI.create(certificateUrl);
+                    //3. Require usage of HTTPS and reject any url containing query parameters
+                    if ("https".equalsIgnoreCase(uri.getScheme()) && uri.getQuery() == null) {
+                        //4. Perform a HTTP HEAD request in order to get the content type of the remote resource
+                        //and limit the interest to use the SSRF because to pass the check the url need to:
+                        //- Do not having any query parameters.
+                        //- Use HTTPS protocol.
+                        //- End with a string having the format "_[0-9a-f]{64}".
+                        //- Trigger the malicious action that the attacker want but with a HTTP HEAD without any redirect and parameters.
+                        HttpResponse<String> response;
+                        try (HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build()) {
+                            HttpRequest request = HttpRequest.newBuilder()
+                                    .uri(uri)
+                                    .timeout(Duration.ofSeconds(connectionTimeoutInSeconds))
+                                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
+                                    .header("User-Agent", userAgent)//To provide an hint to the target about the initiator of the request
+                                    .header("Cache-Control", "no-store, max-age=0")//To prevent caching issues or abuses
+                                    .build();
+                            response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                            if (response.statusCode() == 200) {
+                                //5. Ensure that the response content type is "text/plain"
+                                Optional<String> contentType = response.headers().firstValue("Content-Type");
+                                isValid = (contentType.isPresent() && contentType.get().trim().toLowerCase(Locale.ENGLISH).startsWith("text/plain"));
+                            }
                         }
                     }
                 }

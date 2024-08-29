@@ -485,5 +485,25 @@ public class TestSecurityUtils {
             assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgIPFalsePositive, addr));
         });
     }
+
+    @Test
+    public void isPSD2StetSafeCertificateURL() {
+        final String templateMsgIPFalseNegative = "URL '%s' must be detected as invalid!";
+        final String templateMsgIPFalsePositive = "URL '%s' must be detected as valid!";
+        //Test invalid urls
+        List<String> invalidUrls = Arrays.asList(
+                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582X68b17e865fede4636d726b709fX",
+                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f?a=b",
+                "http://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f",
+                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c99",
+                "https://test.com/myQsealCertificate-714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f"
+        );
+        invalidUrls.forEach(u -> {
+            assertFalse(SecurityUtils.isPSD2StetSafeCertificateURL(u), String.format(templateMsgIPFalseNegative, u));
+        });
+        //Test valid urls
+        String validUrl = "https://raw.githubusercontent.com/righettod/code-snippets-security-utils/main/src/test/resources/myQsealCertificate_873dddcc49456290e2315cf3335b650715751fecdebf517e73b8642696ecc406";
+        assertTrue(SecurityUtils.isPSD2StetSafeCertificateURL(validUrl), String.format(templateMsgIPFalsePositive, validUrl));
+    }
 }
 
