@@ -505,5 +505,29 @@ public class TestSecurityUtils {
         String validUrl = "https://raw.githubusercontent.com/righettod/code-snippets-security-utils/main/src/test/resources/myQsealCertificate_873dddcc49456290e2315cf3335b650715751fecdebf517e73b8642696ecc406";
         assertTrue(SecurityUtils.isPSD2StetSafeCertificateURL(validUrl), String.format(templateMsgIPFalsePositive, validUrl));
     }
+
+    @Test
+    public void applyURLDecoding() {
+        final String refDecodedData = "Hello World!!!";
+        //Key is the decoding threshold and value is the URL encoded value (threshold times)
+        final Map<Integer, String> testData = new HashMap<>();
+        testData.put(1, "Hello%20World%21%21%21");
+        testData.put(2, "Hello%2520World%2521%2521%2521");
+        testData.put(3, "Hello%252520World%252521%252521%252521");
+        testData.put(4, "Hello%25252520World%25252521%25252521%25252521");
+        testData.put(5, "Hello%2525252520World%2525252521%2525252521%2525252521");
+        testData.put(6, "Hello%252525252520World%252525252521%252525252521%252525252521");
+        //Test valid cases
+        testData.forEach((threshold, encodedData) -> {
+            assertEquals(refDecodedData, SecurityUtils.applyURLDecoding(encodedData, threshold));
+        });
+        //Test invalid cases
+        SecurityException thrown = assertThrows(
+                SecurityException.class,
+                () -> SecurityUtils.applyURLDecoding(testData.get(6), 3),
+                "SecurityException expected!"
+        );
+        assertTrue(thrown.getMessage().equalsIgnoreCase("Decoding round threshold of 3 reached!"));
+    }
 }
 

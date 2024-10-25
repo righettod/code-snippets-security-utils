@@ -48,6 +48,7 @@ import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
@@ -1076,11 +1077,7 @@ public class SecurityUtils {
                         //- Trigger the malicious action that the attacker want but with a HTTP HEAD without any redirect and parameters.
                         HttpResponse<String> response;
                         try (HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build()) {
-                            HttpRequest request = HttpRequest.newBuilder()
-                                    .uri(uri)
-                                    .timeout(Duration.ofSeconds(connectionTimeoutInSeconds))
-                                    .method("HEAD", HttpRequest.BodyPublishers.noBody())
-                                    .header("User-Agent", userAgent)//To provide an hint to the target about the initiator of the request
+                            HttpRequest request = HttpRequest.newBuilder().uri(uri).timeout(Duration.ofSeconds(connectionTimeoutInSeconds)).method("HEAD", HttpRequest.BodyPublishers.noBody()).header("User-Agent", userAgent)//To provide an hint to the target about the initiator of the request
                                     .header("Cache-Control", "no-store, max-age=0")//To prevent caching issues or abuses
                                     .build();
                             response = client.send(request, HttpResponse.BodyHandlers.ofString());
@@ -1099,5 +1096,39 @@ public class SecurityUtils {
         return isValid;
     }
 
-
+    /**
+     * Perform sequential URL decoding operations against a URL encoded data until the data is not URL encoded anymore or if the specified threshold is reached.
+     *
+     * @param encodedData            URL encoded data.
+     * @param decodingRoundThreshold Threshold above which decoding will fail.
+     * @return The decoded data.
+     * @throws SecurityException If the threshold is reached.
+     * @see "https://en.wikipedia.org/wiki/Percent-encoding"
+     * @see "https://owasp.org/www-community/Double_Encoding"
+     * @see "https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings"
+     * @see "https://capec.mitre.org/data/definitions/120.html"
+     */
+    public static String applyURLDecoding(String encodedData, int decodingRoundThreshold) throws SecurityException {
+        if (decodingRoundThreshold < 1) {
+            throw new IllegalArgumentException("Threshold must be a positive number !");
+        }
+        if (encodedData == null) {
+            throw new IllegalArgumentException("Data provided must not be null !");
+        }
+        Charset charset = StandardCharsets.UTF_8;
+        int currentDecodingRound = 0;
+        boolean isFinished = false;
+        String currentRoundData = encodedData;
+        String previousRoundData = encodedData;
+        while (!isFinished) {
+            if (currentDecodingRound > decodingRoundThreshold) {
+                throw new SecurityException(String.format("Decoding round threshold of %s reached!", decodingRoundThreshold));
+            }
+            currentRoundData = URLDecoder.decode(currentRoundData, charset);
+            isFinished = currentRoundData.equals(previousRoundData);
+            previousRoundData = currentRoundData;
+            currentDecodingRound++;
+        }
+        return currentRoundData;
+    }
 }
