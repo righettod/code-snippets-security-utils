@@ -108,6 +108,7 @@
                 <configuration>
                     <applyJavadocSecurityFix>true</applyJavadocSecurityFix>
                     <detectJavaApiLink>true</detectJavaApiLink>
+                    <detectLinks>true</detectLinks>
                     <source>${jdk.target}</source>
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
