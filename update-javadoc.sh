@@ -1,9 +1,7 @@
 #!/bin/bash
-JAVADOC_HOME=docs
-cd $JAVADOC_HOME
-rm -rf *
-cd ..
-mvn javadoc:javadoc
+rm -rf docs
+mvn clean javadoc:javadoc
+mv target/reports/apidocs docs
 git config --global user.email "gha@github.com"
 git config --global user.name "GHActionBot"
 git add --all

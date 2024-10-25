@@ -106,8 +106,6 @@
                 <artifactId>maven-javadoc-plugin</artifactId>
                 <version>3.10.1</version>
                 <configuration>
-                    <reportOutputDirectory>${basedir}</reportOutputDirectory>
-                    <destDir>docs</destDir>
                     <applyJavadocSecurityFix>true</applyJavadocSecurityFix>
                     <detectJavaApiLink>true</detectJavaApiLink>
                     <source>${jdk.target}</source>
