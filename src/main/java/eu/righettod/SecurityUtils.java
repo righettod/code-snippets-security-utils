@@ -1157,10 +1157,8 @@ public class SecurityUtils {
      * Apply a collection of validations on a string expected to be an system file/folder path:
      * <ul>
      * <li>Does not contains path traversal payload.</li>
+     * <li>The canonical path is equals to the absolute path.</li>
      * </ul><br>
-     * <p>
-     * <b>Note:</b> This implementation is sensitive to the current folder expression <code>./</code> and <code>.\</code> - Therefore <b>it will consider the path as unsafe</b> when it contains such expression.
-     * </p>
      *
      * @param path String expected to be a valid system file/folder path.
      * @return True only if the string pass all validations.
@@ -1176,22 +1174,18 @@ public class SecurityUtils {
             if (path != null && !path.isEmpty()) {
                 //URL decode the path if case of data coming from a web context
                 String decodedPath = applyURLDecoding(path, decodingRoundThreshold);
-                //Remove any path escaping sequence
-                if (File.separatorChar == '/') {
-                    decodedPath = decodedPath.replace("\\", "");
-                } else {
-                    decodedPath = decodedPath.replace("\\\\", "");
+                //Ensure that no path traversal expression is present
+                if (!decodedPath.contains("..")) {
+                    File f = new File(decodedPath);
+                    String canonicalPath = f.getCanonicalPath();
+                    String absolutePath = f.getAbsolutePath();
+                    System.out.println("---");
+                    System.out.printf("IN PATH       : %s\n", path);
+                    System.out.printf("DECODED   PATH: %s\n", decodedPath);
+                    System.out.printf("CANONICAL PATH: %s\n", canonicalPath);
+                    System.out.printf("ABSOLUTE  PATH: %s\n", absolutePath);
+                    isSafe = canonicalPath.equals(absolutePath);
                 }
-                //Ensure that no path traversal path is present
-                File f = new File(decodedPath);
-                String canonicalPath = f.getCanonicalPath();
-                String absolutePath = f.getAbsolutePath();
-                System.out.println("---");
-                System.out.printf("IN PATH       : %s\n", path);
-                System.out.printf("DECODED   PATH: %s\n", decodedPath);
-                System.out.printf("CANONICAL PATH: %s\n", canonicalPath);
-                System.out.printf("ABSOLUTE  PATH: %s\n", absolutePath);
-                isSafe = canonicalPath.equals(absolutePath);
             }
         } catch (Exception e) {
             isSafe = false;
