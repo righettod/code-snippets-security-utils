@@ -1179,11 +1179,6 @@ public class SecurityUtils {
                     File f = new File(decodedPath);
                     String canonicalPath = f.getCanonicalPath();
                     String absolutePath = f.getAbsolutePath();
-                    System.out.println("---");
-                    System.out.printf("IN PATH       : %s\n", path);
-                    System.out.printf("DECODED   PATH: %s\n", decodedPath);
-                    System.out.printf("CANONICAL PATH: %s\n", canonicalPath);
-                    System.out.printf("ABSOLUTE  PATH: %s\n", absolutePath);
                     isSafe = canonicalPath.equals(absolutePath);
                 }
             }
