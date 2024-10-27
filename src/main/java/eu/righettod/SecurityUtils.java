@@ -1177,7 +1177,11 @@ public class SecurityUtils {
                 //URL decode the path if case of data coming from a web context
                 String decodedPath = applyURLDecoding(path, decodingRoundThreshold);
                 //Remove any path escaping sequence
-                decodedPath = decodedPath.replace("\\/", "/").replace("\\\\", "\\");
+                if (File.separatorChar == '/') {
+                    decodedPath = decodedPath.replace("\\", "");
+                } else {
+                    decodedPath = decodedPath.replace("\\\\", "");
+                }
                 //Ensure that no path traversal path is present
                 File f = new File(decodedPath);
                 String canonicalPath = f.getCanonicalPath();
