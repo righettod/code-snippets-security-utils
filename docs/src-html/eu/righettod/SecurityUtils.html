@@ -1170,44 +1170,42 @@
 <span class="source-line-no">1157</span><span id="line-1157">     * Apply a collection of validations on a string expected to be an system file/folder path:</span>
 <span class="source-line-no">1158</span><span id="line-1158">     * &lt;ul&gt;</span>
 <span class="source-line-no">1159</span><span id="line-1159">     * &lt;li&gt;Does not contains path traversal payload.&lt;/li&gt;</span>
-<span class="source-line-no">1160</span><span id="line-1160">     * &lt;/ul&gt;&lt;br&gt;</span>
-<span class="source-line-no">1161</span><span id="line-1161">     * &lt;p&gt;</span>
-<span class="source-line-no">1162</span><span id="line-1162">     * &lt;b&gt;Note:&lt;/b&gt; This implementation is sensitive to the current folder expression &lt;code&gt;./&lt;/code&gt; and &lt;code&gt;.\&lt;/code&gt; - Therefore &lt;b&gt;it will consider the path as unsafe&lt;/b&gt; when it contains such expression.</span>
-<span class="source-line-no">1163</span><span id="line-1163">     * &lt;/p&gt;</span>
-<span class="source-line-no">1164</span><span id="line-1164">     *</span>
-<span class="source-line-no">1165</span><span id="line-1165">     * @param path String expected to be a valid system file/folder path.</span>
-<span class="source-line-no">1166</span><span id="line-1166">     * @return True only if the string pass all validations.</span>
-<span class="source-line-no">1167</span><span id="line-1167">     * @see "https://portswigger.net/web-security/file-path-traversal"</span>
-<span class="source-line-no">1168</span><span id="line-1168">     * @see "https://learn.snyk.io/lesson/directory-traversal/"</span>
-<span class="source-line-no">1169</span><span id="line-1169">     * @see "https://capec.mitre.org/data/definitions/126.html"</span>
-<span class="source-line-no">1170</span><span id="line-1170">     * @see "https://owasp.org/www-community/attacks/Path_Traversal"</span>
-<span class="source-line-no">1171</span><span id="line-1171">     */</span>
-<span class="source-line-no">1172</span><span id="line-1172">    public static boolean isPathSafe(String path) {</span>
-<span class="source-line-no">1173</span><span id="line-1173">        boolean isSafe = false;</span>
-<span class="source-line-no">1174</span><span id="line-1174">        int decodingRoundThreshold = 3;</span>
-<span class="source-line-no">1175</span><span id="line-1175">        try {</span>
-<span class="source-line-no">1176</span><span id="line-1176">            if (path != null &amp;&amp; !path.isEmpty()) {</span>
-<span class="source-line-no">1177</span><span id="line-1177">                //URL decode the path if case of data coming from a web context</span>
-<span class="source-line-no">1178</span><span id="line-1178">                String decodedPath = applyURLDecoding(path, decodingRoundThreshold);</span>
-<span class="source-line-no">1179</span><span id="line-1179">                //Remove any path escaping sequence</span>
-<span class="source-line-no">1180</span><span id="line-1180">                decodedPath = decodedPath.replace("\\/", "/").replace("\\\\", "\\");</span>
-<span class="source-line-no">1181</span><span id="line-1181">                //Ensure that no path traversal path is present</span>
-<span class="source-line-no">1182</span><span id="line-1182">                File f = new File(decodedPath);</span>
-<span class="source-line-no">1183</span><span id="line-1183">                String canonicalPath = f.getCanonicalPath();</span>
-<span class="source-line-no">1184</span><span id="line-1184">                String absolutePath = f.getAbsolutePath();</span>
-<span class="source-line-no">1185</span><span id="line-1185">                System.out.println("---");</span>
-<span class="source-line-no">1186</span><span id="line-1186">                System.out.printf("IN PATH       : %s\n", path);</span>
-<span class="source-line-no">1187</span><span id="line-1187">                System.out.printf("DECODED   PATH: %s\n", decodedPath);</span>
-<span class="source-line-no">1188</span><span id="line-1188">                System.out.printf("CANONICAL PATH: %s\n", canonicalPath);</span>
-<span class="source-line-no">1189</span><span id="line-1189">                System.out.printf("ABSOLUTE  PATH: %s\n", absolutePath);</span>
-<span class="source-line-no">1190</span><span id="line-1190">                isSafe = canonicalPath.equals(absolutePath);</span>
-<span class="source-line-no">1191</span><span id="line-1191">            }</span>
-<span class="source-line-no">1192</span><span id="line-1192">        } catch (Exception e) {</span>
-<span class="source-line-no">1193</span><span id="line-1193">            isSafe = false;</span>
-<span class="source-line-no">1194</span><span id="line-1194">        }</span>
-<span class="source-line-no">1195</span><span id="line-1195">        return isSafe;</span>
-<span class="source-line-no">1196</span><span id="line-1196">    }</span>
-<span class="source-line-no">1197</span><span id="line-1197">}</span>
+<span class="source-line-no">1160</span><span id="line-1160">     * &lt;li&gt;The canonical path is equals to the absolute path.&lt;/li&gt;</span>
+<span class="source-line-no">1161</span><span id="line-1161">     * &lt;/ul&gt;&lt;br&gt;</span>
+<span class="source-line-no">1162</span><span id="line-1162">     *</span>
+<span class="source-line-no">1163</span><span id="line-1163">     * @param path String expected to be a valid system file/folder path.</span>
+<span class="source-line-no">1164</span><span id="line-1164">     * @return True only if the string pass all validations.</span>
+<span class="source-line-no">1165</span><span id="line-1165">     * @see "https://portswigger.net/web-security/file-path-traversal"</span>
+<span class="source-line-no">1166</span><span id="line-1166">     * @see "https://learn.snyk.io/lesson/directory-traversal/"</span>
+<span class="source-line-no">1167</span><span id="line-1167">     * @see "https://capec.mitre.org/data/definitions/126.html"</span>
+<span class="source-line-no">1168</span><span id="line-1168">     * @see "https://owasp.org/www-community/attacks/Path_Traversal"</span>
+<span class="source-line-no">1169</span><span id="line-1169">     */</span>
+<span class="source-line-no">1170</span><span id="line-1170">    public static boolean isPathSafe(String path) {</span>
+<span class="source-line-no">1171</span><span id="line-1171">        boolean isSafe = false;</span>
+<span class="source-line-no">1172</span><span id="line-1172">        int decodingRoundThreshold = 3;</span>
+<span class="source-line-no">1173</span><span id="line-1173">        try {</span>
+<span class="source-line-no">1174</span><span id="line-1174">            if (path != null &amp;&amp; !path.isEmpty()) {</span>
+<span class="source-line-no">1175</span><span id="line-1175">                //URL decode the path if case of data coming from a web context</span>
+<span class="source-line-no">1176</span><span id="line-1176">                String decodedPath = applyURLDecoding(path, decodingRoundThreshold);</span>
+<span class="source-line-no">1177</span><span id="line-1177">                //Ensure that no path traversal expression is present</span>
+<span class="source-line-no">1178</span><span id="line-1178">                if (!decodedPath.contains("..")) {</span>
+<span class="source-line-no">1179</span><span id="line-1179">                    File f = new File(decodedPath);</span>
+<span class="source-line-no">1180</span><span id="line-1180">                    String canonicalPath = f.getCanonicalPath();</span>
+<span class="source-line-no">1181</span><span id="line-1181">                    String absolutePath = f.getAbsolutePath();</span>
+<span class="source-line-no">1182</span><span id="line-1182">                    System.out.println("---");</span>
+<span class="source-line-no">1183</span><span id="line-1183">                    System.out.printf("IN PATH       : %s\n", path);</span>
+<span class="source-line-no">1184</span><span id="line-1184">                    System.out.printf("DECODED   PATH: %s\n", decodedPath);</span>
+<span class="source-line-no">1185</span><span id="line-1185">                    System.out.printf("CANONICAL PATH: %s\n", canonicalPath);</span>
+<span class="source-line-no">1186</span><span id="line-1186">                    System.out.printf("ABSOLUTE  PATH: %s\n", absolutePath);</span>
+<span class="source-line-no">1187</span><span id="line-1187">                    isSafe = canonicalPath.equals(absolutePath);</span>
+<span class="source-line-no">1188</span><span id="line-1188">                }</span>
+<span class="source-line-no">1189</span><span id="line-1189">            }</span>
+<span class="source-line-no">1190</span><span id="line-1190">        } catch (Exception e) {</span>
+<span class="source-line-no">1191</span><span id="line-1191">            isSafe = false;</span>
+<span class="source-line-no">1192</span><span id="line-1192">        }</span>
+<span class="source-line-no">1193</span><span id="line-1193">        return isSafe;</span>
+<span class="source-line-no">1194</span><span id="line-1194">    }</span>
+<span class="source-line-no">1195</span><span id="line-1195">}</span>
 
 
 
