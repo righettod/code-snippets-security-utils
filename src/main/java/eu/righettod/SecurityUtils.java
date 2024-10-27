@@ -1176,10 +1176,13 @@ public class SecurityUtils {
             if (path != null && !path.isEmpty()) {
                 //URL decode the path if case of data coming from a web context
                 String decodedPath = applyURLDecoding(path, decodingRoundThreshold);
+                //Remove any path escaping sequence
+                decodedPath = decodedPath.replace("\\/", "/").replace("\\\\", "\\");
                 //Ensure that no path traversal path is present
                 File f = new File(decodedPath);
                 String canonicalPath = f.getCanonicalPath();
                 String absolutePath = f.getAbsolutePath();
+                System.out.println("---");
                 System.out.printf("IN PATH       : %s\n", path);
                 System.out.printf("DECODED   PATH: %s\n", decodedPath);
                 System.out.printf("CANONICAL PATH: %s\n", canonicalPath);
