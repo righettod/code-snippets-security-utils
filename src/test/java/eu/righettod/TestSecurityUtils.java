@@ -542,7 +542,7 @@ public class TestSecurityUtils {
                 "%25252525252Fhome%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252Fetc%25252525252Fpassword", //URL encoding X6
                 "/home/..\\/..\\/..\\/..\\/etc/password",
                 "/home/..\\\\/..\\/..\\\\/..\\/etc/password",
-                "D:\\test..\\\\\\test"
+                "D:\\test..\\\\..\\test"
         );
         invalidPaths.forEach(p -> {
             assertFalse(SecurityUtils.isPathSafe(p), String.format(templateMsgFalseNegative, p));
