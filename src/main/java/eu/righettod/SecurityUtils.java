@@ -80,10 +80,12 @@ public class SecurityUtils {
     /**
      * Apply a collection of validation to verify if a provided PIN code is considered weak (easy to guess) or none.<br>
      * This method consider that format of the PIN code is [0-9]{6,}<br>
-     * Rule to consider a PIN code as weak:<br>
-     * - Length is inferior to 6 positions.<br>
-     * - Contain only the same number or only a sequence of zero.<br>
-     * - Contain sequence of following incremental or decremental numbers.<br>
+     * Rule to consider a PIN code as weak:
+     * <ul>
+     * <li>Length is inferior to 6 positions.</li>
+     * <li>Contain only the same number or only a sequence of zero.</li>
+     * <li>Contain sequence of following incremental or decremental numbers.</li>
+     * </ul>
      *
      * @param pinCode PIN code to verify.
      * @return True only if the PIN is considered as weak.
@@ -120,10 +122,12 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a Word 97-2003 (binary format) document file provided:<br>
-     * - Real Microsoft Word 97-2003 document file.<br>
-     * - No VBA Macro.<br>
-     * - No embedded objects.<br>
+     * Apply a collection of validations on a Word 97-2003 (binary format) document file provided:
+     * <ul>
+     * <li>Real Microsoft Word 97-2003 document file.</li>
+     * <li>No VBA Macro.<br></li>
+     * <li>No embedded objects.</li>
+     * </ul>
      *
      * @param wordFilePath Filename of the Word document file to check.
      * @return True only if the file pass all validations.
@@ -269,11 +273,13 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a PDF file provided:<br>
-     * - Real PDF file<br>
-     * - No attachments.<br>
-     * - No Javascript code.<br>
-     * - No links using action of type URI/Launch/RemoteGoTo/ImportData.<br>
+     * Apply a collection of validations on a PDF file provided:
+     * <ul>
+     * <li>Real PDF file.</li>
+     * <li>No attachments.</li>
+     * <li>No Javascript code.</li>
+     * <li>No links using action of type URI/Launch/RemoteGoTo/ImportData.</li>
+     * </ul>
      *
      * @param pdfFilePath Filename of the PDF file to check.
      * @return True only if the file pass all validations.
@@ -377,10 +383,12 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a ZIP file provided:<br>
-     * - Real ZIP file<br>
-     * - Contain less than a specified level of deepness.<br>
-     * - Do not contain Zip-Slip entry path.<br>
+     * Apply a collection of validations on a ZIP file provided:
+     * <ul>
+     * <li>Real ZIP file.</li>
+     * <li>Contain less than a specified level of deepness.</li>
+     * <li>Do not contain Zip-Slip entry path.</li>
+     * </ul>
      *
      * @param zipFilePath       Filename of the ZIP file to check.
      * @param maxLevelDeepness  Threshold of deepness above which a ZIP archive will be rejected.
@@ -479,11 +487,14 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a string expected to be an public IP address:<br>
-     * - Is a valid IP v4 or v6 address.<br>
-     * - Is public from an Internet perspective.<br><br>
-     * <b>Note:</b> I often see missing such validation in the value read from HTTP request headers like "X-Forwarded-For" or "Forwarded".
+     * Apply a collection of validations on a string expected to be an public IP address:
+     * <ul>
+     * <li>Is a valid IP v4 or v6 address.</li>
+     * <li>Is public from an Internet perspective.</li>
+     * </ul>
      * <br>
+     * <b>Note:</b> I often see missing such validation in the value read from HTTP request headers like "X-Forwarded-For" or "Forwarded".
+     * <br><br>
      * <b>Note for IPv6:</b> I used documentation found so it is really experimental!
      *
      * @param ip String expected to be a valid IP address.
@@ -553,9 +564,12 @@ public class SecurityUtils {
     /**
      * Compute a SHA256 hash from an input composed of a collection of strings.<br><br>
      * This method take care to build the source string in a way to prevent this source string to be prone to abuse targeting the different parts composing it.<br><br>
+     * <p>
      * Example of possible abuse without precautions applied during the hash calculation logic:<br>
-     * Hash of <code>SHA256("Hello", "My", "World!!!")</code> will be equals to the hash of <code>SHA256("Hell", "oMyW", "orld!!!")</code>.<br><br>
+     * Hash of <code>SHA256("Hello", "My", "World!!!")</code> will be equals to the hash of <code>SHA256("Hell", "oMyW", "orld!!!")</code>.<br>
+     * </p>
      * This method ensure that both hash above will be different.<br><br>
+     *
      * <b>Note:</b> The character <code>|</code> is used, as separator, of every parts so a part is not allowed to contains this character.
      *
      * @param parts Ordered list of strings to use to build the input string for which the hash must be computed on. No null value is accepted on object composing the collection.
@@ -644,9 +658,11 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a EXCEL CSV file provided (file was expected to be opened in Microsoft EXCEL):<br>
-     * - Real CSV file.<br>
-     * - Do not contains any payload related to a CSV injections.<br><br>
+     * Apply a collection of validations on a EXCEL CSV file provided (file was expected to be opened in Microsoft EXCEL):
+     * <ul>
+     * <li>Real CSV file.</li>
+     * <li>Do not contains any payload related to a CSV injections.</li>
+     * </ul>
      * Ensure that, if Apache Commons CSV does not find any record then, the file will be considered as NOT safe (prevent potential bypasses).<br><br>
      * <b>Note:</b> Record delimiter used is the <code>,</code> (comma) character. See the Apache Commons CSV reference provided for EXCEL.<br>
      *
@@ -754,11 +770,13 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a JSON string provided:<br>
-     * - Real JSON structure.<br>
-     * - Contain less than a specified number of deepness for nested objects or arrays.<br>
-     * - Contain less than a specified number of items in any arrays.<br><br>
-     *
+     * Apply a collection of validations on a JSON string provided:
+     * <ul>
+     * <li>Real JSON structure.</li>
+     * <li>Contain less than a specified number of deepness for nested objects or arrays.</li>
+     * <li>Contain less than a specified number of items in any arrays.</li>
+     * </ul>
+     * <br>
      * <b>Note:</b> I decided to use a parsing approach using only string processing to prevent any StackOverFlow or OutOfMemory error that can be abused.<br><br>
      * I used the following assumption:
      * <ul>
@@ -863,11 +881,12 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a image file provided:<br>
-     * - Real image file.<br>
-     * - Its mime type is into the list of allowed mime types.<br>
-     * - Its metadata fields do not contains any characters related to a malicious payloads.<br>
-     *
+     * Apply a collection of validations on a image file provided:
+     * <ul>
+     * <li>Real image file.</li>
+     * <li>Its mime type is into the list of allowed mime types.</li>
+     * <li>Its metadata fields do not contains any characters related to a malicious payloads.</li>
+     * </ul>
      * <br>
      * <b>Important note:</b> This implementation is prone to bypass using the "<b>raw insertion</b>" method documented in the <a href="https://www.synacktiv.com/en/publications/persistent-php-payloads-in-pngs-how-to-inject-php-code-in-an-image-and-keep-it-there">blog post</a> from the Synacktiv team.
      * To handle such case, it is recommended to resize the image to remove any non image-related content, see <a href="https://github.com/righettod/document-upload-protection/blob/master/src/main/java/eu/righettod/poc/sanitizer/ImageDocumentSanitizerImpl.java#L54">here</a> for an example.<br>
@@ -982,15 +1001,17 @@ public class SecurityUtils {
     }
 
     /**
-     * Apply a collection of validations on a string expected to be an email address:<br>
-     * - Is a valid email address, from a parser perspective, following RFCs on email addresses.<br>
-     * - Is not using "Encoded-word" format.<br>
-     * - Is not using comment format.<br>
-     * - Is not using "Punycode" format.<br>
-     * - Is not using UUCP style addresses.<br>
-     * - Is not using address literals.<br>
-     * - Is not using source routes.<br>
-     * - Is not using the "percent hack".<br><br>
+     * Apply a collection of validations on a string expected to be an email address:
+     * <ul>
+     * <li>Is a valid email address, from a parser perspective, following RFCs on email addresses.</li>
+     * <li>Is not using "Encoded-word" format.</li>
+     * <li>Is not using comment format.</li>
+     * <li>Is not using "Punycode" format.</li>
+     * <li>Is not using UUCP style addresses.</li>
+     * <li>Is not using address literals.</li>
+     * <li>Is not using source routes.</li>
+     * <li>Is not using the "percent hack".</li>
+     * </ul><br>
      * This is based on the research work from <a href="https://portswigger.net/research/gareth-heyes">Gareth Heyes</a> added in references (Portswigger).<br><br>
      *
      * <b>Note:</b> The notion of valid, here, is to take from a secure usage of the data perspective.
@@ -1130,5 +1151,40 @@ public class SecurityUtils {
             currentDecodingRound++;
         }
         return currentRoundData;
+    }
+
+    /**
+     * Apply a collection of validations on a string expected to be an system file/folder path:
+     * <ul>
+     * <li>Does not contains path traversal payload.</li>
+     * </ul><br>
+     * <p>
+     * <b>Note:</b> This implementation is sensitive to the current folder expression <code>./</code> and <code>.\</code> - Therefore <b>it will consider the path as unsafe</b> when it contains such expression.
+     * </p>
+     *
+     * @param path String expected to be a valid system file/folder path.
+     * @return True only if the string pass all validations.
+     * @see "https://portswigger.net/web-security/file-path-traversal"
+     * @see "https://learn.snyk.io/lesson/directory-traversal/"
+     * @see "https://capec.mitre.org/data/definitions/126.html"
+     * @see "https://owasp.org/www-community/attacks/Path_Traversal"
+     */
+    public static boolean isPathSafe(String path) {
+        boolean isSafe = false;
+        int decodingRoundThreshold = 3;
+        try {
+            if (path != null && !path.isEmpty()) {
+                //URL decode the path if case of data coming from a web context
+                String decodedPath = applyURLDecoding(path, decodingRoundThreshold);
+                //Ensure that no path traversal path is present
+                File f = new File(decodedPath);
+                String canonicalPath = f.getCanonicalPath();
+                String absolutePath = f.getAbsolutePath();
+                isSafe = canonicalPath.equals(absolutePath);
+            }
+        } catch (Exception e) {
+            isSafe = false;
+        }
+        return isSafe;
     }
 }

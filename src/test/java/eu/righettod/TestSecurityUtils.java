@@ -453,8 +453,8 @@ public class TestSecurityUtils {
 
     @Test
     public void isEmailAddress() {
-        final String templateMsgIPFalseNegative = "Email address '%s' must be detected as invalid!";
-        final String templateMsgIPFalsePositive = "Email address '%s' must be detected as valid!";
+        final String templateMsgFalseNegative = "Email address '%s' must be detected as invalid!";
+        final String templateMsgFalsePositive = "Email address '%s' must be detected as valid!";
         //Test invalid email addresses
         List<String> invalidEmailAddressesList = Arrays.asList(
                 "=?utf-8?q?=41=42=43?=test@test.com",
@@ -469,7 +469,7 @@ public class TestSecurityUtils {
                 "postmaster@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
                 "foo@xn--mnchen-2ya.com");
         invalidEmailAddressesList.forEach(addr -> {
-            assertFalse(SecurityUtils.isEmailAddress(addr), String.format(templateMsgIPFalseNegative, addr));
+            assertFalse(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalseNegative, addr));
         });
         //Test valid email addresses
         List<String> validEmailAddressesList = Arrays.asList(
@@ -482,7 +482,7 @@ public class TestSecurityUtils {
                 "\"John..Doe\"@example.com",
                 "\"@\"@example.com");
         validEmailAddressesList.forEach(addr -> {
-            assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgIPFalsePositive, addr));
+            assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalsePositive, addr));
         });
     }
 
@@ -528,6 +528,33 @@ public class TestSecurityUtils {
                 "SecurityException expected!"
         );
         assertTrue(thrown.getMessage().equalsIgnoreCase("Decoding round threshold of 3 reached!"));
+    }
+
+    @Test
+    public void isPathSafe() {
+        final String templateMsgFalseNegative = "Path '%s' must be detected as invalid!";
+        final String templateMsgFalsePositive = "Path '%s' must be detected as valid!";
+        //Test invalid cases
+        List<String> invalidPaths = Arrays.asList(
+                "/home/../../../../etc/password",
+                "%2Fhome%2F%2E%2E%2F%2E%2E%2F%2E%2E%2F%2E%2E%2Fetc%2Fpassword", //URL encoding X1
+                "%252Fhome%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252Fpassword", //URL encoding X2
+                "%25252525252Fhome%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252Fetc%25252525252Fpassword", //URL encoding X6
+                "/home/..\\/..\\/..\\/..\\/etc/password"
+        );
+        invalidPaths.forEach(p -> {
+            assertFalse(SecurityUtils.isPathSafe(p), String.format(templateMsgFalseNegative, p));
+        });
+        //Test valid cases
+        List<String> validPaths = Arrays.asList(
+                "/home/file",
+                "C:\\test\\file",
+                "test/file",
+                "test\\file"
+        );
+        validPaths.forEach(p -> {
+            assertTrue(SecurityUtils.isPathSafe(p), String.format(templateMsgFalsePositive, p));
+        });
     }
 }
 
