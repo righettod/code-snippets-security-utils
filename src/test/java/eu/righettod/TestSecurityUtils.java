@@ -558,5 +558,21 @@ public class TestSecurityUtils {
             assertTrue(SecurityUtils.isPathSafe(p), String.format(templateMsgFalsePositive, p));
         });
     }
+
+    @Test
+    public void isXMLHaveCommentsOrXSLProcessingInstructions() {
+        //Test detection case for comments
+        String testFile = getTestFilePath("test-xml-with-comments.xml");
+        boolean result = SecurityUtils.isXMLHaveCommentsOrXSLProcessingInstructions(testFile);
+        assertTrue(result, "Comments were expected to be detected!");
+        //Test detection case for XSL PI
+        testFile = getTestFilePath("test-xml-with-xsl-pi.xml");
+        result = SecurityUtils.isXMLHaveCommentsOrXSLProcessingInstructions(testFile);
+        assertTrue(result, "XSL PI were expected to be detected!");
+        //Test for the clean case
+        testFile = getTestFilePath("test-xml-without-comment-or-xsl-pi.xml");
+        result = SecurityUtils.isXMLHaveCommentsOrXSLProcessingInstructions(testFile);
+        assertFalse(result, "No Comments or XSL PI were expected to be detected!");
+    }
 }
 

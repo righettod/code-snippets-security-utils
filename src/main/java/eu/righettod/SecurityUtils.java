@@ -38,9 +38,13 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.imageio.ImageIO;
 import javax.json.Json;
 import javax.json.JsonReader;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.stream.XMLInputFactory;
+import javax.xml.stream.XMLStreamReader;
+import javax.xml.stream.events.XMLEvent;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -1186,5 +1190,46 @@ public class SecurityUtils {
             isSafe = false;
         }
         return isSafe;
+    }
+
+    /**
+     * Identify if an XML contains any XML comments or have any XSL processing instructions.<br>
+     * Stream reader based parsing is used to support large XML tree.
+     *
+     * @param xmlFilePath Filename of the XML file to check.
+     * @return True only if XML comments or XSL processing instructions are identified.
+     * @see "https://www.tutorialspoint.com/xml/xml_processing.htm"
+     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/stream/XMLInputFactory.html"
+     * @see "https://portswigger.net/kb/issues/00400700_xml-entity-expansion"
+     * @see "https://www.w3.org/Style/styling-XML.en.html"
+     */
+    public static boolean isXMLHaveCommentsOrXSLProcessingInstructions(String xmlFilePath) {
+        boolean itemsDetected = false;
+        try {
+            //Ensure that the parser will not be prone XML external entity (XXE) injection or XML entity expansion (XEE) attacks
+            XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();
+            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);
+            xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+            xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);
+            xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);
+
+            //Parse file
+            try (FileInputStream fis = new FileInputStream(xmlFilePath)) {
+                XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(fis);
+                int eventType;
+                while (reader.hasNext() && !itemsDetected) {
+                    eventType = reader.next();
+                    if (eventType == XMLEvent.COMMENT) {
+                        itemsDetected = true;
+                    } else if (eventType == XMLEvent.PROCESSING_INSTRUCTION && "xml-stylesheet".equalsIgnoreCase(reader.getPITarget())) {
+                        itemsDetected = true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            //In case of error then assume that the check failed
+            itemsDetected = true;
+        }
+        return itemsDetected;
     }
 }

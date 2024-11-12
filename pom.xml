@@ -113,7 +113,7 @@
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
                     <windowtitle>Javadoc</windowtitle>
-                    <bottom>${project.artifactId} - ${project.version}</bottom>
+                    <bottom>Generated on ${maven.build.timestamp}.</bottom>
                     <javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
                     <docfilessubdirs>true</docfilessubdirs>
                 </configuration>
@@ -125,6 +125,7 @@
         <jdk.target>21</jdk.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.build.timestamp.format>yyyy-MM-dd</maven.build.timestamp.format>
     </properties>
     <repositories>
         <repository>
