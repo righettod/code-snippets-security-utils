@@ -1,6 +1,7 @@
 package eu.righettod;
 
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.imaging.ImageInfo;
@@ -1231,5 +1232,52 @@ public class SecurityUtils {
             itemsDetected = true;
         }
         return itemsDetected;
+    }
+
+
+    /**
+     * Perform a set of additional validations against a JWT token:
+     * <ul>
+     *     <li>Match the expected type of token: ACCESS or ID or REFRESH.</li>
+     *     <li>The token ID (<a href="https://www.iana.org/assignments/jwt/jwt.xhtml">JTI claim</a>) is NOT part of the list of revoked token.</li>
+     * </ul>
+     *
+     * @param token               JWT token for which <b>signature was already validated</b> and on which a set of additional validations will be applied.
+     * @param expectedTokenType   The type of expected token using the enumeration provided.
+     * @param revokedTokenJTIList A list of token identifier (<b>JTI</b> claim) referring to tokens that were revoked and to which the JTI claim of the token will be compared to.
+     * @return True only the token pass all the validations.
+     * @see "https://www.iana.org/assignments/jwt/jwt.xhtml"
+     * @see "https://auth0.com/docs/secure/tokens/access-tokens"
+     * @see "https://auth0.com/docs/secure/tokens/id-tokens"
+     * @see "https://auth0.com/docs/secure/tokens/refresh-tokens"
+     * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"
+     * @see "https://jwt.io/libraries?language=Java"
+     * @see "https://pentesterlab.com/blog/secure-jwt-library-design"
+     */
+    public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List<String> revokedTokenJTIList) {
+        boolean isValid = false;
+        TokenType tokenType;
+        try {
+            String jti = token.getId();
+            if (jti != null && !jti.trim().isEmpty()) {
+                boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);
+                if (!jtiIsRevoked) {
+                    //Determine the token type based on the presence of specifics claims
+                    if (!token.getClaim("scope").isMissing()) {
+                        tokenType = TokenType.ACCESS;
+                    } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {
+                        tokenType = TokenType.ID;
+                    } else {
+                        tokenType = TokenType.REFRESH;
+                    }
+                    isValid = (tokenType.equals(expectedTokenType));
+                }
+            }
+        } catch (Exception e) {
+            //In case of error then assume that the check failed
+            isValid = false;
+        }
+
+        return isValid;
     }
 }

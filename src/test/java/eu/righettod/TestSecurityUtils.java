@@ -1,6 +1,11 @@
 package eu.righettod;
 
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTCreator;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.lang3.StringUtils;
@@ -13,9 +18,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -456,31 +464,12 @@ public class TestSecurityUtils {
         final String templateMsgFalseNegative = "Email address '%s' must be detected as invalid!";
         final String templateMsgFalsePositive = "Email address '%s' must be detected as valid!";
         //Test invalid email addresses
-        List<String> invalidEmailAddressesList = Arrays.asList(
-                "=?utf-8?q?=41=42=43?=test@test.com",
-                "=?utf-7?q?=41GYAbwBvAGIAYBy-?=@test@com",
-                "=?utf-8?b?Zm9vYmFy?=@test.com",
-                "@mail.mit.edu:peter@hotmail.com",
-                "peter%hotmail.com@mail.mit.edu",
-                "rusx!umoskva!kgbvax!dimitri@gateway.ru",
-                "test@example.com@evil.com",
-                "(foo)user@(bar)example.com",
-                "postmaster@[123.123.123.123]",
-                "postmaster@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]",
-                "foo@xn--mnchen-2ya.com");
+        List<String> invalidEmailAddressesList = Arrays.asList("=?utf-8?q?=41=42=43?=test@test.com", "=?utf-7?q?=41GYAbwBvAGIAYBy-?=@test@com", "=?utf-8?b?Zm9vYmFy?=@test.com", "@mail.mit.edu:peter@hotmail.com", "peter%hotmail.com@mail.mit.edu", "rusx!umoskva!kgbvax!dimitri@gateway.ru", "test@example.com@evil.com", "(foo)user@(bar)example.com", "postmaster@[123.123.123.123]", "postmaster@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]", "foo@xn--mnchen-2ya.com");
         invalidEmailAddressesList.forEach(addr -> {
             assertFalse(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalseNegative, addr));
         });
         //Test valid email addresses
-        List<String> validEmailAddressesList = Arrays.asList(
-                "test@test.com",
-                "test-test@test.com",
-                "test.test@test.com",
-                "test_test@test.com",
-                "test132@test.com",
-                "test+label@test.com",
-                "\"John..Doe\"@example.com",
-                "\"@\"@example.com");
+        List<String> validEmailAddressesList = Arrays.asList("test@test.com", "test-test@test.com", "test.test@test.com", "test_test@test.com", "test132@test.com", "test+label@test.com", "\"John..Doe\"@example.com", "\"@\"@example.com");
         validEmailAddressesList.forEach(addr -> {
             assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalsePositive, addr));
         });
@@ -491,13 +480,7 @@ public class TestSecurityUtils {
         final String templateMsgIPFalseNegative = "URL '%s' must be detected as invalid!";
         final String templateMsgIPFalsePositive = "URL '%s' must be detected as valid!";
         //Test invalid urls
-        List<String> invalidUrls = Arrays.asList(
-                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582X68b17e865fede4636d726b709fX",
-                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f?a=b",
-                "http://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f",
-                "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c99",
-                "https://test.com/myQsealCertificate-714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f"
-        );
+        List<String> invalidUrls = Arrays.asList("https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582X68b17e865fede4636d726b709fX", "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f?a=b", "http://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f", "https://test.com/myQsealCertificate_714f8154ec259ac40b8a9786c99", "https://test.com/myQsealCertificate-714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f");
         invalidUrls.forEach(u -> {
             assertFalse(SecurityUtils.isPSD2StetSafeCertificateURL(u), String.format(templateMsgIPFalseNegative, u));
         });
@@ -522,11 +505,7 @@ public class TestSecurityUtils {
             assertEquals(refDecodedData, SecurityUtils.applyURLDecoding(encodedData, threshold));
         });
         //Test invalid cases
-        SecurityException thrown = assertThrows(
-                SecurityException.class,
-                () -> SecurityUtils.applyURLDecoding(testData.get(6), 3),
-                "SecurityException expected!"
-        );
+        SecurityException thrown = assertThrows(SecurityException.class, () -> SecurityUtils.applyURLDecoding(testData.get(6), 3), "SecurityException expected!");
         assertTrue(thrown.getMessage().equalsIgnoreCase("Decoding round threshold of 3 reached!"));
     }
 
@@ -535,25 +514,15 @@ public class TestSecurityUtils {
         final String templateMsgFalseNegative = "Path '%s' must be detected as invalid!";
         final String templateMsgFalsePositive = "Path '%s' must be detected as valid!";
         //Test invalid cases
-        List<String> invalidPaths = Arrays.asList(
-                "/home/../../../../etc/password",
-                "%2Fhome%2F%2E%2E%2F%2E%2E%2F%2E%2E%2F%2E%2E%2Fetc%2Fpassword", //URL encoding X1
+        List<String> invalidPaths = Arrays.asList("/home/../../../../etc/password", "%2Fhome%2F%2E%2E%2F%2E%2E%2F%2E%2E%2F%2E%2E%2Fetc%2Fpassword", //URL encoding X1
                 "%252Fhome%252F%252E%252E%252F%252E%252E%252F%252E%252E%252F%252E%252E%252Fetc%252Fpassword", //URL encoding X2
                 "%25252525252Fhome%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252F%25252525252E%25252525252E%25252525252Fetc%25252525252Fpassword", //URL encoding X6
-                "/home/..\\/..\\/..\\/..\\/etc/password",
-                "/home/..\\\\/..\\/..\\\\/..\\/etc/password",
-                "D:\\test..\\\\..\\test"
-        );
+                "/home/..\\/..\\/..\\/..\\/etc/password", "/home/..\\\\/..\\/..\\\\/..\\/etc/password", "D:\\test..\\\\..\\test");
         invalidPaths.forEach(p -> {
             assertFalse(SecurityUtils.isPathSafe(p), String.format(templateMsgFalseNegative, p));
         });
         //Test valid cases
-        List<String> validPaths = Arrays.asList(
-                "/home/file",
-                "C:\\test\\file",
-                "test/file",
-                "test\\file"
-        );
+        List<String> validPaths = Arrays.asList("/home/file", "C:\\test\\file", "test/file", "test\\file");
         validPaths.forEach(p -> {
             assertTrue(SecurityUtils.isPathSafe(p), String.format(templateMsgFalsePositive, p));
         });
@@ -573,6 +542,50 @@ public class TestSecurityUtils {
         testFile = getTestFilePath("test-xml-without-comment-or-xsl-pi.xml");
         result = SecurityUtils.isXMLHaveCommentsOrXSLProcessingInstructions(testFile);
         assertFalse(result, "No Comments or XSL PI were expected to be detected!");
+    }
+
+    @Test
+    public void applyJWTExtraValidation() {
+        final String templateMsgIPFalseNegative = "Token '%s' must be detected as invalid!";
+        final String templateMsgIPFalsePositive = "Token '%s' must be detected as valid!";
+        List<String> revokedTokenJTIList = List.of("TOkEn2", "TOkEn3", "TOkEn4");
+        //Test invalid cases
+        //--Provide an ACCESS TOKEN but an ID TOKEN is expected
+        DecodedJWT testToken = generateJWTToken(TokenType.ACCESS, "TOKEN1");
+        boolean result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.ID, revokedTokenJTIList);
+        assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
+        //--Provide the expected token but the token JTI is part of the revoked token list
+        testToken = generateJWTToken(TokenType.ID, "TOKEN2");
+        result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.ID, revokedTokenJTIList);
+        assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
+        //---Provide the expected token but the token JTI claim is not present
+        testToken = generateJWTToken(TokenType.REFRESH, null);
+        result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.REFRESH, revokedTokenJTIList);
+        assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
+        //Test valid cases
+        //--Provide the expected token and the token JTI is NOT part of the revoked token list
+        for (TokenType tType : TokenType.values()) {
+            testToken = generateJWTToken(tType, "TOKEN1");
+            result = SecurityUtils.applyJWTExtraValidation(testToken, tType, revokedTokenJTIList);
+            assertTrue(result, String.format(templateMsgIPFalsePositive, testToken.getToken()));
+        }
+    }
+
+    private DecodedJWT generateJWTToken(TokenType tokenType, String jti) {
+        String secret = "6dbdd2a3-c7c6-42cf-abea-ca8c20b4d536";
+        Instant expirationTime = Instant.now().plus(Duration.ofHours(1));
+        Algorithm algorithm = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+        JWTCreator.Builder builder = JWT.create();
+        if (jti != null) {
+            builder = builder.withJWTId(jti);
+        }
+        switch (tokenType) {
+            case ACCESS -> builder = builder.withClaim("scope", "BUSINESS_API");
+            case ID -> builder = builder.withClaim("name", "test user");
+        }
+        String signedToken = builder.withExpiresAt(expirationTime).withClaim("tokenTypeHints", tokenType.toString()).sign(algorithm);
+        JWTVerifier verifier = JWT.require(algorithm).build();
+        return verifier.verify(signedToken);
     }
 }
 
