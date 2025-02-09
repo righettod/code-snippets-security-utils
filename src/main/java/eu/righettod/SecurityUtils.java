@@ -1262,7 +1262,7 @@ public class SecurityUtils {
         TokenType tokenType;
         try {
             if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {
-                if (!token.getClaim("exp").isMissing()) {
+                if (!token.getClaim("exp").isMissing() && token.getExpiresAt() != null) {
                     String jti = token.getId();
                     if (jti != null && !jti.trim().isEmpty()) {
                         boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);
