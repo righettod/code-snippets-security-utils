@@ -1253,6 +1253,7 @@ public class SecurityUtils {
      * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"
      * @see "https://jwt.io/libraries?language=Java"
      * @see "https://pentesterlab.com/blog/secure-jwt-library-design"
+     * @see "https://github.com/auth0/java-jwt"
      */
     public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List<String> revokedTokenJTIList) {
         boolean isValid = false;
