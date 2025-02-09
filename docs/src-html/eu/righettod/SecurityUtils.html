@@ -1275,7 +1275,7 @@
 <span class="source-line-no">1262</span><span id="line-1262">        TokenType tokenType;</span>
 <span class="source-line-no">1263</span><span id="line-1263">        try {</span>
 <span class="source-line-no">1264</span><span id="line-1264">            if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {</span>
-<span class="source-line-no">1265</span><span id="line-1265">                if (!token.getClaim("exp").isMissing()) {</span>
+<span class="source-line-no">1265</span><span id="line-1265">                if (!token.getClaim("exp").isMissing() &amp;&amp; token.getExpiresAt() != null) {</span>
 <span class="source-line-no">1266</span><span id="line-1266">                    String jti = token.getId();</span>
 <span class="source-line-no">1267</span><span id="line-1267">                    if (jti != null &amp;&amp; !jti.trim().isEmpty()) {</span>
 <span class="source-line-no">1268</span><span id="line-1268">                        boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);</span>
