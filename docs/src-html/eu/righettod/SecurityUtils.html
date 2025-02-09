@@ -1251,50 +1251,57 @@
 <span class="source-line-no">1238</span><span id="line-1238">    /**</span>
 <span class="source-line-no">1239</span><span id="line-1239">     * Perform a set of additional validations against a JWT token:</span>
 <span class="source-line-no">1240</span><span id="line-1240">     * &lt;ul&gt;</span>
-<span class="source-line-no">1241</span><span id="line-1241">     *     &lt;li&gt;Match the expected type of token: ACCESS or ID or REFRESH.&lt;/li&gt;</span>
-<span class="source-line-no">1242</span><span id="line-1242">     *     &lt;li&gt;The token ID (&lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;JTI claim&lt;/a&gt;) is NOT part of the list of revoked token.&lt;/li&gt;</span>
-<span class="source-line-no">1243</span><span id="line-1243">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1244</span><span id="line-1244">     *</span>
-<span class="source-line-no">1245</span><span id="line-1245">     * @param token               JWT token for which &lt;b&gt;signature was already validated&lt;/b&gt; and on which a set of additional validations will be applied.</span>
-<span class="source-line-no">1246</span><span id="line-1246">     * @param expectedTokenType   The type of expected token using the enumeration provided.</span>
-<span class="source-line-no">1247</span><span id="line-1247">     * @param revokedTokenJTIList A list of token identifier (&lt;b&gt;JTI&lt;/b&gt; claim) referring to tokens that were revoked and to which the JTI claim of the token will be compared to.</span>
-<span class="source-line-no">1248</span><span id="line-1248">     * @return True only the token pass all the validations.</span>
-<span class="source-line-no">1249</span><span id="line-1249">     * @see "https://www.iana.org/assignments/jwt/jwt.xhtml"</span>
-<span class="source-line-no">1250</span><span id="line-1250">     * @see "https://auth0.com/docs/secure/tokens/access-tokens"</span>
-<span class="source-line-no">1251</span><span id="line-1251">     * @see "https://auth0.com/docs/secure/tokens/id-tokens"</span>
-<span class="source-line-no">1252</span><span id="line-1252">     * @see "https://auth0.com/docs/secure/tokens/refresh-tokens"</span>
-<span class="source-line-no">1253</span><span id="line-1253">     * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"</span>
-<span class="source-line-no">1254</span><span id="line-1254">     * @see "https://jwt.io/libraries?language=Java"</span>
-<span class="source-line-no">1255</span><span id="line-1255">     * @see "https://pentesterlab.com/blog/secure-jwt-library-design"</span>
-<span class="source-line-no">1256</span><span id="line-1256">     * @see "https://github.com/auth0/java-jwt"</span>
-<span class="source-line-no">1257</span><span id="line-1257">     */</span>
-<span class="source-line-no">1258</span><span id="line-1258">    public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List&lt;String&gt; revokedTokenJTIList) {</span>
-<span class="source-line-no">1259</span><span id="line-1259">        boolean isValid = false;</span>
-<span class="source-line-no">1260</span><span id="line-1260">        TokenType tokenType;</span>
-<span class="source-line-no">1261</span><span id="line-1261">        try {</span>
-<span class="source-line-no">1262</span><span id="line-1262">            String jti = token.getId();</span>
-<span class="source-line-no">1263</span><span id="line-1263">            if (jti != null &amp;&amp; !jti.trim().isEmpty()) {</span>
-<span class="source-line-no">1264</span><span id="line-1264">                boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);</span>
-<span class="source-line-no">1265</span><span id="line-1265">                if (!jtiIsRevoked) {</span>
-<span class="source-line-no">1266</span><span id="line-1266">                    //Determine the token type based on the presence of specifics claims</span>
-<span class="source-line-no">1267</span><span id="line-1267">                    if (!token.getClaim("scope").isMissing()) {</span>
-<span class="source-line-no">1268</span><span id="line-1268">                        tokenType = TokenType.ACCESS;</span>
-<span class="source-line-no">1269</span><span id="line-1269">                    } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {</span>
-<span class="source-line-no">1270</span><span id="line-1270">                        tokenType = TokenType.ID;</span>
-<span class="source-line-no">1271</span><span id="line-1271">                    } else {</span>
-<span class="source-line-no">1272</span><span id="line-1272">                        tokenType = TokenType.REFRESH;</span>
-<span class="source-line-no">1273</span><span id="line-1273">                    }</span>
-<span class="source-line-no">1274</span><span id="line-1274">                    isValid = (tokenType.equals(expectedTokenType));</span>
-<span class="source-line-no">1275</span><span id="line-1275">                }</span>
-<span class="source-line-no">1276</span><span id="line-1276">            }</span>
-<span class="source-line-no">1277</span><span id="line-1277">        } catch (Exception e) {</span>
-<span class="source-line-no">1278</span><span id="line-1278">            //In case of error then assume that the check failed</span>
-<span class="source-line-no">1279</span><span id="line-1279">            isValid = false;</span>
-<span class="source-line-no">1280</span><span id="line-1280">        }</span>
-<span class="source-line-no">1281</span><span id="line-1281"></span>
-<span class="source-line-no">1282</span><span id="line-1282">        return isValid;</span>
-<span class="source-line-no">1283</span><span id="line-1283">    }</span>
-<span class="source-line-no">1284</span><span id="line-1284">}</span>
+<span class="source-line-no">1241</span><span id="line-1241">     *     &lt;li&gt;Do not use the &lt;b&gt;NONE&lt;/b&gt; signature algorithm.&lt;/li&gt;</span>
+<span class="source-line-no">1242</span><span id="line-1242">     *     &lt;li&gt;Have a &lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;EXP claim&lt;/a&gt; defined.&lt;/li&gt;</span>
+<span class="source-line-no">1243</span><span id="line-1243">     *     &lt;li&gt;The token identifier (&lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;JTI claim&lt;/a&gt;) is NOT part of the list of revoked token.&lt;/li&gt;</span>
+<span class="source-line-no">1244</span><span id="line-1244">     *     &lt;li&gt;Match the expected type of token: ACCESS or ID or REFRESH.&lt;/li&gt;</span>
+<span class="source-line-no">1245</span><span id="line-1245">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1246</span><span id="line-1246">     *</span>
+<span class="source-line-no">1247</span><span id="line-1247">     * @param token               JWT token for which &lt;b&gt;signature was already validated&lt;/b&gt; and on which a set of additional validations will be applied.</span>
+<span class="source-line-no">1248</span><span id="line-1248">     * @param expectedTokenType   The type of expected token using the enumeration provided.</span>
+<span class="source-line-no">1249</span><span id="line-1249">     * @param revokedTokenJTIList A list of token identifier (&lt;b&gt;JTI&lt;/b&gt; claim) referring to tokens that were revoked and to which the JTI claim of the token will be compared to.</span>
+<span class="source-line-no">1250</span><span id="line-1250">     * @return True only the token pass all the validations.</span>
+<span class="source-line-no">1251</span><span id="line-1251">     * @see "https://www.iana.org/assignments/jwt/jwt.xhtml"</span>
+<span class="source-line-no">1252</span><span id="line-1252">     * @see "https://auth0.com/docs/secure/tokens/access-tokens"</span>
+<span class="source-line-no">1253</span><span id="line-1253">     * @see "https://auth0.com/docs/secure/tokens/id-tokens"</span>
+<span class="source-line-no">1254</span><span id="line-1254">     * @see "https://auth0.com/docs/secure/tokens/refresh-tokens"</span>
+<span class="source-line-no">1255</span><span id="line-1255">     * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"</span>
+<span class="source-line-no">1256</span><span id="line-1256">     * @see "https://jwt.io/libraries?language=Java"</span>
+<span class="source-line-no">1257</span><span id="line-1257">     * @see "https://pentesterlab.com/blog/secure-jwt-library-design"</span>
+<span class="source-line-no">1258</span><span id="line-1258">     * @see "https://github.com/auth0/java-jwt"</span>
+<span class="source-line-no">1259</span><span id="line-1259">     */</span>
+<span class="source-line-no">1260</span><span id="line-1260">    public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List&lt;String&gt; revokedTokenJTIList) {</span>
+<span class="source-line-no">1261</span><span id="line-1261">        boolean isValid = false;</span>
+<span class="source-line-no">1262</span><span id="line-1262">        TokenType tokenType;</span>
+<span class="source-line-no">1263</span><span id="line-1263">        try {</span>
+<span class="source-line-no">1264</span><span id="line-1264">            if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {</span>
+<span class="source-line-no">1265</span><span id="line-1265">                if (!token.getClaim("exp").isMissing()) {</span>
+<span class="source-line-no">1266</span><span id="line-1266">                    String jti = token.getId();</span>
+<span class="source-line-no">1267</span><span id="line-1267">                    if (jti != null &amp;&amp; !jti.trim().isEmpty()) {</span>
+<span class="source-line-no">1268</span><span id="line-1268">                        boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);</span>
+<span class="source-line-no">1269</span><span id="line-1269">                        if (!jtiIsRevoked) {</span>
+<span class="source-line-no">1270</span><span id="line-1270">                            //Determine the token type based on the presence of specifics claims</span>
+<span class="source-line-no">1271</span><span id="line-1271">                            if (!token.getClaim("scope").isMissing()) {</span>
+<span class="source-line-no">1272</span><span id="line-1272">                                tokenType = TokenType.ACCESS;</span>
+<span class="source-line-no">1273</span><span id="line-1273">                            } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {</span>
+<span class="source-line-no">1274</span><span id="line-1274">                                tokenType = TokenType.ID;</span>
+<span class="source-line-no">1275</span><span id="line-1275">                            } else {</span>
+<span class="source-line-no">1276</span><span id="line-1276">                                tokenType = TokenType.REFRESH;</span>
+<span class="source-line-no">1277</span><span id="line-1277">                            }</span>
+<span class="source-line-no">1278</span><span id="line-1278">                            isValid = (tokenType.equals(expectedTokenType));</span>
+<span class="source-line-no">1279</span><span id="line-1279">                        }</span>
+<span class="source-line-no">1280</span><span id="line-1280">                    }</span>
+<span class="source-line-no">1281</span><span id="line-1281">                }</span>
+<span class="source-line-no">1282</span><span id="line-1282">            }</span>
+<span class="source-line-no">1283</span><span id="line-1283"></span>
+<span class="source-line-no">1284</span><span id="line-1284">        } catch (Exception e) {</span>
+<span class="source-line-no">1285</span><span id="line-1285">            //In case of error then assume that the check failed</span>
+<span class="source-line-no">1286</span><span id="line-1286">            isValid = false;</span>
+<span class="source-line-no">1287</span><span id="line-1287">        }</span>
+<span class="source-line-no">1288</span><span id="line-1288"></span>
+<span class="source-line-no">1289</span><span id="line-1289">        return isValid;</span>
+<span class="source-line-no">1290</span><span id="line-1290">    }</span>
+<span class="source-line-no">1291</span><span id="line-1291">}</span>
 
 
 
