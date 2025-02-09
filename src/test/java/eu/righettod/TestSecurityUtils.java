@@ -550,31 +550,42 @@ public class TestSecurityUtils {
         final String templateMsgIPFalsePositive = "Token '%s' must be detected as valid!";
         List<String> revokedTokenJTIList = List.of("TOkEn2", "TOkEn3", "TOkEn4");
         //Test invalid cases
-        //--Provide an ACCESS TOKEN but an ID TOKEN is expected
-        DecodedJWT testToken = generateJWTToken(TokenType.ACCESS, "TOKEN1");
+        //--The provided type of token is not the expected one
+        DecodedJWT testToken = generateJWTToken(TokenType.ACCESS, "TOKEN1", false, true);
         boolean result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.ID, revokedTokenJTIList);
         assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
-        //--Provide the expected token but the token JTI is part of the revoked token list
-        testToken = generateJWTToken(TokenType.ID, "TOKEN2");
+        //--The token JTI claim is part of the revoked token list
+        testToken = generateJWTToken(TokenType.ID, "TOKEN2", false, true);
         result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.ID, revokedTokenJTIList);
         assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
-        //---Provide the expected token but the token JTI claim is not present
-        testToken = generateJWTToken(TokenType.REFRESH, null);
+        //---The token JTI claim is not present
+        testToken = generateJWTToken(TokenType.REFRESH, null, false, true);
+        result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.REFRESH, revokedTokenJTIList);
+        assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
+        //---The token is signed with the NONE algorithm
+        testToken = generateJWTToken(TokenType.ACCESS, "TOKEN1", true, true);
+        result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.REFRESH, revokedTokenJTIList);
+        assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
+        //---The token do not have an EXP claim
+        testToken = generateJWTToken(TokenType.ACCESS, "TOKEN1", false, false);
         result = SecurityUtils.applyJWTExtraValidation(testToken, TokenType.REFRESH, revokedTokenJTIList);
         assertFalse(result, String.format(templateMsgIPFalseNegative, testToken.getToken()));
         //Test valid cases
-        //--Provide the expected token and the token JTI is NOT part of the revoked token list
+        //--Respect all the conditions
         for (TokenType tType : TokenType.values()) {
-            testToken = generateJWTToken(tType, "TOKEN1");
+            testToken = generateJWTToken(tType, "TOKEN1", false, true);
             result = SecurityUtils.applyJWTExtraValidation(testToken, tType, revokedTokenJTIList);
             assertTrue(result, String.format(templateMsgIPFalsePositive, testToken.getToken()));
         }
     }
 
-    private DecodedJWT generateJWTToken(TokenType tokenType, String jti) {
+    private DecodedJWT generateJWTToken(TokenType tokenType, String jti, boolean useNoneAlgorithm, boolean useExpirationDateClaim) {
         String secret = "6dbdd2a3-c7c6-42cf-abea-ca8c20b4d536";
-        Instant expirationTime = Instant.now().plus(Duration.ofHours(1));
         Algorithm algorithm = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+        Instant expirationTime = Instant.now().plus(Duration.ofHours(1));
+        if (useNoneAlgorithm) {
+            algorithm = Algorithm.none();
+        }
         JWTCreator.Builder builder = JWT.create();
         if (jti != null) {
             builder = builder.withJWTId(jti);
@@ -583,7 +594,10 @@ public class TestSecurityUtils {
             case ACCESS -> builder = builder.withClaim("scope", "BUSINESS_API");
             case ID -> builder = builder.withClaim("name", "test user");
         }
-        String signedToken = builder.withExpiresAt(expirationTime).withClaim("tokenTypeHints", tokenType.toString()).sign(algorithm);
+        if (useExpirationDateClaim) {
+            builder = builder.withExpiresAt(expirationTime);
+        }
+        String signedToken = builder.withClaim("tokenTypeHints", tokenType.toString()).sign(algorithm);
         JWTVerifier verifier = JWT.require(algorithm).build();
         return verifier.verify(signedToken);
     }

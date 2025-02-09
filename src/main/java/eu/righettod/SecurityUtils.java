@@ -1238,8 +1238,10 @@ public class SecurityUtils {
     /**
      * Perform a set of additional validations against a JWT token:
      * <ul>
+     *     <li>Do not use the <b>NONE</b> signature algorithm.</li>
+     *     <li>Have a <a href="https://www.iana.org/assignments/jwt/jwt.xhtml">EXP claim</a> defined.</li>
+     *     <li>The token identifier (<a href="https://www.iana.org/assignments/jwt/jwt.xhtml">JTI claim</a>) is NOT part of the list of revoked token.</li>
      *     <li>Match the expected type of token: ACCESS or ID or REFRESH.</li>
-     *     <li>The token ID (<a href="https://www.iana.org/assignments/jwt/jwt.xhtml">JTI claim</a>) is NOT part of the list of revoked token.</li>
      * </ul>
      *
      * @param token               JWT token for which <b>signature was already validated</b> and on which a set of additional validations will be applied.
@@ -1259,21 +1261,26 @@ public class SecurityUtils {
         boolean isValid = false;
         TokenType tokenType;
         try {
-            String jti = token.getId();
-            if (jti != null && !jti.trim().isEmpty()) {
-                boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);
-                if (!jtiIsRevoked) {
-                    //Determine the token type based on the presence of specifics claims
-                    if (!token.getClaim("scope").isMissing()) {
-                        tokenType = TokenType.ACCESS;
-                    } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {
-                        tokenType = TokenType.ID;
-                    } else {
-                        tokenType = TokenType.REFRESH;
+            if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {
+                if (!token.getClaim("exp").isMissing()) {
+                    String jti = token.getId();
+                    if (jti != null && !jti.trim().isEmpty()) {
+                        boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);
+                        if (!jtiIsRevoked) {
+                            //Determine the token type based on the presence of specifics claims
+                            if (!token.getClaim("scope").isMissing()) {
+                                tokenType = TokenType.ACCESS;
+                            } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {
+                                tokenType = TokenType.ID;
+                            } else {
+                                tokenType = TokenType.REFRESH;
+                            }
+                            isValid = (tokenType.equals(expectedTokenType));
+                        }
                     }
-                    isValid = (tokenType.equals(expectedTokenType));
                 }
             }
+
         } catch (Exception e) {
             //In case of error then assume that the check failed
             isValid = false;
