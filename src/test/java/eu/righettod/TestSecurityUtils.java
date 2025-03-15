@@ -601,5 +601,20 @@ public class TestSecurityUtils {
         JWTVerifier verifier = JWT.require(algorithm).build();
         return verifier.verify(signedToken);
     }
+
+    @Test
+    public void isRegexSafe() {
+        final String templateMsgFalseNegative = "Regular expression '%s' must be detected as not safe!";
+        final String templateMsgFalsePositive = "Regular expression '%s' must be detected as safe!";
+        String testData = "a".repeat(400) + "!";
+        //Test unsafe case
+        String testRegex = "(.*a){10}";
+        boolean result = SecurityUtils.isRegexSafe(testRegex, testData, Optional.empty());
+        assertFalse(result, String.format(templateMsgFalseNegative, testRegex));
+        //Test safe case
+        testRegex = "[a-z]+";
+        result = SecurityUtils.isRegexSafe(testRegex, testData, Optional.empty());
+        assertTrue(result, String.format(templateMsgFalsePositive, testRegex));
+    }
 }
 

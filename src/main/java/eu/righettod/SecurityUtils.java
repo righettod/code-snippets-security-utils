@@ -58,8 +58,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.time.Duration;
-import java.util.List;
 import java.util.*;
+import java.util.List;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
@@ -1285,7 +1286,44 @@ public class SecurityUtils {
             //In case of error then assume that the check failed
             isValid = false;
         }
-
         return isValid;
+    }
+
+    /**
+     * Apply a validations on a regular expression to ensure that is not prone to the ReDOS attack.
+     * <br>If your technology is supported by <a href="https://github.com/doyensec/regexploit">regexploit</a> then <b>use it instead of this method!</b>
+     * <br>Indeed, the <a href="https://www.doyensec.com/">doyensec</a> team has made an intensive and amazing work on this topic.
+     *
+     * @param regex                       String expected to be a valid regular expression.
+     * @param data                        Test data on which the regular expression is executed for the test.
+     * @param maximumRunningTimeInSeconds Optional parameter to specify a number of seconds above which a regex execution time is considered as not safe (default to 4 seconds when not specified).
+     * @return True only if the string pass all validations.
+     * @see "https://github.blog/security/how-to-fix-a-redos/"
+     * @see "https://learn.snyk.io/lesson/redos/?ecosystem=javascript"
+     * @see "https://rules.sonarsource.com/java/RSPEC-2631/"
+     * @see "https://github.com/doyensec/regexploit"
+     * @see "https://wiki.owasp.org/images/2/23/OWASP_IL_2009_ReDoS.pdf"
+     * @see "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"
+     */
+    public static boolean isRegexSafe(String regex, String data, Optional<Integer> maximumRunningTimeInSeconds) {
+        boolean isSafe = false;
+        final String testData = (data != null) ? data : "";
+        int executionTimeout = maximumRunningTimeInSeconds.orElse(4);
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Callable<Boolean> task = () -> {
+                Pattern pattern = Pattern.compile(regex);
+                return pattern.matcher(testData).matches();
+            };
+            List<Future<Boolean>> tasks = executor.invokeAll(List.of(task), executionTimeout, TimeUnit.SECONDS);
+            if (!tasks.getFirst().isCancelled()) {
+                isSafe = true;
+            }
+        } catch (Exception e) {
+            isSafe = false;
+        } finally {
+            executor.shutdownNow();
+        }
+        return isSafe;
     }
 }
