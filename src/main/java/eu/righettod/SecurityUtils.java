@@ -1292,28 +1292,30 @@ public class SecurityUtils {
     /**
      * Apply a validations on a regular expression to ensure that is not prone to the ReDOS attack.
      * <br>If your technology is supported by <a href="https://github.com/doyensec/regexploit">regexploit</a> then <b>use it instead of this method!</b>
-     * <br>Indeed, the <a href="https://www.doyensec.com/">doyensec</a> team has made an intensive and amazing work on this topic.
+     * <br>Indeed, the <a href="https://www.doyensec.com/">Doyensec</a> team has made an intensive and amazing work on this topic and created this effective tool.
      *
-     * @param regex                       String expected to be a valid regular expression.
+     * @param regex                       String expected to be a valid regular expression (regex).
      * @param data                        Test data on which the regular expression is executed for the test.
      * @param maximumRunningTimeInSeconds Optional parameter to specify a number of seconds above which a regex execution time is considered as not safe (default to 4 seconds when not specified).
      * @return True only if the string pass all validations.
      * @see "https://github.blog/security/how-to-fix-a-redos/"
-     * @see "https://learn.snyk.io/lesson/redos/?ecosystem=javascript"
+     * @see "https://learn.snyk.io/lesson/redos"
      * @see "https://rules.sonarsource.com/java/RSPEC-2631/"
      * @see "https://github.com/doyensec/regexploit"
      * @see "https://wiki.owasp.org/images/2/23/OWASP_IL_2009_ReDoS.pdf"
      * @see "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"
      */
     public static boolean isRegexSafe(String regex, String data, Optional<Integer> maximumRunningTimeInSeconds) {
+        Objects.requireNonNull(maximumRunningTimeInSeconds, "Use 'Optional.empty()' to leverage the default value.");
+        Objects.requireNonNull(data, "A sample data is needed to perform the test.");
+        Objects.requireNonNull(regex, "A regular expression is needed to perform the test.");
         boolean isSafe = false;
-        final String testData = (data != null) ? data : "";
         int executionTimeout = maximumRunningTimeInSeconds.orElse(4);
         ExecutorService executor = Executors.newSingleThreadExecutor();
         try {
             Callable<Boolean> task = () -> {
                 Pattern pattern = Pattern.compile(regex);
-                return pattern.matcher(testData).matches();
+                return pattern.matcher(data).matches();
             };
             List<Future<Boolean>> tasks = executor.invokeAll(List.of(task), executionTimeout, TimeUnit.SECONDS);
             if (!tasks.getFirst().isCancelled()) {
