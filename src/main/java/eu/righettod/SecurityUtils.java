@@ -1336,7 +1336,7 @@ public class SecurityUtils {
      * <br><br>
      * Why such method?
      * <ul>
-     * <li>Java <= 21 does not supports natively the generation of an UUID version 7.</li>
+     * <li>Java inferior or equals to 21 does not supports natively the generation of an UUID version 7.</li>
      * <li>Import a library just to generate such value is overkill for me.</li>
      * <li>Library that I have found, generating such version of an UUID, are not provided by entities commonly used in the java world, such as the SPRING framework provider.</li>
      * </ul>
