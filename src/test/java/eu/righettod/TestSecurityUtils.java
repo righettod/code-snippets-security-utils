@@ -24,6 +24,9 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -615,6 +618,42 @@ public class TestSecurityUtils {
         testRegex = "[a-z]+";
         result = SecurityUtils.isRegexSafe(testRegex, testData, Optional.empty());
         assertTrue(result, String.format(templateMsgFalsePositive, testRegex));
+    }
+
+    @Test
+    public void computeUUIDv7() {
+        int candidatesCount = 1000;
+        List<String> history = new ArrayList<>();
+        UUID uuid;
+        String uuidStr;
+        String ref;
+        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("YYYYMMddHHmmss");
+        long mostSigBits;
+        long timestampHigh;
+        Instant instant;
+        LocalDateTime localDateTime;
+        for (int i = 0; i < candidatesCount; i++) {
+            //Generate a UUID v7
+            ref = LocalDateTime.now().format(dateFormat);
+            uuid = SecurityUtils.computeUUIDv7();
+            uuidStr = uuid.toString();
+            //Apply validations
+            //--Duplicate
+            assertFalse(history.contains(uuidStr), "Duplicate generated UUID identified!");
+            //--Version part
+            assertEquals('7', uuidStr.charAt(14), "Invalid UUID version identified!");
+            //--Timestamp part
+            //----Retrieves the first 64 bits of the UUID via "getMostSignificantBits()"
+            //----Perform a right shift by 16 bits to isolate the first 48 bits, which represent the timestamp
+            //----Convert it to a Date object
+            mostSigBits = uuid.getMostSignificantBits();
+            timestampHigh = (mostSigBits >> 16) & 0xFFFFFFFFFFFFL;
+            instant = Instant.ofEpochMilli(timestampHigh);
+            localDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+            assertEquals(ref, localDateTime.format(dateFormat), "Invalid UUID timestamp identified!");
+            //Add it to the collection of generated UUID
+            history.add(uuidStr);
+        }
     }
 }
 

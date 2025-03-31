@@ -53,10 +53,12 @@ import java.net.*;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.util.*;
 import java.util.List;
@@ -76,7 +78,6 @@ import java.util.zip.ZipFile;
  * </ul>
  */
 public class SecurityUtils {
-
     /**
      * Default constructor: Not needed as the class only provides static methods.
      */
@@ -1327,5 +1328,55 @@ public class SecurityUtils {
             executor.shutdownNow();
         }
         return isSafe;
+    }
+
+    /**
+     * Compute a UUID version 7 without using any external dependency.<br><br>
+     * <b>Below are my personal point of view and perhaps I'm totally wrong!</b>
+     * <br><br>
+     * Why such method?
+     * <ul>
+     * <li>Java <= 21 does not supports natively the generation of an UUID version 7.</li>
+     * <li>Import a library just to generate such value is overkill for me.</li>
+     * <li>Library that I have found, generating such version of an UUID, are not provided by entities commonly used in the java world, such as the SPRING framework provider.</li>
+     * </ul>
+     * <br>
+     * <b>Full credits for this implementation goes to the authors and contributors of the <a href="https://github.com/nalgeon/uuidv7">UUIDv7</a> project.</b>
+     * <br><br>
+     * Below are the java libraries that I have found but, for which, I do not trust enough the provider to use them directly:
+     * <ul>
+     *     <li><a href="https://github.com/cowtowncoder/java-uuid-generator">java-uuid-generator</a></li>
+     *     <li><a href="https://github.com/f4b6a3/uuid-creator">uuid-creator</a></li>
+     * </ul>
+     *
+     * @return A UUID object representing the UUID v7.
+     * @see "https://uuid7.com/"
+     * @see "https://antonz.org/uuidv7/"
+     * @see "https://mccue.dev/pages/3-11-25-life-altering-postgresql-patterns"
+     * @see "https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html#name-uuid-version-7"
+     * @see "https://www.baeldung.com/java-generating-time-based-uuids"
+     * @see "https://en.wikipedia.org/wiki/Universally_unique_identifier"
+     * @see "https://buildkite.com/resources/blog/goodbye-integers-hello-uuids/"
+     */
+    public static UUID computeUUIDv7() {
+        SecureRandom secureRandom = new SecureRandom();
+        // Generate truly random bytes
+        byte[] value = new byte[16];
+        secureRandom.nextBytes(value);
+        // Get current timestamp in milliseconds
+        ByteBuffer timestamp = ByteBuffer.allocate(Long.BYTES);
+        timestamp.putLong(System.currentTimeMillis());
+        // Create the TIMESTAMP part of the UUID
+        System.arraycopy(timestamp.array(), 2, value, 0, 6);
+        // Create the VERSION and the VARIANT parts of the UUID
+        value[6] = (byte) ((value[6] & 0x0F) | 0x70);
+        value[8] = (byte) ((value[8] & 0x3F) | 0x80);
+        //Create the HIGH and LOW parts of the UUID
+        ByteBuffer buf = ByteBuffer.wrap(value);
+        long high = buf.getLong();
+        long low = buf.getLong();
+        //Create and return the UUID object
+        UUID uuidv7 = new UUID(high, low);
+        return uuidv7;
     }
 }
