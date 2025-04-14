@@ -10,6 +10,7 @@ on:
     paths:
     - "**.java"
     - "pom.xml"
+permissions: read-all     
 jobs:
   build:
     runs-on: ubuntu-latest
