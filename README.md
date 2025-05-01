@@ -5,7 +5,7 @@
 > [!NOTE]
 > Java was chosen but the ideas behind the proposed code can be applied to other languages.
 
-💻This project provides different utilities methods to apply processing from a security perspective. These code snippet:
+💻This project provides different utilities methods to apply processing from a defensive security perspective. These code snippet:
 
 * Can be used, as "foundation", to customize the validation to the app context.
 * Were implemented in a way to facilitate adding or removal of validations depending on usage context.
