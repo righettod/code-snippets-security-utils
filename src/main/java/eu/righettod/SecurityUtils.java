@@ -46,6 +46,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 import javax.xml.stream.events.XMLEvent;
+import javax.xml.validation.Schema;
+import javax.xml.validation.SchemaFactory;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -1378,5 +1380,36 @@ public class SecurityUtils {
         //Create and return the UUID object
         UUID uuidv7 = new UUID(high, low);
         return uuidv7;
+    }
+
+    /**
+     * Ensure that an XSD file does not contain any include/import instruction (prevent exposure to SSRF).
+     *
+     * @param xsdFilePath Filename of the XSD file to check.
+     * @return True only if the file pass all validations.
+     * @see "https://portswigger.net/web-security/ssrf"
+     * @see "https://www.w3schools.com/Xml/el_import.asp"
+     * @see "https://www.w3schools.com/xml/el_include.asp"
+     * @see "https://www.linkedin.com/posts/righettod_appsec-appsecurity-java-activity-7344048434326188053-6Ru9"
+     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/validation/SchemaFactory.html#setProperty(java.lang.String,java.lang.Object)"
+     */
+    public static boolean isXSDSafe(String xsdFilePath) {
+        boolean isSafe = false;
+        try {
+            File xsdFile = new File(xsdFilePath);
+            if (xsdFile.exists() && xsdFile.canRead() && xsdFile.isFile()) {
+                //Parse the XSD file, if an exception occur then it's imply that the XSD specified is not a valid ones
+                //Create an schema factory throwing Exception if a external schema is specified
+                SchemaFactory schemaFactory = SchemaFactory.newDefaultInstance();
+                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");
+                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");
+                //Parse the schema
+                Schema schema = schemaFactory.newSchema(xsdFile);
+                isSafe = (schema != null);
+            }
+        } catch (Exception e) {
+            isSafe = false;
+        }
+        return isSafe;
     }
 }

@@ -655,5 +655,19 @@ public class TestSecurityUtils {
             history.add(uuidStr);
         }
     }
+
+    @Test
+    public void isXSDSafe() {
+        List<String> unsafeFileList = Arrays.asList("test-xsd-with-external-schema-via-import.xsd", "test-xsd-with-external-schema-via-include.xsd");
+        unsafeFileList.forEach(f -> {
+            String testFile = getTestFilePath(f);
+            assertFalse(SecurityUtils.isXSDSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
+        });
+        List<String> safeFileList = Arrays.asList("test-xsd-no-external-schema.xsd");
+        safeFileList.forEach(f -> {
+            String testFile = getTestFilePath(f);
+            assertTrue(SecurityUtils.isXSDSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
+        });
+    }
 }
 
