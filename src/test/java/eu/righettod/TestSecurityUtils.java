@@ -658,7 +658,7 @@ public class TestSecurityUtils {
 
     @Test
     public void isXSDSafe() {
-        List<String> unsafeFileList = Arrays.asList("test-xsd-with-external-schema-via-import.xsd", "test-xsd-with-external-schema-via-include.xsd");
+        List<String> unsafeFileList = Arrays.asList("test-xsd-with-external-schema-via-import.xsd", "test-xsd-with-external-schema-via-include.xsd", "test-xsd-with-external-schema-via-redefine.xsd");
         unsafeFileList.forEach(f -> {
             String testFile = getTestFilePath(f);
             assertFalse(SecurityUtils.isXSDSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));

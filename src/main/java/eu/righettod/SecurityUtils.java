@@ -1383,7 +1383,7 @@ public class SecurityUtils {
     }
 
     /**
-     * Ensure that an XSD file does not contain any include/import instruction (prevent exposure to SSRF).
+     * Ensure that an XSD file does not contain any include/import/redefine instruction (prevent exposure to SSRF).
      *
      * @param xsdFilePath Filename of the XSD file to check.
      * @return True only if the file pass all validations.
