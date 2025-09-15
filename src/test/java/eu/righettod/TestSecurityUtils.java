@@ -168,7 +168,7 @@ public class TestSecurityUtils {
 
     @Test
     public void isPDFSafe() {
-        List<String> unsafeFileList = Arrays.asList("test-putty.exe.pdf", "test-pdf-with-link-to-malicious-file.pdf", "test-dynamic-doc.pdf", "test-pdf-with-js-code.pdf");
+        List<String> unsafeFileList = Arrays.asList("test-putty.exe.pdf", "test-pdf-with-link-to-malicious-file.pdf", "test-dynamic-doc.pdf", "test-pdf-with-js-code.pdf", "test-pdf-with-xxe-in-xfa-form.pdf");
         unsafeFileList.forEach(f -> {
             String testFile = getTestFilePath(f);
             assertFalse(SecurityUtils.isPDFSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));

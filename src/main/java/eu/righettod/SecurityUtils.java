@@ -19,6 +19,7 @@ import org.apache.pdfbox.pdmodel.interactive.action.*;
 import org.apache.pdfbox.pdmodel.interactive.annotation.AnnotationFilter;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
 import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationLink;
+import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.poi.poifs.filesystem.DirectoryEntry;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.poifs.macros.VBAMacroReader;
@@ -288,6 +289,7 @@ public class SecurityUtils {
      * <li>No attachments.</li>
      * <li>No Javascript code.</li>
      * <li>No links using action of type URI/Launch/RemoteGoTo/ImportData.</li>
+     * <li>No XFA forms in order to prevent exposure to XXE/SSRF like CVE-2025-54988.</li>
      * </ul>
      *
      * @param pdfFilePath Filename of the PDF file to check.
@@ -297,6 +299,9 @@ public class SecurityUtils {
      * @see "https://github.com/jonaslejon/malicious-pdf"
      * @see "https://pdfbox.apache.org/"
      * @see "https://mvnrepository.com/artifact/org.apache.pdfbox/pdfbox"
+     * @see "https://nvd.nist.gov/vuln/detail/CVE-2025-54988"
+     * @see "https://github.com/mgthuramoemyint/POC-CVE-2025-54988"
+     * @see "https://en.wikipedia.org/wiki/XFA"
      */
     public static boolean isPDFSafe(String pdfFilePath) {
         boolean isSafe = false;
@@ -309,33 +314,38 @@ public class SecurityUtils {
                     PDDocumentCatalog documentCatalog = document.getDocumentCatalog();
                     PDDocumentNameDictionary namesDictionary = new PDDocumentNameDictionary(documentCatalog);
                     if (namesDictionary.getEmbeddedFiles() == null) {
-                        //Step 3: Check if the file contains Javascript code, in our case is not allowed
-                        if (namesDictionary.getJavaScript() == null) {
-                            //Step 4: Check if the file contains links using action of type URI/Launch/RemoteGoTo/ImportData, in our case is not allowed
-                            final List<Integer> notAllowedAnnotationCounterList = new ArrayList<>();
-                            AnnotationFilter notAllowedAnnotationFilter = new AnnotationFilter() {
-                                @Override
-                                public boolean accept(PDAnnotation annotation) {
-                                    boolean keep = false;
-                                    if (annotation instanceof PDAnnotationLink) {
-                                        PDAnnotationLink link = (PDAnnotationLink) annotation;
-                                        PDAction action = link.getAction();
-                                        if ((action instanceof PDActionURI) || (action instanceof PDActionLaunch) || (action instanceof PDActionRemoteGoTo) || (action instanceof PDActionImportData)) {
-                                            keep = true;
+                        //Step 3: Check if the file contains any XFA forms
+                        PDAcroForm acroForm = documentCatalog.getAcroForm();
+                        boolean hasForm = (acroForm != null && acroForm.getXFA() != null);
+                        if (!hasForm) {
+                            //Step 4: Check if the file contains Javascript code, in our case is not allowed
+                            if (namesDictionary.getJavaScript() == null) {
+                                //Step 5: Check if the file contains links using action of type URI/Launch/RemoteGoTo/ImportData, in our case is not allowed
+                                final List<Integer> notAllowedAnnotationCounterList = new ArrayList<>();
+                                AnnotationFilter notAllowedAnnotationFilter = new AnnotationFilter() {
+                                    @Override
+                                    public boolean accept(PDAnnotation annotation) {
+                                        boolean keep = false;
+                                        if (annotation instanceof PDAnnotationLink) {
+                                            PDAnnotationLink link = (PDAnnotationLink) annotation;
+                                            PDAction action = link.getAction();
+                                            if ((action instanceof PDActionURI) || (action instanceof PDActionLaunch) || (action instanceof PDActionRemoteGoTo) || (action instanceof PDActionImportData)) {
+                                                keep = true;
+                                            }
                                         }
+                                        return keep;
                                     }
-                                    return keep;
+                                };
+                                documentCatalog.getPages().forEach(page -> {
+                                    try {
+                                        notAllowedAnnotationCounterList.add(page.getAnnotations(notAllowedAnnotationFilter).size());
+                                    } catch (IOException e) {
+                                        throw new RuntimeException(e);
+                                    }
+                                });
+                                if (notAllowedAnnotationCounterList.stream().reduce(0, Integer::sum) == 0) {
+                                    isSafe = true;
                                 }
-                            };
-                            documentCatalog.getPages().forEach(page -> {
-                                try {
-                                    notAllowedAnnotationCounterList.add(page.getAnnotations(notAllowedAnnotationFilter).size());
-                                } catch (IOException e) {
-                                    throw new RuntimeException(e);
-                                }
-                            });
-                            if (notAllowedAnnotationCounterList.stream().reduce(0, Integer::sum) == 0) {
-                                isSafe = true;
                             }
                         }
                     }
