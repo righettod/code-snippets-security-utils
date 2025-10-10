@@ -21,7 +21,7 @@ jobs:
     - name: Install system requirements
       run: sudo apt-get update -y && sudo apt-get install -y dos2unix
     - name: Install JDK 21
-      uses: actions/setup-java@v4
+      uses: actions/setup-java@v5
       with:
         java-version: '21'
         distribution: 'temurin'
