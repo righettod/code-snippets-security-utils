@@ -6,3 +6,8 @@ updates:
       interval: "weekly"
     assignees:
       - "righettod"
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      time: '00:45'
