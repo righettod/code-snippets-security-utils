@@ -1458,76 +1458,77 @@
 <span class="source-line-no">1445</span><span id="line-1445">     * @see "https://www.iban.com/structure"</span>
 <span class="source-line-no">1446</span><span id="line-1446">     * @see "https://github.com/arturmkrtchyan/iban4j"</span>
 <span class="source-line-no">1447</span><span id="line-1447">     * @see "https://cwe.mitre.org/data/definitions/532.html"</span>
-<span class="source-line-no">1448</span><span id="line-1448">     */</span>
-<span class="source-line-no">1449</span><span id="line-1449">    public static Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; extractAllSensitiveInformation(String content) throws Exception {</span>
-<span class="source-line-no">1450</span><span id="line-1450">        Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");</span>
-<span class="source-line-no">1451</span><span id="line-1451">        Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1452</span><span id="line-1452">        Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1453</span><span id="line-1453">        Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; data = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">1454</span><span id="line-1454">        data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet&lt;&gt;());</span>
-<span class="source-line-no">1455</span><span id="line-1455">        data.put(SensitiveInformationType.IBAN, new HashSet&lt;&gt;());</span>
-<span class="source-line-no">1456</span><span id="line-1456"></span>
-<span class="source-line-no">1457</span><span id="line-1457">        if (content != null &amp;&amp; !content.isBlank()) {</span>
-<span class="source-line-no">1458</span><span id="line-1458">            /* Step 1: Search for LU national identifier */</span>
-<span class="source-line-no">1459</span><span id="line-1459">            //A national identifier have the following structure: [BIRTHDATE_YEAR_YYYY][BIRTHDATE_MONTH_MM][BIRTHDATE_DAY_DD][FIVE_INTEGER]</span>
-<span class="source-line-no">1460</span><span id="line-1460">            //Define minimal and maximal birth year base on current year</span>
-<span class="source-line-no">1461</span><span id="line-1461">            //Assume people live less than 120 years</span>
-<span class="source-line-no">1462</span><span id="line-1462">            int maxBirthYear = LocalDate.now(ZoneId.of("Europe/Luxembourg")).getYear();</span>
-<span class="source-line-no">1463</span><span id="line-1463">            int minBirthYear = maxBirthYear - 120;</span>
-<span class="source-line-no">1464</span><span id="line-1464">            Matcher matcher = nationalIdentifierRegex.matcher(content);</span>
-<span class="source-line-no">1465</span><span id="line-1465">            String nationalIdentierFull;</span>
-<span class="source-line-no">1466</span><span id="line-1466">            int nationalIdentierYear, nationalIdentierMonth, nationalIdentierDay;</span>
-<span class="source-line-no">1467</span><span id="line-1467">            while (matcher.find()) {</span>
-<span class="source-line-no">1468</span><span id="line-1468">                nationalIdentierFull = matcher.group(1);</span>
-<span class="source-line-no">1469</span><span id="line-1469">                //Check that the string is a valid national identifier and if yes then add it</span>
-<span class="source-line-no">1470</span><span id="line-1470">                nationalIdentierYear = Integer.parseInt(nationalIdentierFull.substring(0, 4));</span>
-<span class="source-line-no">1471</span><span id="line-1471">                nationalIdentierMonth = Integer.parseInt(nationalIdentierFull.substring(4, 6));</span>
-<span class="source-line-no">1472</span><span id="line-1472">                nationalIdentierDay = Integer.parseInt(nationalIdentierFull.substring(6, 8));</span>
-<span class="source-line-no">1473</span><span id="line-1473">                if (nationalIdentierYear &gt;= minBirthYear &amp;&amp; nationalIdentierYear &lt;= maxBirthYear) {</span>
-<span class="source-line-no">1474</span><span id="line-1474">                    if (nationalIdentierMonth &gt;= 1 &amp;&amp; nationalIdentierMonth &lt;= 12) {</span>
-<span class="source-line-no">1475</span><span id="line-1475">                        if (YearMonth.of(nationalIdentierYear, nationalIdentierMonth).isValidDay(nationalIdentierDay)) {</span>
-<span class="source-line-no">1476</span><span id="line-1476">                            data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).add(nationalIdentierFull);</span>
-<span class="source-line-no">1477</span><span id="line-1477">                        }</span>
-<span class="source-line-no">1478</span><span id="line-1478">                    }</span>
-<span class="source-line-no">1479</span><span id="line-1479">                }</span>
-<span class="source-line-no">1480</span><span id="line-1480">            }</span>
-<span class="source-line-no">1481</span><span id="line-1481"></span>
-<span class="source-line-no">1482</span><span id="line-1482">            /* Step 2a: Search for IBAN that are non human formatted */</span>
-<span class="source-line-no">1483</span><span id="line-1483">            matcher = ibanNonHumanFormattedRegex.matcher(content);</span>
-<span class="source-line-no">1484</span><span id="line-1484">            String iban, ibanUpperCased;</span>
-<span class="source-line-no">1485</span><span id="line-1485">            while (matcher.find()) {</span>
-<span class="source-line-no">1486</span><span id="line-1486">                iban = matcher.group(1);</span>
-<span class="source-line-no">1487</span><span id="line-1487">                ibanUpperCased = iban.toUpperCase(Locale.ROOT);</span>
-<span class="source-line-no">1488</span><span id="line-1488">                //Check that the string is a valid iban and if yes then add it</span>
-<span class="source-line-no">1489</span><span id="line-1489">                if (IbanUtil.isValid(ibanUpperCased)) {</span>
-<span class="source-line-no">1490</span><span id="line-1490">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
-<span class="source-line-no">1491</span><span id="line-1491">                }</span>
-<span class="source-line-no">1492</span><span id="line-1492">            }</span>
-<span class="source-line-no">1493</span><span id="line-1493"></span>
-<span class="source-line-no">1494</span><span id="line-1494">            /* Step 2b: Search for IBAN that are human formatted */</span>
-<span class="source-line-no">1495</span><span id="line-1495">            matcher = ibanHumanFormattedRegex.matcher(content);</span>
-<span class="source-line-no">1496</span><span id="line-1496">            String ibanUpperCasedNoSpace;</span>
-<span class="source-line-no">1497</span><span id="line-1497">            while (matcher.find()) {</span>
-<span class="source-line-no">1498</span><span id="line-1498">                iban = matcher.group(1);</span>
-<span class="source-line-no">1499</span><span id="line-1499">                ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");</span>
-<span class="source-line-no">1500</span><span id="line-1500">                //Check that the string is a valid iban and if yes then add it</span>
-<span class="source-line-no">1501</span><span id="line-1501">                if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {</span>
-<span class="source-line-no">1502</span><span id="line-1502">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
-<span class="source-line-no">1503</span><span id="line-1503">                }</span>
-<span class="source-line-no">1504</span><span id="line-1504">            }</span>
-<span class="source-line-no">1505</span><span id="line-1505">        }</span>
-<span class="source-line-no">1506</span><span id="line-1506"></span>
-<span class="source-line-no">1507</span><span id="line-1507">        //Cleanup if a set is empty</span>
-<span class="source-line-no">1508</span><span id="line-1508">        if (data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).isEmpty()) {</span>
-<span class="source-line-no">1509</span><span id="line-1509">            data.remove(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER);</span>
-<span class="source-line-no">1510</span><span id="line-1510">        }</span>
-<span class="source-line-no">1511</span><span id="line-1511">        if (data.get(SensitiveInformationType.IBAN).isEmpty()) {</span>
-<span class="source-line-no">1512</span><span id="line-1512">            data.remove(SensitiveInformationType.IBAN);</span>
-<span class="source-line-no">1513</span><span id="line-1513">        }</span>
-<span class="source-line-no">1514</span><span id="line-1514"></span>
-<span class="source-line-no">1515</span><span id="line-1515">        return data;</span>
-<span class="source-line-no">1516</span><span id="line-1516">    }</span>
-<span class="source-line-no">1517</span><span id="line-1517">}</span>
+<span class="source-line-no">1448</span><span id="line-1448">     * @see "https://www.baeldung.com/logback-mask-sensitive-data"</span>
+<span class="source-line-no">1449</span><span id="line-1449">     */</span>
+<span class="source-line-no">1450</span><span id="line-1450">    public static Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; extractAllSensitiveInformation(String content) throws Exception {</span>
+<span class="source-line-no">1451</span><span id="line-1451">        Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");</span>
+<span class="source-line-no">1452</span><span id="line-1452">        Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1453</span><span id="line-1453">        Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1454</span><span id="line-1454">        Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; data = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">1455</span><span id="line-1455">        data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet&lt;&gt;());</span>
+<span class="source-line-no">1456</span><span id="line-1456">        data.put(SensitiveInformationType.IBAN, new HashSet&lt;&gt;());</span>
+<span class="source-line-no">1457</span><span id="line-1457"></span>
+<span class="source-line-no">1458</span><span id="line-1458">        if (content != null &amp;&amp; !content.isBlank()) {</span>
+<span class="source-line-no">1459</span><span id="line-1459">            /* Step 1: Search for LU national identifier */</span>
+<span class="source-line-no">1460</span><span id="line-1460">            //A national identifier have the following structure: [BIRTHDATE_YEAR_YYYY][BIRTHDATE_MONTH_MM][BIRTHDATE_DAY_DD][FIVE_INTEGER]</span>
+<span class="source-line-no">1461</span><span id="line-1461">            //Define minimal and maximal birth year base on current year</span>
+<span class="source-line-no">1462</span><span id="line-1462">            //Assume people live less than 120 years</span>
+<span class="source-line-no">1463</span><span id="line-1463">            int maxBirthYear = LocalDate.now(ZoneId.of("Europe/Luxembourg")).getYear();</span>
+<span class="source-line-no">1464</span><span id="line-1464">            int minBirthYear = maxBirthYear - 120;</span>
+<span class="source-line-no">1465</span><span id="line-1465">            Matcher matcher = nationalIdentifierRegex.matcher(content);</span>
+<span class="source-line-no">1466</span><span id="line-1466">            String nationalIdentierFull;</span>
+<span class="source-line-no">1467</span><span id="line-1467">            int nationalIdentierYear, nationalIdentierMonth, nationalIdentierDay;</span>
+<span class="source-line-no">1468</span><span id="line-1468">            while (matcher.find()) {</span>
+<span class="source-line-no">1469</span><span id="line-1469">                nationalIdentierFull = matcher.group(1);</span>
+<span class="source-line-no">1470</span><span id="line-1470">                //Check that the string is a valid national identifier and if yes then add it</span>
+<span class="source-line-no">1471</span><span id="line-1471">                nationalIdentierYear = Integer.parseInt(nationalIdentierFull.substring(0, 4));</span>
+<span class="source-line-no">1472</span><span id="line-1472">                nationalIdentierMonth = Integer.parseInt(nationalIdentierFull.substring(4, 6));</span>
+<span class="source-line-no">1473</span><span id="line-1473">                nationalIdentierDay = Integer.parseInt(nationalIdentierFull.substring(6, 8));</span>
+<span class="source-line-no">1474</span><span id="line-1474">                if (nationalIdentierYear &gt;= minBirthYear &amp;&amp; nationalIdentierYear &lt;= maxBirthYear) {</span>
+<span class="source-line-no">1475</span><span id="line-1475">                    if (nationalIdentierMonth &gt;= 1 &amp;&amp; nationalIdentierMonth &lt;= 12) {</span>
+<span class="source-line-no">1476</span><span id="line-1476">                        if (YearMonth.of(nationalIdentierYear, nationalIdentierMonth).isValidDay(nationalIdentierDay)) {</span>
+<span class="source-line-no">1477</span><span id="line-1477">                            data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).add(nationalIdentierFull);</span>
+<span class="source-line-no">1478</span><span id="line-1478">                        }</span>
+<span class="source-line-no">1479</span><span id="line-1479">                    }</span>
+<span class="source-line-no">1480</span><span id="line-1480">                }</span>
+<span class="source-line-no">1481</span><span id="line-1481">            }</span>
+<span class="source-line-no">1482</span><span id="line-1482"></span>
+<span class="source-line-no">1483</span><span id="line-1483">            /* Step 2a: Search for IBAN that are non human formatted */</span>
+<span class="source-line-no">1484</span><span id="line-1484">            matcher = ibanNonHumanFormattedRegex.matcher(content);</span>
+<span class="source-line-no">1485</span><span id="line-1485">            String iban, ibanUpperCased;</span>
+<span class="source-line-no">1486</span><span id="line-1486">            while (matcher.find()) {</span>
+<span class="source-line-no">1487</span><span id="line-1487">                iban = matcher.group(1);</span>
+<span class="source-line-no">1488</span><span id="line-1488">                ibanUpperCased = iban.toUpperCase(Locale.ROOT);</span>
+<span class="source-line-no">1489</span><span id="line-1489">                //Check that the string is a valid iban and if yes then add it</span>
+<span class="source-line-no">1490</span><span id="line-1490">                if (IbanUtil.isValid(ibanUpperCased)) {</span>
+<span class="source-line-no">1491</span><span id="line-1491">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
+<span class="source-line-no">1492</span><span id="line-1492">                }</span>
+<span class="source-line-no">1493</span><span id="line-1493">            }</span>
+<span class="source-line-no">1494</span><span id="line-1494"></span>
+<span class="source-line-no">1495</span><span id="line-1495">            /* Step 2b: Search for IBAN that are human formatted */</span>
+<span class="source-line-no">1496</span><span id="line-1496">            matcher = ibanHumanFormattedRegex.matcher(content);</span>
+<span class="source-line-no">1497</span><span id="line-1497">            String ibanUpperCasedNoSpace;</span>
+<span class="source-line-no">1498</span><span id="line-1498">            while (matcher.find()) {</span>
+<span class="source-line-no">1499</span><span id="line-1499">                iban = matcher.group(1);</span>
+<span class="source-line-no">1500</span><span id="line-1500">                ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");</span>
+<span class="source-line-no">1501</span><span id="line-1501">                //Check that the string is a valid iban and if yes then add it</span>
+<span class="source-line-no">1502</span><span id="line-1502">                if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {</span>
+<span class="source-line-no">1503</span><span id="line-1503">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
+<span class="source-line-no">1504</span><span id="line-1504">                }</span>
+<span class="source-line-no">1505</span><span id="line-1505">            }</span>
+<span class="source-line-no">1506</span><span id="line-1506">        }</span>
+<span class="source-line-no">1507</span><span id="line-1507"></span>
+<span class="source-line-no">1508</span><span id="line-1508">        //Cleanup if a set is empty</span>
+<span class="source-line-no">1509</span><span id="line-1509">        if (data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).isEmpty()) {</span>
+<span class="source-line-no">1510</span><span id="line-1510">            data.remove(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER);</span>
+<span class="source-line-no">1511</span><span id="line-1511">        }</span>
+<span class="source-line-no">1512</span><span id="line-1512">        if (data.get(SensitiveInformationType.IBAN).isEmpty()) {</span>
+<span class="source-line-no">1513</span><span id="line-1513">            data.remove(SensitiveInformationType.IBAN);</span>
+<span class="source-line-no">1514</span><span id="line-1514">        }</span>
+<span class="source-line-no">1515</span><span id="line-1515"></span>
+<span class="source-line-no">1516</span><span id="line-1516">        return data;</span>
+<span class="source-line-no">1517</span><span id="line-1517">    }</span>
+<span class="source-line-no">1518</span><span id="line-1518">}</span>
 
 
 
