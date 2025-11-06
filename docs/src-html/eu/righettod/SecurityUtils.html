@@ -1444,9 +1444,9 @@
 <span class="source-line-no">1431</span><span id="line-1431"></span>
 <span class="source-line-no">1432</span><span id="line-1432">    /**</span>
 <span class="source-line-no">1433</span><span id="line-1433">     * Extract all sensitive information from a string provided.&lt;br&gt;</span>
-<span class="source-line-no">1434</span><span id="line-1434">     * This can be used to identify any sensitive information into a message expected to be written in a log and then replace every sensitive values by an obfuscated ones.&lt;br&gt;</span>
+<span class="source-line-no">1434</span><span id="line-1434">     * This can be used to identify any sensitive information into a &lt;a href="https://cwe.mitre.org/data/definitions/532.html"&gt;message expected to be written in a log&lt;/a&gt; and then replace every sensitive values by an obfuscated ones.&lt;br&gt;</span>
 <span class="source-line-no">1435</span><span id="line-1435">     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).&lt;br&gt;</span>
-<span class="source-line-no">1436</span><span id="line-1436">     * I delegated the validation of the IBAN to a dedicated library to not "reinvent the wheel" and then introduce buggy validation myself.</span>
+<span class="source-line-no">1436</span><span id="line-1436">     * I delegated the validation of the IBAN to a dedicated library (&lt;a href="https://github.com/arturmkrtchyan/iban4j"&gt;iban4j&lt;/a&gt;) to not "reinvent the wheel" and then introduce buggy validation myself.</span>
 <span class="source-line-no">1437</span><span id="line-1437">     *</span>
 <span class="source-line-no">1438</span><span id="line-1438">     * @param content String in which sensitive information must be searched.</span>
 <span class="source-line-no">1439</span><span id="line-1439">     * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.</span>
