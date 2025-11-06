@@ -5,20 +5,21 @@
 > [!NOTE]
 > Java was chosen but the ideas behind the proposed code can be applied to other languages.
 
-💻This project provides different utilities methods to apply processing from a defensive security perspective. These code snippet:
+💻 This project provides different utilities methods to apply processing from a defensive security perspective. These code snippet:
 
 * Can be used, as "foundation", to customize the validation to the app context.
 * Were implemented in a way to facilitate adding or removal of validations depending on usage context.
 * Were centralized into [one class](src/main/java/eu/righettod/SecurityUtils.java) to be able to enhance them across time as well as handle missing case/bug.
 
-🔬I uses it, as a sandbox, to create/test/provide remediation code proposals when I perform web assessment or secure code review activities.
+🔬 I uses it, as a sandbox, to create/test/provide remediation code proposals when I perform web assessment or secure code review activities.
 
 # Disclaimer
 
 > [!CAUTION]
 > I do not claim (and will never claim) that the proposed code is 100% effective, these are simply practical tests of ideas regarding security issues I have encountered.
 
-📍The project will not be deployed, as an artefact, into the Maven repository or the GitHub Package repository because the code provided is intended to be tailored to the business and technical context
+📍 The project will not be deployed, as an artefact, into the Maven repository or the GitHub Package repository because the code provided is intended to be tailored to the business and technical
+context
 of the
 application.
 
@@ -40,12 +41,12 @@ flowchart TB
 
 # Content & conventions
 
-📝Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
+📝 Code is centralized into the class [SecurityUtils](src/main/java/eu/righettod/SecurityUtils.java).
 
-🧪Unit tests are centralized into the
+🧪 Unit tests are centralized into the
 class [TestSecurityUtils](src/test/java/eu/righettod/TestSecurityUtils.java).
 
-📖Conventions used:
+📖 Conventions used:
 
 * One utility methods in **SecurityUtils** class is associated to one unit test methods in **TestSecurityUtils** class: Both with the same name.
 * All tests data are stored into the [resources](src/test/resources) folder of the test area.
@@ -57,9 +58,9 @@ The javadoc of the class **SecurityUtils** is exposed [here](https://righettod.g
 
 # Usage
 
-👨‍💻The repository can be open directly into [Intellij IDEA](https://www.jetbrains.com/idea/download).
+👨‍💻 The repository can be open directly into [Intellij IDEA](https://www.jetbrains.com/idea/download).
 
-💻Maven command to run all the unit tests:
+💻 Maven command to run all the unit tests:
 
 ```shell
 $ mvn clean test
@@ -73,7 +74,3 @@ $ mvn clean test
 # Misc
 
 * https://github.com/marchof/the-missing-javadoc-fonts
-
-
-
-
