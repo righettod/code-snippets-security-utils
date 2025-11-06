@@ -1431,7 +1431,7 @@ public class SecurityUtils {
 
     /**
      * Extract all sensitive information from a string provided.<br>
-     * This can be used to identify any sensitive information into a message expected to be written in a log and then replace every sensitive values by an obfuscated ones.<br>
+     * This can be used to identify any sensitive information into a <a href="https://cwe.mitre.org/data/definitions/532.html">message expected to be written in a log</a> and then replace every sensitive values by an obfuscated ones.<br>
      * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).<br>
      * I delegated the validation of the IBAN to a dedicated library (<a href="https://github.com/arturmkrtchyan/iban4j">iban4j</a>) to not "reinvent the wheel" and then introduce buggy validation myself.
      *
