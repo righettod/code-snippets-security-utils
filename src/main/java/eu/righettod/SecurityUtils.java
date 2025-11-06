@@ -84,6 +84,8 @@ import java.util.zip.ZipFile;
  *     <li>Were implemented in a way to facilitate adding or removal of validations depending on usage context.</li>
  *     <li>Were centralized on one class to be able to enhance them across time as well as <a href="https://github.com/righettod/code-snippets-security-utils/issues">missing case/bug identification</a>.</li>
  * </ul>
+ * <br>
+ * <a href="https://github.com/righettod/code-snippets-security-utils">GitHub repository</a>
  */
 public class SecurityUtils {
     /**

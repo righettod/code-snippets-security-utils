@@ -123,7 +123,7 @@
                     <charset>${project.build.sourceEncoding}</charset>
                     <linksource>true</linksource>
                     <windowtitle>Javadoc</windowtitle>
-                    <bottom>Generated on ${maven.build.timestamp}.</bottom>
+                    <bottom><![CDATA[Generated on ${maven.build.timestamp} - <a href="https://github.com/righettod/code-snippets-security-utils">GitHub repository</a>]]></bottom>
                     <javadocDirectory>${basedir}/src/main/javadoc</javadocDirectory>
                     <docfilessubdirs>true</docfilessubdirs>
                 </configuration>
