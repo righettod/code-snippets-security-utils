@@ -30,6 +30,7 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
+import org.iban4j.IbanUtil;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -63,10 +64,14 @@ import java.nio.file.Files;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -1421,5 +1426,92 @@ public class SecurityUtils {
             isSafe = false;
         }
         return isSafe;
+    }
+
+
+    /**
+     * Extract all sensitive information from a string provided.<br>
+     * This can be used to identify any sensitive information into a message expected to be written in a log and then replace every sensitive values by an obfuscated ones.<br>
+     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).<br>
+     * I delegated the validation of the IBAN to a dedicated library to not "reinvent the wheel" and then introduce buggy validation myself.
+     *
+     * @param content String in which sensitive information must be searched.
+     * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.
+     * @throws Exception If any error occurs during the processing.
+     * @see "https://guichet.public.lu/en/citoyens/citoyennete/registre-national/identification/demande-numero-rnpp.html"
+     * @see "https://cnpd.public.lu/fr/decisions-avis/2009/identifiant-unique.html"
+     * @see "https://cnpd.public.lu/content/dam/cnpd/fr/decisions-avis/2009/identifiant-unique/48_2009.pdf"
+     * @see "https://en.wikipedia.org/wiki/International_Bank_Account_Number"
+     * @see "https://www.iban.com/structure"
+     * @see "https://github.com/arturmkrtchyan/iban4j"
+     * @see "https://cwe.mitre.org/data/definitions/532.html"
+     */
+    public static Map<SensitiveInformationType, Set<String>> extractAllSensitiveInformation(String content) throws Exception {
+        Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");
+        Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);
+        Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);
+        Map<SensitiveInformationType, Set<String>> data = new HashMap<>();
+        data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet<>());
+        data.put(SensitiveInformationType.IBAN, new HashSet<>());
+
+        if (content != null && !content.isBlank()) {
+            /* Step 1: Search for LU national identifier */
+            //A national identifier have the following structure: [BIRTHDATE_YEAR_YYYY][BIRTHDATE_MONTH_MM][BIRTHDATE_DAY_DD][FIVE_INTEGER]
+            //Define minimal and maximal birth year base on current year
+            //Assume people live less than 120 years
+            int maxBirthYear = LocalDate.now(ZoneId.of("Europe/Luxembourg")).getYear();
+            int minBirthYear = maxBirthYear - 120;
+            Matcher matcher = nationalIdentifierRegex.matcher(content);
+            String nationalIdentierFull;
+            int nationalIdentierYear, nationalIdentierMonth, nationalIdentierDay;
+            while (matcher.find()) {
+                nationalIdentierFull = matcher.group(1);
+                //Check that the string is a valid national identifier and if yes then add it
+                nationalIdentierYear = Integer.parseInt(nationalIdentierFull.substring(0, 4));
+                nationalIdentierMonth = Integer.parseInt(nationalIdentierFull.substring(4, 6));
+                nationalIdentierDay = Integer.parseInt(nationalIdentierFull.substring(6, 8));
+                if (nationalIdentierYear >= minBirthYear && nationalIdentierYear <= maxBirthYear) {
+                    if (nationalIdentierMonth >= 1 && nationalIdentierMonth <= 12) {
+                        if (YearMonth.of(nationalIdentierYear, nationalIdentierMonth).isValidDay(nationalIdentierDay)) {
+                            data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).add(nationalIdentierFull);
+                        }
+                    }
+                }
+            }
+
+            /* Step 2a: Search for IBAN that are non human formatted */
+            matcher = ibanNonHumanFormattedRegex.matcher(content);
+            String iban, ibanUpperCased;
+            while (matcher.find()) {
+                iban = matcher.group(1);
+                ibanUpperCased = iban.toUpperCase(Locale.ROOT);
+                //Check that the string is a valid iban and if yes then add it
+                if (IbanUtil.isValid(ibanUpperCased)) {
+                    data.get(SensitiveInformationType.IBAN).add(iban);
+                }
+            }
+
+            /* Step 2b: Search for IBAN that are human formatted */
+            matcher = ibanHumanFormattedRegex.matcher(content);
+            String ibanUpperCasedNoSpace;
+            while (matcher.find()) {
+                iban = matcher.group(1);
+                ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");
+                //Check that the string is a valid iban and if yes then add it
+                if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {
+                    data.get(SensitiveInformationType.IBAN).add(iban);
+                }
+            }
+        }
+
+        //Cleanup if a set is empty
+        if (data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).isEmpty()) {
+            data.remove(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER);
+        }
+        if (data.get(SensitiveInformationType.IBAN).isEmpty()) {
+            data.remove(SensitiveInformationType.IBAN);
+        }
+
+        return data;
     }
 }

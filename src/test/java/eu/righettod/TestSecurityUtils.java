@@ -663,11 +663,83 @@ public class TestSecurityUtils {
             String testFile = getTestFilePath(f);
             assertFalse(SecurityUtils.isXSDSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_NEGATIVE_FOR_FILE, testFile));
         });
-        List<String> safeFileList = Arrays.asList("test-xsd-no-external-schema.xsd");
+        List<String> safeFileList = List.of("test-xsd-no-external-schema.xsd");
         safeFileList.forEach(f -> {
             String testFile = getTestFilePath(f);
             assertTrue(SecurityUtils.isXSDSafe(testFile), String.format(TEMPLATE_MESSAGE_FALSE_POSITIVE_FOR_FILE, testFile));
         });
+    }
+
+    @Test
+    public void extractAllSensitiveInformation() {
+        /* Test extraction of a single type of sensitive information */
+        //Case format is the following
+        //[0]: The string containing one or several sensitive information
+        //[1]: The collection of sensitive information separated by a ;
+        //[2]: The type of sensitive information
+        String luxNationalIdTypeName = SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER.name();
+        String ibanTypeName = SensitiveInformationType.IBAN.name();
+        final List<String[]> casesWithSensitiveData = new ArrayList<>();
+        casesWithSensitiveData.add(new String[]{"I expected to log 1955010112345", "1955010112345", luxNationalIdTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to log 1955010112345 from 1974052254321", "1955010112345;1974052254321", luxNationalIdTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to\nlog 1955010112345\nfrom\t1974052254321", "1955010112345;1974052254321", luxNationalIdTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to log BE71096123456769", "BE71096123456769", ibanTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to log BE71096123456769 with EG800002000156789012345180002", "BE71096123456769;EG800002000156789012345180002", ibanTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to\nlog BE71096123456769\nwith\tEG800002000156789012345180002", "BE71096123456769;EG800002000156789012345180002", ibanTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to log DE89 3704 0044 0532 0130 00", "DE89 3704 0044 0532 0130 00", ibanTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to log DE89 3704 0044 0532 0130 00 with FR14 2004 1010 0505 0001 3M02 606", "DE89 3704 0044 0532 0130 00;FR14 2004 1010 0505 0001 3M02 606", ibanTypeName});
+        casesWithSensitiveData.add(new String[]{"I expected to\nlog DE89 3704 0044 0532 0130 00 with\tFR14 2004 1010 0505 0001 3M02 606", "DE89 3704 0044 0532 0130 00;FR14 2004 1010 0505 0001 3M02 606", ibanTypeName});
+        casesWithSensitiveData.forEach(caseData -> {
+            try {
+                String content = caseData[0];
+                List<String> expectedInfos = Arrays.stream(caseData[1].split(";")).toList();
+                SensitiveInformationType expectedInfosType = SensitiveInformationType.valueOf(caseData[2]);
+                Map<SensitiveInformationType, Set<String>> data = SecurityUtils.extractAllSensitiveInformation(content);
+                assertEquals(1, data.size(), String.format("[%s] The number of type of identified information is incorrect!", caseData[2]));
+                assertEquals(expectedInfos.size(), data.get(expectedInfosType).size(), String.format("[%s] The number of identified information is incorrect!", caseData[2]));
+                assertTrue(expectedInfos.containsAll(data.get(expectedInfosType)), String.format("[%s] The identified information is incorrect!", caseData[2]));
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
+        /* Test extraction of all the types of sensitive information */
+        SensitiveInformationType luxNationalIdType = SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER;
+        SensitiveInformationType ibanType = SensitiveInformationType.IBAN;
+        String content = "I expected\nto log 1955010112345 and 1974052254321\tfrom DE89 3704 0044 0532 0130 00\nwith BE71096123456769";
+        Set<String> nationalIdentifierExpected = Set.of("1955010112345", "1974052254321");
+        Set<String> ibanExpected = Set.of("DE89 3704 0044 0532 0130 00", "BE71096123456769");
+        try {
+            Map<SensitiveInformationType, Set<String>> data = SecurityUtils.extractAllSensitiveInformation(content);
+            assertEquals(2, data.size(), "[COMBINED] The number of type of identified information is incorrect!");
+            assertEquals(2, data.get(luxNationalIdType).size(), String.format("[COMBINED][%s] The number of identified information is incorrect!", luxNationalIdType));
+            assertEquals(2, data.get(ibanType).size(), String.format("[COMBINED][%s] The number of identified information is incorrect!", ibanType));
+            assertTrue(nationalIdentifierExpected.containsAll(data.get(luxNationalIdType)), String.format("[%s] The identified information is incorrect!", luxNationalIdType));
+            assertTrue(ibanExpected.containsAll(data.get(ibanType)), String.format("[%s] The identified information is incorrect!", ibanType));
+        } catch (Exception e) {
+            fail(e);
+        }
+
+        /* Test extraction of sensitive information from content without any sensitive information */
+        //Case format is the the direct string content
+        final List<String> casesWithoutSensitiveData = new ArrayList<>();
+        casesWithoutSensitiveData.add("Hello World");
+        casesWithoutSensitiveData.add("Hello World from 1111111111111");
+        casesWithoutSensitiveData.add("Hello World from 3000010112345");
+        casesWithoutSensitiveData.add("Hello World from 1800010112345");
+        casesWithoutSensitiveData.add("Hello\nWorld from\t1980130112345");
+        casesWithoutSensitiveData.add("Hello World from 1980023112345");
+        casesWithoutSensitiveData.add("Hello World from DE89 3704 0044 0532 0130 AA");
+        casesWithoutSensitiveData.add("Hello World from SV43ACAT000000000000001231XX");
+        casesWithoutSensitiveData.forEach(caseData -> {
+            try {
+                Map<SensitiveInformationType, Set<String>> data = SecurityUtils.extractAllSensitiveInformation(caseData);
+                assertTrue(data.isEmpty(), "The number of type of identified information is incorrect!");
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 }
 

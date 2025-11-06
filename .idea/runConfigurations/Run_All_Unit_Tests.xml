@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run Unt Tests" type="JUnit" factoryName="JUnit">
+  <configuration default="false" name="Run All Unit Tests" type="JUnit" factoryName="JUnit">
     <module name="code-snippets-security-utils" />
     <extension name="coverage">
       <pattern>
