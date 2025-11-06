@@ -1445,6 +1445,7 @@ public class SecurityUtils {
      * @see "https://www.iban.com/structure"
      * @see "https://github.com/arturmkrtchyan/iban4j"
      * @see "https://cwe.mitre.org/data/definitions/532.html"
+     * @see "https://www.baeldung.com/logback-mask-sensitive-data"
      */
     public static Map<SensitiveInformationType, Set<String>> extractAllSensitiveInformation(String content) throws Exception {
         Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");
