@@ -1434,8 +1434,8 @@ public class SecurityUtils {
     /**
      * Extract all sensitive information from a string provided.<br>
      * This can be used to identify any sensitive information into a <a href="https://cwe.mitre.org/data/definitions/532.html">message expected to be written in a log</a> and then replace every sensitive values by an obfuscated ones.<br>
-     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).<br>
-     * I delegated the validation of the IBAN to a dedicated library (<a href="https://github.com/arturmkrtchyan/iban4j">iban4j</a>) to not "reinvent the wheel" and then introduce buggy validation myself.
+     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).<br><br>
+     * I delegated the validation of the IBAN to a dedicated library (<a href="https://github.com/arturmkrtchyan/iban4j">iban4j</a>) to not "reinvent the wheel" and then introduce buggy validation myself. I used <b>iban4j</b> over <b>IBANValidator</b> from <b>Apache Commons Validator</b> because <b>iban4j</b> perform a full official IBAN specification validation so its reduce risks of false-positives by ensuring that an IBAN detected is a real IBAN.
      *
      * @param content String in which sensitive information must be searched.
      * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.
