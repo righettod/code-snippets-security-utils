@@ -7,6 +7,7 @@ import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.imaging.ImageInfo;
 import org.apache.commons.imaging.Imaging;
 import org.apache.commons.imaging.common.ImageMetadata;
+import org.apache.commons.validator.routines.CreditCardValidator;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.apache.commons.validator.routines.InetAddressValidator;
 import org.apache.pdfbox.Loader;
@@ -1433,9 +1434,10 @@ public class SecurityUtils {
 
     /**
      * Extract all sensitive information from a string provided.<br>
-     * This can be used to identify any sensitive information into a <a href="https://cwe.mitre.org/data/definitions/532.html">message expected to be written in a log</a> and then replace every sensitive values by an obfuscated ones.<br>
+     * This can be used to identify any sensitive information into a <a href="https://cwe.mitre.org/data/definitions/532.html">message expected to be written in a log</a> and then replace every sensitive values by an obfuscated ones.<br><br>
      * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).<br><br>
-     * I delegated the validation of the IBAN to a dedicated library (<a href="https://github.com/arturmkrtchyan/iban4j">iban4j</a>) to not "reinvent the wheel" and then introduce buggy validation myself. I used <b>iban4j</b> over <b>IBANValidator</b> from <b>Apache Commons Validator</b> because <b>iban4j</b> perform a full official IBAN specification validation so its reduce risks of false-positives by ensuring that an IBAN detected is a real IBAN.
+     * I delegated the validation of the IBAN to a dedicated library (<a href="https://github.com/arturmkrtchyan/iban4j">iban4j</a>) to not "reinvent the wheel" and then introduce buggy validation myself. I used <b>iban4j</b> over the <b><a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/IBANValidator.html">IBANValidator</a></b> class from the <a href="https://commons.apache.org/proper/commons-validator/"><b>Apache Commons Validator</b></a> library because <b>iban4j</b> perform a full official IBAN specification validation so its reduce risks of false-positives by ensuring that an IBAN detected is a real IBAN.<br><br>
+     * Same thing and reason regarding the validation of the bank card PAN using the  class <a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html">CreditCardValidator</a> from the <b>Apache Commons Validator</b> library.
      *
      * @param content String in which sensitive information must be searched.
      * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.
@@ -1448,14 +1450,20 @@ public class SecurityUtils {
      * @see "https://github.com/arturmkrtchyan/iban4j"
      * @see "https://cwe.mitre.org/data/definitions/532.html"
      * @see "https://www.baeldung.com/logback-mask-sensitive-data"
+     * @see "https://en.wikipedia.org/wiki/Payment_card_number"
+     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html"
+     * @see "https://commons.apache.org/proper/commons-validator/"
      */
     public static Map<SensitiveInformationType, Set<String>> extractAllSensitiveInformation(String content) throws Exception {
+        CreditCardValidator creditCardValidator = CreditCardValidator.genericCreditCardValidator();
         Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");
         Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);
         Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);
+        Pattern panRegex = Pattern.compile("((?:\\d[ -]*?){13,19})");
         Map<SensitiveInformationType, Set<String>> data = new HashMap<>();
         data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet<>());
         data.put(SensitiveInformationType.IBAN, new HashSet<>());
+        data.put(SensitiveInformationType.BANK_CARD_PAN, new HashSet<>());
 
         if (content != null && !content.isBlank()) {
             /* Step 1: Search for LU national identifier */
@@ -1488,7 +1496,7 @@ public class SecurityUtils {
             while (matcher.find()) {
                 iban = matcher.group(1);
                 ibanUpperCased = iban.toUpperCase(Locale.ROOT);
-                //Check that the string is a valid iban and if yes then add it
+                //Check that the string is a valid IBAN and if yes then add it
                 if (IbanUtil.isValid(ibanUpperCased)) {
                     data.get(SensitiveInformationType.IBAN).add(iban);
                 }
@@ -1500,11 +1508,24 @@ public class SecurityUtils {
             while (matcher.find()) {
                 iban = matcher.group(1);
                 ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");
-                //Check that the string is a valid iban and if yes then add it
+                //Check that the string is a valid IBAN and if yes then add it
                 if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {
                     data.get(SensitiveInformationType.IBAN).add(iban);
                 }
             }
+
+            /* Step 3: Search for bank card PAN */
+            matcher = panRegex.matcher(content);
+            String pan, panNoSeparator;
+            while (matcher.find()) {
+                pan = matcher.group(1);
+                panNoSeparator = pan.toUpperCase(Locale.ROOT).replace(" ", "").replace("-", "");
+                //Check that the string is a valid PAN and if yes then add it
+                if (creditCardValidator.isValid(panNoSeparator)) {
+                    data.get(SensitiveInformationType.BANK_CARD_PAN).add(pan);
+                }
+            }
+
         }
 
         //Cleanup if a set is empty
@@ -1513,6 +1534,9 @@ public class SecurityUtils {
         }
         if (data.get(SensitiveInformationType.IBAN).isEmpty()) {
             data.remove(SensitiveInformationType.IBAN);
+        }
+        if (data.get(SensitiveInformationType.BANK_CARD_PAN).isEmpty()) {
+            data.remove(SensitiveInformationType.BANK_CARD_PAN);
         }
 
         return data;

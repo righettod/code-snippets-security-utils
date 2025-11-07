@@ -18,6 +18,13 @@ public enum SensitiveInformationType {
      *
      * @see "https://en.wikipedia.org/wiki/International_Bank_Account_Number"
      */
-    IBAN
+    IBAN,
+
+    /**
+     * Bank payment card Primary Account Number.
+     *
+     * @see "https://en.wikipedia.org/wiki/Payment_card_number"
+     */
+    BANK_CARD_PAN
 
 }
