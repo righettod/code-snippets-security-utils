@@ -86,7 +86,8 @@ import java.util.zip.ZipFile;
  *     <li>Were centralized on one class to be able to enhance them across time as well as <a href="https://github.com/righettod/code-snippets-security-utils/issues">missing case/bug identification</a>.</li>
  * </ul>
  * <br>
- * <a href="https://github.com/righettod/code-snippets-security-utils">GitHub repository</a>
+ * <a href="https://github.com/righettod/code-snippets-security-utils">GitHub repository</a>.<br><br>
+ * <a href="https://github.com/righettod/code-snippets-security-utils/blob/main/src/main/java/eu/righettod/SecurityUtils.java">Source code of the class</a>.
  */
 public class SecurityUtils {
     /**

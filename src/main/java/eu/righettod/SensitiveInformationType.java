@@ -26,5 +26,4 @@ public enum SensitiveInformationType {
      * @see "https://en.wikipedia.org/wiki/Payment_card_number"
      */
     BANK_CARD_PAN
-
 }
