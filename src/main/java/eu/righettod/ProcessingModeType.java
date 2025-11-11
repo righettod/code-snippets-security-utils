@@ -3,7 +3,7 @@ package eu.righettod;
 /**
  * Enumeration used by the method <code>SecurityUtils.ensureSerializedObjectIntegrity()</code> to define its working mode.
  */
-public enum ProcessingMode {
+public enum ProcessingModeType {
     /**
      * Protection mode: Add the integrity HMAC to the linked serialized object.
      */

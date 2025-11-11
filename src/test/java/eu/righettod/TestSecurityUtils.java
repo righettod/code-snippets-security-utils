@@ -28,6 +28,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -55,6 +56,15 @@ public class TestSecurityUtils {
         return new File(getTestFilePath(testFileName)).length();
     }
 
+    private byte[] createGZipCompressedData(int uncompressedDataSizeWanted) throws Exception {
+        byte[] raw = new byte[uncompressedDataSizeWanted];
+        Arrays.fill(raw, (byte) 'X');
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); GZIPOutputStream gzos = new GZIPOutputStream(baos)) {
+            gzos.write(raw);
+            gzos.finish();
+            return baos.toByteArray();
+        }
+    }
 
     @Test
     public void isWeakPINCode() {
@@ -339,9 +349,9 @@ public class TestSecurityUtils {
         Base64.Decoder b64Decoder = Base64.getDecoder();
         String testUserSerializedBytesEncoded = b64Encoder.encodeToString(testUserSerializedBytes.toByteArray());
         //Test "protect" processing
-        Map<String, Object> results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.PROTECT, testUserSerializedBytesEncoded, secret);
+        Map<String, Object> results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingModeType.PROTECT, testUserSerializedBytesEncoded, secret);
         assertEquals(3, results.size());
-        assertEquals(ProcessingMode.PROTECT.toString(), results.get("PROCESSING_MODE"));
+        assertEquals(ProcessingModeType.PROTECT.toString(), results.get("PROCESSING_MODE"));
         assertEquals(Boolean.TRUE, results.get("STATUS"));
         String protectedSerializedObject = (String) results.get("RESULT");
         String[] parts = protectedSerializedObject.split(":");
@@ -350,9 +360,9 @@ public class TestSecurityUtils {
         assertNotEquals(0, b64Decoder.decode(parts[1]).length);
         //Test "validate" processing
         //--Case validation succeed (HMAC match)
-        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.VALIDATE, protectedSerializedObject, secret);
+        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingModeType.VALIDATE, protectedSerializedObject, secret);
         assertEquals(3, results.size());
-        assertEquals(ProcessingMode.VALIDATE.toString(), results.get("PROCESSING_MODE"));
+        assertEquals(ProcessingModeType.VALIDATE.toString(), results.get("PROCESSING_MODE"));
         assertEquals(Boolean.TRUE, results.get("STATUS"));
         assertEquals(protectedSerializedObject, results.get("RESULT"));
         //--Case validation failed due to malicious serialized object provided (HMAC not match)
@@ -363,8 +373,8 @@ public class TestSecurityUtils {
         alteredObject[0] += 1;
         encodedSerializedObject = b64Encoder.encodeToString(alteredObject);
         String alteredInput = encodedSerializedObject + ":" + encodedHMAC;
-        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingMode.VALIDATE, alteredInput, secret);
-        assertEquals(ProcessingMode.VALIDATE.toString(), results.get("PROCESSING_MODE"));
+        results = SecurityUtils.ensureSerializedObjectIntegrity(ProcessingModeType.VALIDATE, alteredInput, secret);
+        assertEquals(ProcessingModeType.VALIDATE.toString(), results.get("PROCESSING_MODE"));
         assertEquals(Boolean.FALSE, results.get("STATUS"));
         assertNotEquals(alteredInput, results.get("RESULT"));
     }
@@ -748,7 +758,32 @@ public class TestSecurityUtils {
                 throw new RuntimeException(e);
             }
         });
+    }
 
+    @Test
+    public void isGZIPCompressedDataSafe() throws Exception {
+        String falseNegativeMsgTemplate = "Array of %s bytes with limit to %s bytes must be detected as unsafe!";
+        String falsePositiveMsgTemplate = "Array of %s bytes with limit to %s bytes must be detected as safe!";
+        //Test invalid cases
+        //--Large compressed data > limit of 5MB
+        byte[] testData = createGZipCompressedData(Integer.MAX_VALUE - 2);
+        long limit = 5_000_000;//5 MB
+        boolean isSafe = SecurityUtils.isGZIPCompressedDataSafe(testData, limit);
+        assertFalse(isSafe, String.format(falseNegativeMsgTemplate, testData.length, limit));
+        //--Large compressed data > default limit of 10 MB
+        limit = 0;//trigger the usage of the default limit
+        isSafe = SecurityUtils.isGZIPCompressedDataSafe(testData, limit);
+        assertFalse(isSafe, String.format(falseNegativeMsgTemplate, testData.length, limit));
+        //Test valid cases
+        //--2MB initial data compressed < limit of 5MB
+        testData = createGZipCompressedData(2_000_000);//2 MB
+        limit = 5_000_000;//5 MB
+        isSafe = SecurityUtils.isGZIPCompressedDataSafe(testData, limit);
+        assertTrue(isSafe, String.format(falsePositiveMsgTemplate, testData.length, limit));
+        //--2MB initial data compressed < default limit of 10 MB
+        limit = 0;//trigger the usage of the default limit
+        isSafe = SecurityUtils.isGZIPCompressedDataSafe(testData, limit);
+        assertTrue(isSafe, String.format(falsePositiveMsgTemplate, testData.length, limit));
     }
 }
 

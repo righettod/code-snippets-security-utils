@@ -74,6 +74,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -735,9 +736,9 @@ public class SecurityUtils {
      * Provide a way to add an integrity marker (<a href="https://en.wikipedia.org/wiki/HMAC">HMAC</a>) to a serialized object serialized using the <a href="https://www.baeldung.com/java-serialization">java native system</a> (binary).<br>
      * The goal is to provide <b>a temporary workaround</b> to try to prevent deserialization attacks and give time to move to a text-based serialization approach.
      *
-     * @param processingMode Define the mode of processing i.e. protect or validate. ({@link eu.righettod.ProcessingMode})
-     * @param input          When the processing mode is "protect" than the expected input (string) is a java serialized object encoded in Base64 otherwise (processing mode is "validate") expected input is the output of this method when the "protect" mode was used.
-     * @param secret         Secret to use to compute the SHA256 HMAC.
+     * @param processingModeType Define the mode of processing i.e. protect or validate. ({@link ProcessingModeType})
+     * @param input              When the processing mode is "protect" than the expected input (string) is a java serialized object encoded in Base64 otherwise (processing mode is "validate") expected input is the output of this method when the "protect" mode was used.
+     * @param secret             Secret to use to compute the SHA256 HMAC.
      * @return A map with the following keys: <ul><li><b>PROCESSING_MODE</b>: Processing mode used to compute the result.</li><li><b>STATUS</b>: A boolean indicating if the processing was successful or not.</li><li><b>RESULT</b>: Always contains a string representing the protected serialized object in the format <code>[SERIALIZED_OBJECT_BASE64_ENCODED]:[SERIALIZED_OBJECT_HMAC_BASE64_ENCODED]</code>.</li></ul>
      * @throws Exception If any exception occurs.
      * @see "https://cheatsheetseries.owasp.org/cheatsheets/Deserialization_Cheat_Sheet.html"
@@ -749,11 +750,11 @@ public class SecurityUtils {
      * @see "https://en.wikipedia.org/wiki/HMAC"
      * @see "https://smattme.com/posts/how-to-generate-hmac-signature-in-java/"
      */
-    public static Map<String, Object> ensureSerializedObjectIntegrity(ProcessingMode processingMode, String input, byte[] secret) throws Exception {
+    public static Map<String, Object> ensureSerializedObjectIntegrity(ProcessingModeType processingModeType, String input, byte[] secret) throws Exception {
         Map<String, Object> results;
         String resultFormatTemplate = "%s:%s";
         //Verify input provided to be consistent
-        if (processingMode == null) {
+        if (processingModeType == null) {
             throw new IllegalArgumentException("The processing mode is mandatory!");
         }
         if (input == null || input.trim().isEmpty()) {
@@ -762,7 +763,7 @@ public class SecurityUtils {
         if (secret == null || secret.length == 0) {
             throw new IllegalArgumentException("The HMAC secret is mandatory!");
         }
-        if (processingMode.equals(ProcessingMode.VALIDATE) && input.split(":").length != 2) {
+        if (processingModeType.equals(ProcessingModeType.VALIDATE) && input.split(":").length != 2) {
             throw new IllegalArgumentException("Input data provided is invalid for the processing mode specified!");
         }
         //Processing
@@ -773,8 +774,8 @@ public class SecurityUtils {
         SecretKeySpec key = new SecretKeySpec(secret, hmacAlgorithm);
         mac.init(key);
         results = new HashMap<>();
-        results.put("PROCESSING_MODE", processingMode.toString());
-        switch (processingMode) {
+        results.put("PROCESSING_MODE", processingModeType.toString());
+        switch (processingModeType) {
             case PROTECT -> {
                 byte[] objectBytes = b64Decoder.decode(input);
                 byte[] hmac = mac.doFinal(objectBytes);
@@ -1541,5 +1542,44 @@ public class SecurityUtils {
         }
 
         return data;
+    }
+
+    /**
+     * Apply a collection of validations on a bytes array provided representing GZIP compressed data:
+     * <ul>
+     * <li>Are valid GZIP compressed data.</li>
+     * <li>The number of bytes once decompressed is under the specified limit.</li>
+     * </ul>
+     * <br><b>Note:</b> The value <code>Integer.MAX_VALUE - 8</code> was chosen because during my tests on Java 25 (JDK 64 bits on Windows 11 Pro), it was possible to decompress such amount of data with the default JVM settings without causing an <a href="https://docs.oracle.com/en/java/javase/25/docs/api//java.base/java/lang/OutOfMemoryError.html">Out Of Memory error</a>.
+     *
+     * @param compressedBytes                    Array of bytes containing the GZIP compressed data to check.
+     * @param maxCountOfDecompressedBytesAllowed Maximum number of decompressed bytes allowed. Default to 10 MB if the specified value is inferior to 1 or superior to Integer.MAX_VALUE - 8.
+     * @return True only if the file pass all validations.
+     * @see "https://en.wikipedia.org/wiki/Gzip"
+     * @see "https://www.rapid7.com/db/modules/auxiliary/dos/http/gzip_bomb_dos/"
+     */
+    public static boolean isGZIPCompressedDataSafe(byte[] compressedBytes, long maxCountOfDecompressedBytesAllowed) {
+        boolean isSafe = false;
+        try {
+            long limit = maxCountOfDecompressedBytesAllowed;
+            long totalRead = 0L;
+            byte[] buffer = new byte[8 * 1024];
+            int read;
+            if (limit < 1 || limit > (Integer.MAX_VALUE - 8)) {
+                limit = 10_000_000;
+            }
+            try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedBytes); GZIPInputStream gzipInputStream = new GZIPInputStream(new BufferedInputStream(bis))) {
+                while ((read = gzipInputStream.read(buffer)) != -1) {
+                    totalRead += read;
+                    if (totalRead > limit) {
+                        throw new Exception();
+                    }
+                }
+            }
+            isSafe = true;
+        } catch (Exception e) {
+            isSafe = false;
+        }
+        return isSafe;
     }
 }
