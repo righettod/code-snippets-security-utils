@@ -1596,7 +1596,7 @@
 <span class="source-line-no">1583</span><span id="line-1583">        } catch (Exception e) {</span>
 <span class="source-line-no">1584</span><span id="line-1584">            isSafe = false;</span>
 <span class="source-line-no">1585</span><span id="line-1585">        }</span>
-<span class="source-line-no">1586</span><span id="line-1586">        </span>
+<span class="source-line-no">1586</span><span id="line-1586"></span>
 <span class="source-line-no">1587</span><span id="line-1587">        return isSafe;</span>
 <span class="source-line-no">1588</span><span id="line-1588">    }</span>
 <span class="source-line-no">1589</span><span id="line-1589"></span>
@@ -1608,7 +1608,7 @@
 <span class="source-line-no">1595</span><span id="line-1595">     *     &lt;li&gt;Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).&lt;/li&gt;</span>
 <span class="source-line-no">1596</span><span id="line-1596">     *     &lt;li&gt;Leading and trailing spaces.&lt;/li&gt;</span>
 <span class="source-line-no">1597</span><span id="line-1597">     *     &lt;li&gt;Any HTML tags.&lt;/li&gt;</span>
-<span class="source-line-no">1598</span><span id="line-1598">     * &lt;/ul&gt;&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1598</span><span id="line-1598">     * &lt;/ul&gt;&lt;br&gt;</span>
 <span class="source-line-no">1599</span><span id="line-1599">     * A parameter is also used to limit the maximum length of the sanitized message.</span>
 <span class="source-line-no">1600</span><span id="line-1600">     * To remove any HTML tags, the OWASP project &lt;a href="https://owasp.org/www-project-java-html-sanitizer/"&gt;Java HTML Sanitizer&lt;/a&gt; is leveraged.&lt;br&gt;</span>
 <span class="source-line-no">1601</span><span id="line-1601">     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.</span>
@@ -1618,33 +1618,34 @@
 <span class="source-line-no">1605</span><span id="line-1605">     * @return The string message cleaned.</span>
 <span class="source-line-no">1606</span><span id="line-1606">     * @see "https://www.wallarm.com/what/log-forging-attack"</span>
 <span class="source-line-no">1607</span><span id="line-1607">     * @see "https://www.invicti.com/learn/crlf-injection"</span>
-<span class="source-line-no">1608</span><span id="line-1608">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
-<span class="source-line-no">1609</span><span id="line-1609">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
-<span class="source-line-no">1610</span><span id="line-1610">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
-<span class="source-line-no">1611</span><span id="line-1611">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
-<span class="source-line-no">1612</span><span id="line-1612">     */</span>
-<span class="source-line-no">1613</span><span id="line-1613">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
-<span class="source-line-no">1614</span><span id="line-1614">        String sanitized = message;</span>
-<span class="source-line-no">1615</span><span id="line-1615">        int maxSanitizedMessageLength = maxMessageLength;</span>
-<span class="source-line-no">1616</span><span id="line-1616"></span>
-<span class="source-line-no">1617</span><span id="line-1617">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
-<span class="source-line-no">1618</span><span id="line-1618">            if (maxSanitizedMessageLength &lt; 1) {</span>
-<span class="source-line-no">1619</span><span id="line-1619">                maxSanitizedMessageLength = 500;</span>
-<span class="source-line-no">1620</span><span id="line-1620">            }</span>
-<span class="source-line-no">1621</span><span id="line-1621">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
-<span class="source-line-no">1622</span><span id="line-1622">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
-<span class="source-line-no">1623</span><span id="line-1623">            //Step 2: Remove any HTML tags</span>
-<span class="source-line-no">1624</span><span id="line-1624">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
-<span class="source-line-no">1625</span><span id="line-1625">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
-<span class="source-line-no">1626</span><span id="line-1626">            //Step 3: Truncate the string in case of need</span>
-<span class="source-line-no">1627</span><span id="line-1627">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
-<span class="source-line-no">1628</span><span id="line-1628">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
-<span class="source-line-no">1629</span><span id="line-1629">            }</span>
-<span class="source-line-no">1630</span><span id="line-1630">        }</span>
-<span class="source-line-no">1631</span><span id="line-1631"></span>
-<span class="source-line-no">1632</span><span id="line-1632">        return sanitized;</span>
-<span class="source-line-no">1633</span><span id="line-1633">    }</span>
-<span class="source-line-no">1634</span><span id="line-1634">}</span>
+<span class="source-line-no">1608</span><span id="line-1608">     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"</span>
+<span class="source-line-no">1609</span><span id="line-1609">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
+<span class="source-line-no">1610</span><span id="line-1610">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
+<span class="source-line-no">1611</span><span id="line-1611">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
+<span class="source-line-no">1612</span><span id="line-1612">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
+<span class="source-line-no">1613</span><span id="line-1613">     */</span>
+<span class="source-line-no">1614</span><span id="line-1614">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
+<span class="source-line-no">1615</span><span id="line-1615">        String sanitized = message;</span>
+<span class="source-line-no">1616</span><span id="line-1616">        int maxSanitizedMessageLength = maxMessageLength;</span>
+<span class="source-line-no">1617</span><span id="line-1617"></span>
+<span class="source-line-no">1618</span><span id="line-1618">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
+<span class="source-line-no">1619</span><span id="line-1619">            if (maxSanitizedMessageLength &lt; 1) {</span>
+<span class="source-line-no">1620</span><span id="line-1620">                maxSanitizedMessageLength = 500;</span>
+<span class="source-line-no">1621</span><span id="line-1621">            }</span>
+<span class="source-line-no">1622</span><span id="line-1622">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
+<span class="source-line-no">1623</span><span id="line-1623">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
+<span class="source-line-no">1624</span><span id="line-1624">            //Step 2: Remove any HTML tags</span>
+<span class="source-line-no">1625</span><span id="line-1625">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
+<span class="source-line-no">1626</span><span id="line-1626">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
+<span class="source-line-no">1627</span><span id="line-1627">            //Step 3: Truncate the string in case of need</span>
+<span class="source-line-no">1628</span><span id="line-1628">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
+<span class="source-line-no">1629</span><span id="line-1629">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
+<span class="source-line-no">1630</span><span id="line-1630">            }</span>
+<span class="source-line-no">1631</span><span id="line-1631">        }</span>
+<span class="source-line-no">1632</span><span id="line-1632"></span>
+<span class="source-line-no">1633</span><span id="line-1633">        return sanitized;</span>
+<span class="source-line-no">1634</span><span id="line-1634">    }</span>
+<span class="source-line-no">1635</span><span id="line-1635">}</span>
 
 
 
