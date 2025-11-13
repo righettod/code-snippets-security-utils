@@ -32,6 +32,8 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
 import org.iban4j.IbanUtil;
+import org.owasp.html.HtmlPolicyBuilder;
+import org.owasp.html.PolicyFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
@@ -1560,6 +1562,7 @@ public class SecurityUtils {
      */
     public static boolean isGZIPCompressedDataSafe(byte[] compressedBytes, long maxCountOfDecompressedBytesAllowed) {
         boolean isSafe = false;
+
         try {
             long limit = maxCountOfDecompressedBytesAllowed;
             long totalRead = 0L;
@@ -1580,6 +1583,52 @@ public class SecurityUtils {
         } catch (Exception e) {
             isSafe = false;
         }
+        
         return isSafe;
+    }
+
+    /**
+     * Process a string, intended to be written in a log, to remove as much as possible information that can lead to an exposure to a log injection vulnerability.<br><br>
+     * <b>Log injection</b> is also called <b>log forging</b>.<br><br>
+     * The following information are removed:
+     * <ul>
+     *     <li>Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).</li>
+     *     <li>Leading and trailing spaces.</li>
+     *     <li>Any HTML tags.</li>
+     * </ul><br><br>
+     * A parameter is also used to limit the maximum length of the sanitized message.
+     * To remove any HTML tags, the OWASP project <a href="https://owasp.org/www-project-java-html-sanitizer/">Java HTML Sanitizer</a> is leveraged.<br>
+     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.
+     *
+     * @param message          The original string message intended to be written in a log.
+     * @param maxMessageLength The maximum number of characters after which the sanitized message must be truncated. If inferior to 1 then default to the value of 500.
+     * @return The string message cleaned.
+     * @see "https://www.wallarm.com/what/log-forging-attack"
+     * @see "https://www.invicti.com/learn/crlf-injection"
+     * @see "https://capec.mitre.org/data/definitions/93.html"
+     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"
+     * @see "https://owasp.org/www-project-java-html-sanitizer/"
+     * @see "https://github.com/OWASP/java-html-sanitizer"
+     */
+    public static String sanitizeLogMessage(String message, int maxMessageLength) {
+        String sanitized = message;
+        int maxSanitizedMessageLength = maxMessageLength;
+
+        if (sanitized != null && !sanitized.isBlank()) {
+            if (maxSanitizedMessageLength < 1) {
+                maxSanitizedMessageLength = 500;
+            }
+            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces
+            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();
+            //Step 2: Remove any HTML tags
+            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();
+            sanitized = htmlSanitizerPolicy.sanitize(sanitized);
+            //Step 3: Truncate the string in case of need
+            if (sanitized.length() > maxSanitizedMessageLength) {
+                sanitized = sanitized.substring(0, maxSanitizedMessageLength);
+            }
+        }
+
+        return sanitized;
     }
 }

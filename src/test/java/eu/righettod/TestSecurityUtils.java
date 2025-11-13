@@ -785,5 +785,26 @@ public class TestSecurityUtils {
         isSafe = SecurityUtils.isGZIPCompressedDataSafe(testData, limit);
         assertTrue(isSafe, String.format(falsePositiveMsgTemplate, testData.length, limit));
     }
+
+    @Test
+    public void sanitizeLogMessage() {
+        //Case format is the following
+        //[0]: The maximum number of characters after which the sanitized message must be truncated
+        //[1]: The original string message intended to be written in a log
+        //[2]: The expected sanitized message
+        final List<String[]> cases = new ArrayList<>();
+        cases.add(new String[]{"1000", "<b>test msg</b><script>alert(1)</script>", "test msg"});
+        cases.add(new String[]{"1000", "test<xss>msg</xss>\n1\r2\t3\t4\n5\r6\t7", "testmsg1234567"});
+        cases.add(new String[]{"1000", "     test<xss>msg</xss>\n1\r2\t3\t4\n5\r6\t7\t\r\n     ", "testmsg1234567"});
+        cases.add(new String[]{"0", "<b>test msg</b><script>alert(1)</script>", "test msg"});
+        cases.add(new String[]{"10", "AAAAAAAAAACCC<script src='https://evil.com/a.js'></script>BBBBBBBBBB", "AAAAAAAAAA"});
+        cases.forEach(caseData -> {
+            int maxMessageLength = Integer.parseInt(caseData[0].trim());
+            String originalMessage = caseData[1];
+            String expectedSanitizedMessage = caseData[2];
+            String sanitizedMessage = SecurityUtils.sanitizeLogMessage(originalMessage, maxMessageLength);
+            assertEquals(expectedSanitizedMessage, sanitizedMessage);
+        });
+    }
 }
 
