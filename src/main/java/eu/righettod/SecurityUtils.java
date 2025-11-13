@@ -1583,7 +1583,7 @@ public class SecurityUtils {
         } catch (Exception e) {
             isSafe = false;
         }
-        
+
         return isSafe;
     }
 
@@ -1595,7 +1595,7 @@ public class SecurityUtils {
      *     <li>Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).</li>
      *     <li>Leading and trailing spaces.</li>
      *     <li>Any HTML tags.</li>
-     * </ul><br><br>
+     * </ul><br>
      * A parameter is also used to limit the maximum length of the sanitized message.
      * To remove any HTML tags, the OWASP project <a href="https://owasp.org/www-project-java-html-sanitizer/">Java HTML Sanitizer</a> is leveraged.<br>
      * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.
@@ -1605,6 +1605,7 @@ public class SecurityUtils {
      * @return The string message cleaned.
      * @see "https://www.wallarm.com/what/log-forging-attack"
      * @see "https://www.invicti.com/learn/crlf-injection"
+     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"
      * @see "https://capec.mitre.org/data/definitions/93.html"
      * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"
      * @see "https://owasp.org/www-project-java-html-sanitizer/"
