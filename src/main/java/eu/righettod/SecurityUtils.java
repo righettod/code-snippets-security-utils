@@ -1327,6 +1327,7 @@ public class SecurityUtils {
      * @see "https://learn.snyk.io/lesson/redos"
      * @see "https://rules.sonarsource.com/java/RSPEC-2631/"
      * @see "https://github.com/doyensec/regexploit"
+     * @see "https://makenowjust-labs.github.io/recheck/"
      * @see "https://wiki.owasp.org/images/2/23/OWASP_IL_2009_ReDoS.pdf"
      * @see "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"
      */
