@@ -806,5 +806,33 @@ public class TestSecurityUtils {
             assertEquals(expectedSanitizedMessage, sanitizedMessage);
         });
     }
+
+    @Test
+    public void isXMLSVGImage() throws Exception {
+        final String msgErrorIncorrectDetectionTemplate = "File must be detected as a %s SVG image!";
+        //Normal XML
+        String testFile = getTestFilePath("test-svg-nonsvg.xml");
+        boolean isSvg = SecurityUtils.isXMLSVGImage(testFile);
+        assertFalse(isSvg, String.format(msgErrorIncorrectDetectionTemplate, "invalid"));
+        //Valid SVG with SVG external references: SVG < 2.0
+        testFile = getTestFilePath("test-svg-valid-with-svg-dtd.xml");
+        isSvg = SecurityUtils.isXMLSVGImage(testFile);
+        assertTrue(isSvg, String.format(msgErrorIncorrectDetectionTemplate, "valid"));
+        //Valid SVG without SVG external references: SVG 2.0
+        testFile = getTestFilePath("test-svg-valid-without-svg-dtd.xml");
+        isSvg = SecurityUtils.isXMLSVGImage(testFile);
+        assertTrue(isSvg, String.format(msgErrorIncorrectDetectionTemplate, "valid"));
+        //Valid SVG but with an external XXE reference
+        testFile = getTestFilePath("test-svg-valid-with-external-xxe.xml");
+        try {
+            SecurityUtils.isXMLSVGImage(testFile);
+            fail(String.format(msgErrorIncorrectDetectionTemplate, "invalid"));
+        } catch (SecurityException e) {
+            if (!e.getMessage().startsWith("External references detected:")) {
+                fail(String.format(msgErrorIncorrectDetectionTemplate, "invalid"));
+            }
+            //Otherwise it is expected.
+        }
+    }
 }
 

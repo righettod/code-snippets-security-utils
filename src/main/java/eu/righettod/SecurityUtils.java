@@ -2,6 +2,8 @@ package eu.righettod;
 
 
 import com.auth0.jwt.interfaces.DecodedJWT;
+import org.apache.batik.anim.dom.SAXSVGDocumentFactory;
+import org.apache.batik.util.XMLResourceDescriptor;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.apache.commons.imaging.ImageInfo;
@@ -35,6 +37,7 @@ import org.iban4j.IbanUtil;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
 import org.w3c.dom.Document;
+import org.w3c.dom.svg.SVGDocument;
 import org.xml.sax.EntityResolver;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -64,6 +67,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
@@ -1633,5 +1637,63 @@ public class SecurityUtils {
         }
 
         return sanitized;
+    }
+
+    /**
+     * Identify if an XML is an SVG image.<br>
+     * The goal of this method is to prevent to leverage SVG, as an vector, to achieve a XSS when XML format is accepted.<br>
+     * Leverage <a href="https://xmlgraphics.apache.org/batik/">Apache Batik</a> to delegate the parsing and support for the SVG format.<br><br>
+     * <b>Due to the intended usage of the method, the following choice were made:</b>
+     * <ul>
+     * <li>Raise an exception when a non SVG related external references is identified.</li>
+     * <li>Throw any exception that can occur if the provided content is invalid like for example an invalid XML file or a non existing file.</li>
+     * <li>Explicitly check the XML prior to pass it to Batik even if Batik seems not prone to XXE/SSRF classes of vulnerability.</li>
+     * </ul>
+     *
+     * @param xmlFilePath Filename of the XML file to check.
+     * @return True only if XML is an valid SVG image.
+     * @throws SecurityException If a non SVG external references is detected into the XML content.
+     * @throws Exception         If a error occur due to an invalid content provided.
+     * @see "https://developer.mozilla.org/en-US/docs/Web/SVG"
+     * @see "https://www.fortinet.com/blog/threat-research/scalable-vector-graphics-attack-surface-anatomy"
+     * @see "https://portswigger.net/web-security/cross-site-scripting"
+     * @see "https://xmlgraphics.apache.org/batik/"
+     * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"
+     * @see "https://portswigger.net/web-security/xxe"
+     * @see "https://portswigger.net/web-security/ssrf"
+     */
+    public static boolean isXMLSVGImage(String xmlFilePath) throws Exception {
+        boolean isSvg = true;
+        List<String> svgValidSystemIDs = List.of("http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd", "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd");
+
+        //Load the XML content into a reader
+        String xmlContent = Files.readString(Paths.get(xmlFilePath));
+        //Then ensure that the XML document does not contains any non SVG external references
+        try (Reader reader = StringReader.of(xmlContent)) {
+            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder docBuilder = xmlFactory.newDocumentBuilder();
+            docBuilder.setEntityResolver((publicId, systemId) -> {
+                if (systemId != null && !svgValidSystemIDs.contains(systemId)) {
+                    throw new SecurityException("External references detected: " + systemId);
+                }
+                return new InputSource(new ByteArrayInputStream("".getBytes()));
+            });
+            docBuilder.parse(new InputSource(reader));
+        }
+        //Then parse the XML with Apache Batik
+        try (Reader reader = StringReader.of(xmlContent)) {
+            //Method SAXDocumentFactory.createDocument() do not load external DTD or entities.
+            String parserClassName = XMLResourceDescriptor.getXMLParserClassName();
+            SAXSVGDocumentFactory svgFactory = new SAXSVGDocumentFactory(parserClassName);
+            //Method svgFactory.createSVGDocument() raise an IO exception if the XML is not a valid SVG image
+            try {
+                SVGDocument doc = svgFactory.createSVGDocument(null, reader);
+                isSvg = (doc != null && doc.getRootElement() != null);
+            } catch (IOException e) {
+                isSvg = false;
+            }
+        }
+
+        return isSvg;
     }
 }
