@@ -1659,6 +1659,8 @@ public class SecurityUtils {
      * @see "https://portswigger.net/web-security/cross-site-scripting"
      * @see "https://xmlgraphics.apache.org/batik/"
      * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"
+     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-dom"
+     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-anim"
      * @see "https://portswigger.net/web-security/xxe"
      * @see "https://portswigger.net/web-security/ssrf"
      */
