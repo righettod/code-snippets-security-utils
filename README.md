@@ -5,6 +5,10 @@
 > [!NOTE]
 > Java was chosen but the ideas behind the proposed code can be applied to other languages.
 
+> [!TIP]
+> A project to create a [collection of coding assistant rules](https://github.com/righettod/code-assistant-skills-security-utils) was initiated to apply the collection of proposal of this project **as
+directives directly into a coding assistant** to apply them during the implementation.
+
 💻 This project provides different utilities methods to apply processing from a defensive security perspective. These code snippet:
 
 * Can be used, as "foundation", to customize the validation to the app context.
