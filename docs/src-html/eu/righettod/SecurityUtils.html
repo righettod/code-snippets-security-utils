@@ -1031,687 +1031,693 @@
 <span class="source-line-no">1018</span><span id="line-1018">                Image initialSizedImage = resizedImage.getScaledInstance(originalWidth, originalHeight, Image.SCALE_SMOOTH);</span>
 <span class="source-line-no">1019</span><span id="line-1019">                // Save image to a bytes buffer</span>
 <span class="source-line-no">1020</span><span id="line-1020">                int bufferedImageType = BufferedImage.TYPE_INT_ARGB;//By default use a format supporting transparency</span>
-<span class="source-line-no">1021</span><span id="line-1021">                if ("jpeg".equalsIgnoreCase(originalFormat) || "bmp".equalsIgnoreCase(originalFormat)) {</span>
-<span class="source-line-no">1022</span><span id="line-1022">                    bufferedImageType = BufferedImage.TYPE_INT_RGB;</span>
-<span class="source-line-no">1023</span><span id="line-1023">                }</span>
-<span class="source-line-no">1024</span><span id="line-1024">                BufferedImage sanitizedImage = new BufferedImage(initialSizedImage.getWidth(null), initialSizedImage.getHeight(null), bufferedImageType);</span>
-<span class="source-line-no">1025</span><span id="line-1025">                Graphics2D drawer = sanitizedImage.createGraphics();</span>
-<span class="source-line-no">1026</span><span id="line-1026">                drawer.drawImage(initialSizedImage, 0, 0, null);</span>
-<span class="source-line-no">1027</span><span id="line-1027">                drawer.dispose();</span>
-<span class="source-line-no">1028</span><span id="line-1028">                ImageIO.write(sanitizedImage, originalFormat, sanitizedContent);</span>
-<span class="source-line-no">1029</span><span id="line-1029">            }</span>
-<span class="source-line-no">1030</span><span id="line-1030">            default -&gt; throw new IllegalArgumentException("Type of file not supported !");</span>
-<span class="source-line-no">1031</span><span id="line-1031">        }</span>
-<span class="source-line-no">1032</span><span id="line-1032">        if (sanitizedContent.size() == 0) {</span>
-<span class="source-line-no">1033</span><span id="line-1033">            throw new IOException("An error occur during the rewrite operation!");</span>
-<span class="source-line-no">1034</span><span id="line-1034">        }</span>
-<span class="source-line-no">1035</span><span id="line-1035">        return sanitizedContent.toByteArray();</span>
-<span class="source-line-no">1036</span><span id="line-1036">    }</span>
-<span class="source-line-no">1037</span><span id="line-1037"></span>
-<span class="source-line-no">1038</span><span id="line-1038">    /**</span>
-<span class="source-line-no">1039</span><span id="line-1039">     * Apply a collection of validations on a string expected to be an email address:</span>
-<span class="source-line-no">1040</span><span id="line-1040">     * &lt;ul&gt;</span>
-<span class="source-line-no">1041</span><span id="line-1041">     * &lt;li&gt;Is a valid email address, from a parser perspective, following RFCs on email addresses.&lt;/li&gt;</span>
-<span class="source-line-no">1042</span><span id="line-1042">     * &lt;li&gt;Is not using "Encoded-word" format.&lt;/li&gt;</span>
-<span class="source-line-no">1043</span><span id="line-1043">     * &lt;li&gt;Is not using comment format.&lt;/li&gt;</span>
-<span class="source-line-no">1044</span><span id="line-1044">     * &lt;li&gt;Is not using "Punycode" format.&lt;/li&gt;</span>
-<span class="source-line-no">1045</span><span id="line-1045">     * &lt;li&gt;Is not using UUCP style addresses.&lt;/li&gt;</span>
-<span class="source-line-no">1046</span><span id="line-1046">     * &lt;li&gt;Is not using address literals.&lt;/li&gt;</span>
-<span class="source-line-no">1047</span><span id="line-1047">     * &lt;li&gt;Is not using source routes.&lt;/li&gt;</span>
-<span class="source-line-no">1048</span><span id="line-1048">     * &lt;li&gt;Is not using the "percent hack".&lt;/li&gt;</span>
-<span class="source-line-no">1049</span><span id="line-1049">     * &lt;/ul&gt;&lt;br&gt;</span>
-<span class="source-line-no">1050</span><span id="line-1050">     * This is based on the research work from &lt;a href="https://portswigger.net/research/gareth-heyes"&gt;Gareth Heyes&lt;/a&gt; added in references (Portswigger).&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1051</span><span id="line-1051">     *</span>
-<span class="source-line-no">1052</span><span id="line-1052">     * &lt;b&gt;Note:&lt;/b&gt; The notion of valid, here, is to take from a secure usage of the data perspective.</span>
-<span class="source-line-no">1053</span><span id="line-1053">     *</span>
-<span class="source-line-no">1054</span><span id="line-1054">     * @param addr String expected to be a valid email address.</span>
-<span class="source-line-no">1055</span><span id="line-1055">     * @return True only if the string pass all validations.</span>
-<span class="source-line-no">1056</span><span id="line-1056">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
-<span class="source-line-no">1057</span><span id="line-1057">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/EmailValidator.html"</span>
-<span class="source-line-no">1058</span><span id="line-1058">     * @see "https://datatracker.ietf.org/doc/html/rfc2047#section-2"</span>
-<span class="source-line-no">1059</span><span id="line-1059">     * @see "https://portswigger.net/research/splitting-the-email-atom"</span>
-<span class="source-line-no">1060</span><span id="line-1060">     * @see "https://www.jochentopf.com/email/address.html"</span>
-<span class="source-line-no">1061</span><span id="line-1061">     * @see "https://en.wikipedia.org/wiki/Email_address"</span>
-<span class="source-line-no">1062</span><span id="line-1062">     */</span>
-<span class="source-line-no">1063</span><span id="line-1063">    public static boolean isEmailAddress(String addr) {</span>
-<span class="source-line-no">1064</span><span id="line-1064">        boolean isValid = false;</span>
-<span class="source-line-no">1065</span><span id="line-1065">        String work = addr.toLowerCase(Locale.ROOT);</span>
-<span class="source-line-no">1066</span><span id="line-1066">        Pattern encodedWordRegex = Pattern.compile("[=?]+", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1067</span><span id="line-1067">        Pattern forbiddenCharacterRegex = Pattern.compile("[():!%\\[\\],;]+", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1068</span><span id="line-1068">        try {</span>
-<span class="source-line-no">1069</span><span id="line-1069">            //Start with the use of the dedicated EmailValidator from Apache Commons Validator</span>
-<span class="source-line-no">1070</span><span id="line-1070">            if (EmailValidator.getInstance(true, true).isValid(work)) {</span>
-<span class="source-line-no">1071</span><span id="line-1071">                //If OK then validate it does not contains "Encoded-word" patterns using an aggressive approach</span>
-<span class="source-line-no">1072</span><span id="line-1072">                if (!encodedWordRegex.matcher(work).find()) {</span>
-<span class="source-line-no">1073</span><span id="line-1073">                    //If OK then validate it does not contains punycode</span>
-<span class="source-line-no">1074</span><span id="line-1074">                    if (!work.contains("xn--")) {</span>
-<span class="source-line-no">1075</span><span id="line-1075">                        //If OK then validate it does not use:</span>
-<span class="source-line-no">1076</span><span id="line-1076">                        // UUCP style addresses,</span>
-<span class="source-line-no">1077</span><span id="line-1077">                        // Comment format,</span>
-<span class="source-line-no">1078</span><span id="line-1078">                        // Address literals,</span>
-<span class="source-line-no">1079</span><span id="line-1079">                        // Source routes,</span>
-<span class="source-line-no">1080</span><span id="line-1080">                        // The percent hack.</span>
-<span class="source-line-no">1081</span><span id="line-1081">                        if (!forbiddenCharacterRegex.matcher(work).find()) {</span>
-<span class="source-line-no">1082</span><span id="line-1082">                            isValid = true;</span>
-<span class="source-line-no">1083</span><span id="line-1083">                        }</span>
-<span class="source-line-no">1084</span><span id="line-1084">                    }</span>
-<span class="source-line-no">1085</span><span id="line-1085">                }</span>
-<span class="source-line-no">1086</span><span id="line-1086">            }</span>
-<span class="source-line-no">1087</span><span id="line-1087">        } catch (Exception e) {</span>
-<span class="source-line-no">1088</span><span id="line-1088">            isValid = false;</span>
-<span class="source-line-no">1089</span><span id="line-1089">        }</span>
-<span class="source-line-no">1090</span><span id="line-1090">        return isValid;</span>
-<span class="source-line-no">1091</span><span id="line-1091">    }</span>
-<span class="source-line-no">1092</span><span id="line-1092"></span>
-<span class="source-line-no">1093</span><span id="line-1093">    /**</span>
-<span class="source-line-no">1094</span><span id="line-1094">     * The &lt;a href="https://www.stet.eu/en/psd2/"&gt;PSD2 STET&lt;/a&gt; specification require to use &lt;a href="https://datatracker.ietf.org/doc/draft-cavage-http-signatures/"&gt;HTTP Signature&lt;/a&gt;.</span>
-<span class="source-line-no">1095</span><span id="line-1095">     * &lt;br&gt;</span>
-<span class="source-line-no">1096</span><span id="line-1096">     * Section &lt;b&gt;3.5.1.2&lt;/b&gt; of the document &lt;a href="https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf"&gt;Documentation Framework&lt;/a&gt; version &lt;b&gt;1.6.3&lt;/b&gt;.</span>
-<span class="source-line-no">1097</span><span id="line-1097">     * &lt;br&gt;</span>
-<span class="source-line-no">1098</span><span id="line-1098">     * The problem is that, by design, the HTTP Signature specification is prone to blind SSRF.</span>
-<span class="source-line-no">1099</span><span id="line-1099">     * &lt;br&gt;</span>
-<span class="source-line-no">1100</span><span id="line-1100">     * URL example taken from the STET specification: &lt;code&gt;https://path.to/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f&lt;/code&gt;.</span>
+<span class="source-line-no">1021</span><span id="line-1021">                //Sometimes for BMP, the format detected is "bmp; format=compressed"</span>
+<span class="source-line-no">1022</span><span id="line-1022">                if ("jpeg".equalsIgnoreCase(originalFormat) || "bmp".equalsIgnoreCase(originalFormat) || originalFormat.startsWith("bmp;")) {</span>
+<span class="source-line-no">1023</span><span id="line-1023">                    bufferedImageType = BufferedImage.TYPE_INT_RGB;</span>
+<span class="source-line-no">1024</span><span id="line-1024">                }</span>
+<span class="source-line-no">1025</span><span id="line-1025">                BufferedImage sanitizedImage = new BufferedImage(initialSizedImage.getWidth(null), initialSizedImage.getHeight(null), bufferedImageType);</span>
+<span class="source-line-no">1026</span><span id="line-1026">                Graphics2D drawer = sanitizedImage.createGraphics();</span>
+<span class="source-line-no">1027</span><span id="line-1027">                drawer.drawImage(initialSizedImage, 0, 0, null);</span>
+<span class="source-line-no">1028</span><span id="line-1028">                drawer.dispose();</span>
+<span class="source-line-no">1029</span><span id="line-1029">                //Handle "bmp; format=compressed" case</span>
+<span class="source-line-no">1030</span><span id="line-1030">                String formatToUse = originalFormat;</span>
+<span class="source-line-no">1031</span><span id="line-1031">                if (formatToUse.startsWith("bmp;")) {</span>
+<span class="source-line-no">1032</span><span id="line-1032">                    formatToUse = formatToUse.split(";")[0].trim();</span>
+<span class="source-line-no">1033</span><span id="line-1033">                }</span>
+<span class="source-line-no">1034</span><span id="line-1034">                ImageIO.write(sanitizedImage, formatToUse, sanitizedContent);</span>
+<span class="source-line-no">1035</span><span id="line-1035">            }</span>
+<span class="source-line-no">1036</span><span id="line-1036">            default -&gt; throw new IllegalArgumentException("Type of file not supported !");</span>
+<span class="source-line-no">1037</span><span id="line-1037">        }</span>
+<span class="source-line-no">1038</span><span id="line-1038">        if (sanitizedContent.size() == 0) {</span>
+<span class="source-line-no">1039</span><span id="line-1039">            throw new IOException("An error occur during the rewrite operation!");</span>
+<span class="source-line-no">1040</span><span id="line-1040">        }</span>
+<span class="source-line-no">1041</span><span id="line-1041">        return sanitizedContent.toByteArray();</span>
+<span class="source-line-no">1042</span><span id="line-1042">    }</span>
+<span class="source-line-no">1043</span><span id="line-1043"></span>
+<span class="source-line-no">1044</span><span id="line-1044">    /**</span>
+<span class="source-line-no">1045</span><span id="line-1045">     * Apply a collection of validations on a string expected to be an email address:</span>
+<span class="source-line-no">1046</span><span id="line-1046">     * &lt;ul&gt;</span>
+<span class="source-line-no">1047</span><span id="line-1047">     * &lt;li&gt;Is a valid email address, from a parser perspective, following RFCs on email addresses.&lt;/li&gt;</span>
+<span class="source-line-no">1048</span><span id="line-1048">     * &lt;li&gt;Is not using "Encoded-word" format.&lt;/li&gt;</span>
+<span class="source-line-no">1049</span><span id="line-1049">     * &lt;li&gt;Is not using comment format.&lt;/li&gt;</span>
+<span class="source-line-no">1050</span><span id="line-1050">     * &lt;li&gt;Is not using "Punycode" format.&lt;/li&gt;</span>
+<span class="source-line-no">1051</span><span id="line-1051">     * &lt;li&gt;Is not using UUCP style addresses.&lt;/li&gt;</span>
+<span class="source-line-no">1052</span><span id="line-1052">     * &lt;li&gt;Is not using address literals.&lt;/li&gt;</span>
+<span class="source-line-no">1053</span><span id="line-1053">     * &lt;li&gt;Is not using source routes.&lt;/li&gt;</span>
+<span class="source-line-no">1054</span><span id="line-1054">     * &lt;li&gt;Is not using the "percent hack".&lt;/li&gt;</span>
+<span class="source-line-no">1055</span><span id="line-1055">     * &lt;/ul&gt;&lt;br&gt;</span>
+<span class="source-line-no">1056</span><span id="line-1056">     * This is based on the research work from &lt;a href="https://portswigger.net/research/gareth-heyes"&gt;Gareth Heyes&lt;/a&gt; added in references (Portswigger).&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1057</span><span id="line-1057">     *</span>
+<span class="source-line-no">1058</span><span id="line-1058">     * &lt;b&gt;Note:&lt;/b&gt; The notion of valid, here, is to take from a secure usage of the data perspective.</span>
+<span class="source-line-no">1059</span><span id="line-1059">     *</span>
+<span class="source-line-no">1060</span><span id="line-1060">     * @param addr String expected to be a valid email address.</span>
+<span class="source-line-no">1061</span><span id="line-1061">     * @return True only if the string pass all validations.</span>
+<span class="source-line-no">1062</span><span id="line-1062">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
+<span class="source-line-no">1063</span><span id="line-1063">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/EmailValidator.html"</span>
+<span class="source-line-no">1064</span><span id="line-1064">     * @see "https://datatracker.ietf.org/doc/html/rfc2047#section-2"</span>
+<span class="source-line-no">1065</span><span id="line-1065">     * @see "https://portswigger.net/research/splitting-the-email-atom"</span>
+<span class="source-line-no">1066</span><span id="line-1066">     * @see "https://www.jochentopf.com/email/address.html"</span>
+<span class="source-line-no">1067</span><span id="line-1067">     * @see "https://en.wikipedia.org/wiki/Email_address"</span>
+<span class="source-line-no">1068</span><span id="line-1068">     */</span>
+<span class="source-line-no">1069</span><span id="line-1069">    public static boolean isEmailAddress(String addr) {</span>
+<span class="source-line-no">1070</span><span id="line-1070">        boolean isValid = false;</span>
+<span class="source-line-no">1071</span><span id="line-1071">        String work = addr.toLowerCase(Locale.ROOT);</span>
+<span class="source-line-no">1072</span><span id="line-1072">        Pattern encodedWordRegex = Pattern.compile("[=?]+", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1073</span><span id="line-1073">        Pattern forbiddenCharacterRegex = Pattern.compile("[():!%\\[\\],;]+", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1074</span><span id="line-1074">        try {</span>
+<span class="source-line-no">1075</span><span id="line-1075">            //Start with the use of the dedicated EmailValidator from Apache Commons Validator</span>
+<span class="source-line-no">1076</span><span id="line-1076">            if (EmailValidator.getInstance(true, true).isValid(work)) {</span>
+<span class="source-line-no">1077</span><span id="line-1077">                //If OK then validate it does not contains "Encoded-word" patterns using an aggressive approach</span>
+<span class="source-line-no">1078</span><span id="line-1078">                if (!encodedWordRegex.matcher(work).find()) {</span>
+<span class="source-line-no">1079</span><span id="line-1079">                    //If OK then validate it does not contains punycode</span>
+<span class="source-line-no">1080</span><span id="line-1080">                    if (!work.contains("xn--")) {</span>
+<span class="source-line-no">1081</span><span id="line-1081">                        //If OK then validate it does not use:</span>
+<span class="source-line-no">1082</span><span id="line-1082">                        // UUCP style addresses,</span>
+<span class="source-line-no">1083</span><span id="line-1083">                        // Comment format,</span>
+<span class="source-line-no">1084</span><span id="line-1084">                        // Address literals,</span>
+<span class="source-line-no">1085</span><span id="line-1085">                        // Source routes,</span>
+<span class="source-line-no">1086</span><span id="line-1086">                        // The percent hack.</span>
+<span class="source-line-no">1087</span><span id="line-1087">                        if (!forbiddenCharacterRegex.matcher(work).find()) {</span>
+<span class="source-line-no">1088</span><span id="line-1088">                            isValid = true;</span>
+<span class="source-line-no">1089</span><span id="line-1089">                        }</span>
+<span class="source-line-no">1090</span><span id="line-1090">                    }</span>
+<span class="source-line-no">1091</span><span id="line-1091">                }</span>
+<span class="source-line-no">1092</span><span id="line-1092">            }</span>
+<span class="source-line-no">1093</span><span id="line-1093">        } catch (Exception e) {</span>
+<span class="source-line-no">1094</span><span id="line-1094">            isValid = false;</span>
+<span class="source-line-no">1095</span><span id="line-1095">        }</span>
+<span class="source-line-no">1096</span><span id="line-1096">        return isValid;</span>
+<span class="source-line-no">1097</span><span id="line-1097">    }</span>
+<span class="source-line-no">1098</span><span id="line-1098"></span>
+<span class="source-line-no">1099</span><span id="line-1099">    /**</span>
+<span class="source-line-no">1100</span><span id="line-1100">     * The &lt;a href="https://www.stet.eu/en/psd2/"&gt;PSD2 STET&lt;/a&gt; specification require to use &lt;a href="https://datatracker.ietf.org/doc/draft-cavage-http-signatures/"&gt;HTTP Signature&lt;/a&gt;.</span>
 <span class="source-line-no">1101</span><span id="line-1101">     * &lt;br&gt;</span>
-<span class="source-line-no">1102</span><span id="line-1102">     * The objective of this code is to try to decrease the "exploitability/interest" of this SSRF for an attacker.</span>
-<span class="source-line-no">1103</span><span id="line-1103">     *</span>
-<span class="source-line-no">1104</span><span id="line-1104">     * @param certificateUrl Url pointing to a Qualified Certificate (QSealC) encoded in PEM format and respecting the ETSI/TS119495 technical Specification .</span>
-<span class="source-line-no">1105</span><span id="line-1105">     * @return TRUE only if the url point to a Qualified Certificate in PEM format.</span>
-<span class="source-line-no">1106</span><span id="line-1106">     * @see "https://www.stet.eu/en/psd2/"</span>
-<span class="source-line-no">1107</span><span id="line-1107">     * @see "https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf"</span>
-<span class="source-line-no">1108</span><span id="line-1108">     * @see "https://datatracker.ietf.org/doc/draft-cavage-http-signatures/"</span>
-<span class="source-line-no">1109</span><span id="line-1109">     * @see "https://datatracker.ietf.org/doc/rfc9421/"</span>
-<span class="source-line-no">1110</span><span id="line-1110">     * @see "https://openjdk.org/groups/net/httpclient/intro.html"</span>
-<span class="source-line-no">1111</span><span id="line-1111">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.net.http/java/net/http/package-summary.html"</span>
-<span class="source-line-no">1112</span><span id="line-1112">     * @see "https://portswigger.net/web-security/ssrf"</span>
-<span class="source-line-no">1113</span><span id="line-1113">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"</span>
-<span class="source-line-no">1114</span><span id="line-1114">     */</span>
-<span class="source-line-no">1115</span><span id="line-1115">    public static boolean isPSD2StetSafeCertificateURL(String certificateUrl) {</span>
-<span class="source-line-no">1116</span><span id="line-1116">        boolean isValid = false;</span>
-<span class="source-line-no">1117</span><span id="line-1117">        long connectionTimeoutInSeconds = 10;</span>
-<span class="source-line-no">1118</span><span id="line-1118">        String userAgent = "PSD2-STET-HTTPSignature-CertificateRequest";</span>
-<span class="source-line-no">1119</span><span id="line-1119">        try {</span>
-<span class="source-line-no">1120</span><span id="line-1120">            //1. Ensure that the URL end with the SHA-256 fingerprint encoded in HEX of the certificate like requested by STET</span>
-<span class="source-line-no">1121</span><span id="line-1121">            if (certificateUrl != null &amp;&amp; certificateUrl.lastIndexOf("_") != -1) {</span>
-<span class="source-line-no">1122</span><span id="line-1122">                String digestPart = certificateUrl.substring(certificateUrl.lastIndexOf("_") + 1);</span>
-<span class="source-line-no">1123</span><span id="line-1123">                if (Pattern.matches("^[0-9a-f]{64}$", digestPart)) {</span>
-<span class="source-line-no">1124</span><span id="line-1124">                    //2. Ensure that the URL is a valid url by creating a instance of the class URI</span>
-<span class="source-line-no">1125</span><span id="line-1125">                    URI uri = URI.create(certificateUrl);</span>
-<span class="source-line-no">1126</span><span id="line-1126">                    //3. Require usage of HTTPS and reject any url containing query parameters</span>
-<span class="source-line-no">1127</span><span id="line-1127">                    if ("https".equalsIgnoreCase(uri.getScheme()) &amp;&amp; uri.getQuery() == null) {</span>
-<span class="source-line-no">1128</span><span id="line-1128">                        //4. Perform a HTTP HEAD request in order to get the content type of the remote resource</span>
-<span class="source-line-no">1129</span><span id="line-1129">                        //and limit the interest to use the SSRF because to pass the check the url need to:</span>
-<span class="source-line-no">1130</span><span id="line-1130">                        //- Do not having any query parameters.</span>
-<span class="source-line-no">1131</span><span id="line-1131">                        //- Use HTTPS protocol.</span>
-<span class="source-line-no">1132</span><span id="line-1132">                        //- End with a string having the format "_[0-9a-f]{64}".</span>
-<span class="source-line-no">1133</span><span id="line-1133">                        //- Trigger the malicious action that the attacker want but with a HTTP HEAD without any redirect and parameters.</span>
-<span class="source-line-no">1134</span><span id="line-1134">                        HttpResponse&lt;String&gt; response;</span>
-<span class="source-line-no">1135</span><span id="line-1135">                        try (HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build()) {</span>
-<span class="source-line-no">1136</span><span id="line-1136">                            HttpRequest request = HttpRequest.newBuilder().uri(uri).timeout(Duration.ofSeconds(connectionTimeoutInSeconds)).method("HEAD", HttpRequest.BodyPublishers.noBody()).header("User-Agent", userAgent)//To provide an hint to the target about the initiator of the request</span>
-<span class="source-line-no">1137</span><span id="line-1137">                                    .header("Cache-Control", "no-store, max-age=0")//To prevent caching issues or abuses</span>
-<span class="source-line-no">1138</span><span id="line-1138">                                    .build();</span>
-<span class="source-line-no">1139</span><span id="line-1139">                            response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
-<span class="source-line-no">1140</span><span id="line-1140">                            if (response.statusCode() == 200) {</span>
-<span class="source-line-no">1141</span><span id="line-1141">                                //5. Ensure that the response content type is "text/plain"</span>
-<span class="source-line-no">1142</span><span id="line-1142">                                Optional&lt;String&gt; contentType = response.headers().firstValue("Content-Type");</span>
-<span class="source-line-no">1143</span><span id="line-1143">                                isValid = (contentType.isPresent() &amp;&amp; contentType.get().trim().toLowerCase(Locale.ENGLISH).startsWith("text/plain"));</span>
-<span class="source-line-no">1144</span><span id="line-1144">                            }</span>
-<span class="source-line-no">1145</span><span id="line-1145">                        }</span>
-<span class="source-line-no">1146</span><span id="line-1146">                    }</span>
-<span class="source-line-no">1147</span><span id="line-1147">                }</span>
-<span class="source-line-no">1148</span><span id="line-1148">            }</span>
-<span class="source-line-no">1149</span><span id="line-1149">        } catch (Exception e) {</span>
-<span class="source-line-no">1150</span><span id="line-1150">            isValid = false;</span>
-<span class="source-line-no">1151</span><span id="line-1151">        }</span>
-<span class="source-line-no">1152</span><span id="line-1152">        return isValid;</span>
-<span class="source-line-no">1153</span><span id="line-1153">    }</span>
-<span class="source-line-no">1154</span><span id="line-1154"></span>
-<span class="source-line-no">1155</span><span id="line-1155">    /**</span>
-<span class="source-line-no">1156</span><span id="line-1156">     * Perform sequential URL decoding operations against a URL encoded data until the data is not URL encoded anymore or if the specified threshold is reached.</span>
-<span class="source-line-no">1157</span><span id="line-1157">     *</span>
-<span class="source-line-no">1158</span><span id="line-1158">     * @param encodedData            URL encoded data.</span>
-<span class="source-line-no">1159</span><span id="line-1159">     * @param decodingRoundThreshold Threshold above which decoding will fail.</span>
-<span class="source-line-no">1160</span><span id="line-1160">     * @return The decoded data.</span>
-<span class="source-line-no">1161</span><span id="line-1161">     * @throws SecurityException If the threshold is reached.</span>
-<span class="source-line-no">1162</span><span id="line-1162">     * @see "https://en.wikipedia.org/wiki/Percent-encoding"</span>
-<span class="source-line-no">1163</span><span id="line-1163">     * @see "https://owasp.org/www-community/Double_Encoding"</span>
-<span class="source-line-no">1164</span><span id="line-1164">     * @see "https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings"</span>
-<span class="source-line-no">1165</span><span id="line-1165">     * @see "https://capec.mitre.org/data/definitions/120.html"</span>
-<span class="source-line-no">1166</span><span id="line-1166">     */</span>
-<span class="source-line-no">1167</span><span id="line-1167">    public static String applyURLDecoding(String encodedData, int decodingRoundThreshold) throws SecurityException {</span>
-<span class="source-line-no">1168</span><span id="line-1168">        if (decodingRoundThreshold &lt; 1) {</span>
-<span class="source-line-no">1169</span><span id="line-1169">            throw new IllegalArgumentException("Threshold must be a positive number !");</span>
-<span class="source-line-no">1170</span><span id="line-1170">        }</span>
-<span class="source-line-no">1171</span><span id="line-1171">        if (encodedData == null) {</span>
-<span class="source-line-no">1172</span><span id="line-1172">            throw new IllegalArgumentException("Data provided must not be null !");</span>
-<span class="source-line-no">1173</span><span id="line-1173">        }</span>
-<span class="source-line-no">1174</span><span id="line-1174">        Charset charset = StandardCharsets.UTF_8;</span>
-<span class="source-line-no">1175</span><span id="line-1175">        int currentDecodingRound = 0;</span>
-<span class="source-line-no">1176</span><span id="line-1176">        boolean isFinished = false;</span>
-<span class="source-line-no">1177</span><span id="line-1177">        String currentRoundData = encodedData;</span>
-<span class="source-line-no">1178</span><span id="line-1178">        String previousRoundData = encodedData;</span>
-<span class="source-line-no">1179</span><span id="line-1179">        while (!isFinished) {</span>
-<span class="source-line-no">1180</span><span id="line-1180">            if (currentDecodingRound &gt; decodingRoundThreshold) {</span>
-<span class="source-line-no">1181</span><span id="line-1181">                throw new SecurityException(String.format("Decoding round threshold of %s reached!", decodingRoundThreshold));</span>
-<span class="source-line-no">1182</span><span id="line-1182">            }</span>
-<span class="source-line-no">1183</span><span id="line-1183">            currentRoundData = URLDecoder.decode(currentRoundData, charset);</span>
-<span class="source-line-no">1184</span><span id="line-1184">            isFinished = currentRoundData.equals(previousRoundData);</span>
-<span class="source-line-no">1185</span><span id="line-1185">            previousRoundData = currentRoundData;</span>
-<span class="source-line-no">1186</span><span id="line-1186">            currentDecodingRound++;</span>
-<span class="source-line-no">1187</span><span id="line-1187">        }</span>
-<span class="source-line-no">1188</span><span id="line-1188">        return currentRoundData;</span>
-<span class="source-line-no">1189</span><span id="line-1189">    }</span>
-<span class="source-line-no">1190</span><span id="line-1190"></span>
-<span class="source-line-no">1191</span><span id="line-1191">    /**</span>
-<span class="source-line-no">1192</span><span id="line-1192">     * Apply a collection of validations on a string expected to be an system file/folder path:</span>
-<span class="source-line-no">1193</span><span id="line-1193">     * &lt;ul&gt;</span>
-<span class="source-line-no">1194</span><span id="line-1194">     * &lt;li&gt;Does not contains path traversal payload.&lt;/li&gt;</span>
-<span class="source-line-no">1195</span><span id="line-1195">     * &lt;li&gt;The canonical path is equals to the absolute path.&lt;/li&gt;</span>
-<span class="source-line-no">1196</span><span id="line-1196">     * &lt;/ul&gt;&lt;br&gt;</span>
-<span class="source-line-no">1197</span><span id="line-1197">     *</span>
-<span class="source-line-no">1198</span><span id="line-1198">     * @param path String expected to be a valid system file/folder path.</span>
-<span class="source-line-no">1199</span><span id="line-1199">     * @return True only if the string pass all validations.</span>
-<span class="source-line-no">1200</span><span id="line-1200">     * @see "https://portswigger.net/web-security/file-path-traversal"</span>
-<span class="source-line-no">1201</span><span id="line-1201">     * @see "https://learn.snyk.io/lesson/directory-traversal/"</span>
-<span class="source-line-no">1202</span><span id="line-1202">     * @see "https://capec.mitre.org/data/definitions/126.html"</span>
-<span class="source-line-no">1203</span><span id="line-1203">     * @see "https://owasp.org/www-community/attacks/Path_Traversal"</span>
-<span class="source-line-no">1204</span><span id="line-1204">     */</span>
-<span class="source-line-no">1205</span><span id="line-1205">    public static boolean isPathSafe(String path) {</span>
-<span class="source-line-no">1206</span><span id="line-1206">        boolean isSafe = false;</span>
-<span class="source-line-no">1207</span><span id="line-1207">        int decodingRoundThreshold = 3;</span>
-<span class="source-line-no">1208</span><span id="line-1208">        try {</span>
-<span class="source-line-no">1209</span><span id="line-1209">            if (path != null &amp;&amp; !path.isEmpty()) {</span>
-<span class="source-line-no">1210</span><span id="line-1210">                //URL decode the path if case of data coming from a web context</span>
-<span class="source-line-no">1211</span><span id="line-1211">                String decodedPath = applyURLDecoding(path, decodingRoundThreshold);</span>
-<span class="source-line-no">1212</span><span id="line-1212">                //Ensure that no path traversal expression is present</span>
-<span class="source-line-no">1213</span><span id="line-1213">                if (!decodedPath.contains("..")) {</span>
-<span class="source-line-no">1214</span><span id="line-1214">                    File f = new File(decodedPath);</span>
-<span class="source-line-no">1215</span><span id="line-1215">                    String canonicalPath = f.getCanonicalPath();</span>
-<span class="source-line-no">1216</span><span id="line-1216">                    String absolutePath = f.getAbsolutePath();</span>
-<span class="source-line-no">1217</span><span id="line-1217">                    isSafe = canonicalPath.equals(absolutePath);</span>
-<span class="source-line-no">1218</span><span id="line-1218">                }</span>
-<span class="source-line-no">1219</span><span id="line-1219">            }</span>
-<span class="source-line-no">1220</span><span id="line-1220">        } catch (Exception e) {</span>
-<span class="source-line-no">1221</span><span id="line-1221">            isSafe = false;</span>
-<span class="source-line-no">1222</span><span id="line-1222">        }</span>
-<span class="source-line-no">1223</span><span id="line-1223">        return isSafe;</span>
-<span class="source-line-no">1224</span><span id="line-1224">    }</span>
-<span class="source-line-no">1225</span><span id="line-1225"></span>
-<span class="source-line-no">1226</span><span id="line-1226">    /**</span>
-<span class="source-line-no">1227</span><span id="line-1227">     * Identify if an XML contains any XML comments or have any XSL processing instructions.&lt;br&gt;</span>
-<span class="source-line-no">1228</span><span id="line-1228">     * Stream reader based parsing is used to support large XML tree.</span>
-<span class="source-line-no">1229</span><span id="line-1229">     *</span>
-<span class="source-line-no">1230</span><span id="line-1230">     * @param xmlFilePath Filename of the XML file to check.</span>
-<span class="source-line-no">1231</span><span id="line-1231">     * @return True only if XML comments or XSL processing instructions are identified.</span>
-<span class="source-line-no">1232</span><span id="line-1232">     * @see "https://www.tutorialspoint.com/xml/xml_processing.htm"</span>
-<span class="source-line-no">1233</span><span id="line-1233">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/stream/XMLInputFactory.html"</span>
-<span class="source-line-no">1234</span><span id="line-1234">     * @see "https://portswigger.net/kb/issues/00400700_xml-entity-expansion"</span>
-<span class="source-line-no">1235</span><span id="line-1235">     * @see "https://www.w3.org/Style/styling-XML.en.html"</span>
-<span class="source-line-no">1236</span><span id="line-1236">     */</span>
-<span class="source-line-no">1237</span><span id="line-1237">    public static boolean isXMLHaveCommentsOrXSLProcessingInstructions(String xmlFilePath) {</span>
-<span class="source-line-no">1238</span><span id="line-1238">        boolean itemsDetected = false;</span>
-<span class="source-line-no">1239</span><span id="line-1239">        try {</span>
-<span class="source-line-no">1240</span><span id="line-1240">            //Ensure that the parser will not be prone XML external entity (XXE) injection or XML entity expansion (XEE) attacks</span>
-<span class="source-line-no">1241</span><span id="line-1241">            XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();</span>
-<span class="source-line-no">1242</span><span id="line-1242">            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);</span>
-<span class="source-line-no">1243</span><span id="line-1243">            xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");</span>
-<span class="source-line-no">1244</span><span id="line-1244">            xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);</span>
-<span class="source-line-no">1245</span><span id="line-1245">            xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);</span>
-<span class="source-line-no">1246</span><span id="line-1246"></span>
-<span class="source-line-no">1247</span><span id="line-1247">            //Parse file</span>
-<span class="source-line-no">1248</span><span id="line-1248">            try (FileInputStream fis = new FileInputStream(xmlFilePath)) {</span>
-<span class="source-line-no">1249</span><span id="line-1249">                XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(fis);</span>
-<span class="source-line-no">1250</span><span id="line-1250">                int eventType;</span>
-<span class="source-line-no">1251</span><span id="line-1251">                while (reader.hasNext() &amp;&amp; !itemsDetected) {</span>
-<span class="source-line-no">1252</span><span id="line-1252">                    eventType = reader.next();</span>
-<span class="source-line-no">1253</span><span id="line-1253">                    if (eventType == XMLEvent.COMMENT) {</span>
-<span class="source-line-no">1254</span><span id="line-1254">                        itemsDetected = true;</span>
-<span class="source-line-no">1255</span><span id="line-1255">                    } else if (eventType == XMLEvent.PROCESSING_INSTRUCTION &amp;&amp; "xml-stylesheet".equalsIgnoreCase(reader.getPITarget())) {</span>
-<span class="source-line-no">1256</span><span id="line-1256">                        itemsDetected = true;</span>
-<span class="source-line-no">1257</span><span id="line-1257">                    }</span>
-<span class="source-line-no">1258</span><span id="line-1258">                }</span>
-<span class="source-line-no">1259</span><span id="line-1259">            }</span>
-<span class="source-line-no">1260</span><span id="line-1260">        } catch (Exception e) {</span>
-<span class="source-line-no">1261</span><span id="line-1261">            //In case of error then assume that the check failed</span>
-<span class="source-line-no">1262</span><span id="line-1262">            itemsDetected = true;</span>
-<span class="source-line-no">1263</span><span id="line-1263">        }</span>
-<span class="source-line-no">1264</span><span id="line-1264">        return itemsDetected;</span>
-<span class="source-line-no">1265</span><span id="line-1265">    }</span>
-<span class="source-line-no">1266</span><span id="line-1266"></span>
-<span class="source-line-no">1267</span><span id="line-1267"></span>
-<span class="source-line-no">1268</span><span id="line-1268">    /**</span>
-<span class="source-line-no">1269</span><span id="line-1269">     * Perform a set of additional validations against a JWT token:</span>
-<span class="source-line-no">1270</span><span id="line-1270">     * &lt;ul&gt;</span>
-<span class="source-line-no">1271</span><span id="line-1271">     *     &lt;li&gt;Do not use the &lt;b&gt;NONE&lt;/b&gt; signature algorithm.&lt;/li&gt;</span>
-<span class="source-line-no">1272</span><span id="line-1272">     *     &lt;li&gt;Have a &lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;EXP claim&lt;/a&gt; defined.&lt;/li&gt;</span>
-<span class="source-line-no">1273</span><span id="line-1273">     *     &lt;li&gt;The token identifier (&lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;JTI claim&lt;/a&gt;) is NOT part of the list of revoked token.&lt;/li&gt;</span>
-<span class="source-line-no">1274</span><span id="line-1274">     *     &lt;li&gt;Match the expected type of token: ACCESS or ID or REFRESH.&lt;/li&gt;</span>
-<span class="source-line-no">1275</span><span id="line-1275">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1276</span><span id="line-1276">     *</span>
-<span class="source-line-no">1277</span><span id="line-1277">     * @param token               JWT token for which &lt;b&gt;signature was already validated&lt;/b&gt; and on which a set of additional validations will be applied.</span>
-<span class="source-line-no">1278</span><span id="line-1278">     * @param expectedTokenType   The type of expected token using the enumeration provided.</span>
-<span class="source-line-no">1279</span><span id="line-1279">     * @param revokedTokenJTIList A list of token identifier (&lt;b&gt;JTI&lt;/b&gt; claim) referring to tokens that were revoked and to which the JTI claim of the token will be compared to.</span>
-<span class="source-line-no">1280</span><span id="line-1280">     * @return True only the token pass all the validations.</span>
-<span class="source-line-no">1281</span><span id="line-1281">     * @see "https://www.iana.org/assignments/jwt/jwt.xhtml"</span>
-<span class="source-line-no">1282</span><span id="line-1282">     * @see "https://auth0.com/docs/secure/tokens/access-tokens"</span>
-<span class="source-line-no">1283</span><span id="line-1283">     * @see "https://auth0.com/docs/secure/tokens/id-tokens"</span>
-<span class="source-line-no">1284</span><span id="line-1284">     * @see "https://auth0.com/docs/secure/tokens/refresh-tokens"</span>
-<span class="source-line-no">1285</span><span id="line-1285">     * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"</span>
-<span class="source-line-no">1286</span><span id="line-1286">     * @see "https://jwt.io/libraries?language=Java"</span>
-<span class="source-line-no">1287</span><span id="line-1287">     * @see "https://pentesterlab.com/blog/secure-jwt-library-design"</span>
-<span class="source-line-no">1288</span><span id="line-1288">     * @see "https://github.com/auth0/java-jwt"</span>
-<span class="source-line-no">1289</span><span id="line-1289">     */</span>
-<span class="source-line-no">1290</span><span id="line-1290">    public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List&lt;String&gt; revokedTokenJTIList) {</span>
-<span class="source-line-no">1291</span><span id="line-1291">        boolean isValid = false;</span>
-<span class="source-line-no">1292</span><span id="line-1292">        TokenType tokenType;</span>
-<span class="source-line-no">1293</span><span id="line-1293">        try {</span>
-<span class="source-line-no">1294</span><span id="line-1294">            if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {</span>
-<span class="source-line-no">1295</span><span id="line-1295">                if (!token.getClaim("exp").isMissing() &amp;&amp; token.getExpiresAt() != null) {</span>
-<span class="source-line-no">1296</span><span id="line-1296">                    String jti = token.getId();</span>
-<span class="source-line-no">1297</span><span id="line-1297">                    if (jti != null &amp;&amp; !jti.trim().isEmpty()) {</span>
-<span class="source-line-no">1298</span><span id="line-1298">                        boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);</span>
-<span class="source-line-no">1299</span><span id="line-1299">                        if (!jtiIsRevoked) {</span>
-<span class="source-line-no">1300</span><span id="line-1300">                            //Determine the token type based on the presence of specifics claims</span>
-<span class="source-line-no">1301</span><span id="line-1301">                            if (!token.getClaim("scope").isMissing()) {</span>
-<span class="source-line-no">1302</span><span id="line-1302">                                tokenType = TokenType.ACCESS;</span>
-<span class="source-line-no">1303</span><span id="line-1303">                            } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {</span>
-<span class="source-line-no">1304</span><span id="line-1304">                                tokenType = TokenType.ID;</span>
-<span class="source-line-no">1305</span><span id="line-1305">                            } else {</span>
-<span class="source-line-no">1306</span><span id="line-1306">                                tokenType = TokenType.REFRESH;</span>
-<span class="source-line-no">1307</span><span id="line-1307">                            }</span>
-<span class="source-line-no">1308</span><span id="line-1308">                            isValid = (tokenType.equals(expectedTokenType));</span>
-<span class="source-line-no">1309</span><span id="line-1309">                        }</span>
-<span class="source-line-no">1310</span><span id="line-1310">                    }</span>
-<span class="source-line-no">1311</span><span id="line-1311">                }</span>
-<span class="source-line-no">1312</span><span id="line-1312">            }</span>
-<span class="source-line-no">1313</span><span id="line-1313"></span>
-<span class="source-line-no">1314</span><span id="line-1314">        } catch (Exception e) {</span>
-<span class="source-line-no">1315</span><span id="line-1315">            //In case of error then assume that the check failed</span>
-<span class="source-line-no">1316</span><span id="line-1316">            isValid = false;</span>
-<span class="source-line-no">1317</span><span id="line-1317">        }</span>
-<span class="source-line-no">1318</span><span id="line-1318">        return isValid;</span>
-<span class="source-line-no">1319</span><span id="line-1319">    }</span>
-<span class="source-line-no">1320</span><span id="line-1320"></span>
-<span class="source-line-no">1321</span><span id="line-1321">    /**</span>
-<span class="source-line-no">1322</span><span id="line-1322">     * Apply a validations on a regular expression to ensure that is not prone to the ReDOS attack.</span>
-<span class="source-line-no">1323</span><span id="line-1323">     * &lt;br&gt;If your technology is supported by &lt;a href="https://github.com/doyensec/regexploit"&gt;regexploit&lt;/a&gt; then &lt;b&gt;use it instead of this method!&lt;/b&gt;</span>
-<span class="source-line-no">1324</span><span id="line-1324">     * &lt;br&gt;Indeed, the &lt;a href="https://www.doyensec.com/"&gt;Doyensec&lt;/a&gt; team has made an intensive and amazing work on this topic and created this effective tool.</span>
-<span class="source-line-no">1325</span><span id="line-1325">     *</span>
-<span class="source-line-no">1326</span><span id="line-1326">     * @param regex                       String expected to be a valid regular expression (regex).</span>
-<span class="source-line-no">1327</span><span id="line-1327">     * @param data                        Test data on which the regular expression is executed for the test.</span>
-<span class="source-line-no">1328</span><span id="line-1328">     * @param maximumRunningTimeInSeconds Optional parameter to specify a number of seconds above which a regex execution time is considered as not safe (default to 4 seconds when not specified).</span>
-<span class="source-line-no">1329</span><span id="line-1329">     * @return True only if the string pass all validations.</span>
-<span class="source-line-no">1330</span><span id="line-1330">     * @see "https://github.blog/security/how-to-fix-a-redos/"</span>
-<span class="source-line-no">1331</span><span id="line-1331">     * @see "https://learn.snyk.io/lesson/redos"</span>
-<span class="source-line-no">1332</span><span id="line-1332">     * @see "https://rules.sonarsource.com/java/RSPEC-2631/"</span>
-<span class="source-line-no">1333</span><span id="line-1333">     * @see "https://github.com/doyensec/regexploit"</span>
-<span class="source-line-no">1334</span><span id="line-1334">     * @see "https://github.com/makenowjust-labs/recheck"</span>
-<span class="source-line-no">1335</span><span id="line-1335">     * @see "https://github.com/tjenkinson/redos-detector"</span>
-<span class="source-line-no">1336</span><span id="line-1336">     * @see "https://wiki.owasp.org/images/2/23/OWASP_IL_2009_ReDoS.pdf"</span>
-<span class="source-line-no">1337</span><span id="line-1337">     * @see "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"</span>
-<span class="source-line-no">1338</span><span id="line-1338">     */</span>
-<span class="source-line-no">1339</span><span id="line-1339">    public static boolean isRegexSafe(String regex, String data, Optional&lt;Integer&gt; maximumRunningTimeInSeconds) {</span>
-<span class="source-line-no">1340</span><span id="line-1340">        Objects.requireNonNull(maximumRunningTimeInSeconds, "Use 'Optional.empty()' to leverage the default value.");</span>
-<span class="source-line-no">1341</span><span id="line-1341">        Objects.requireNonNull(data, "A sample data is needed to perform the test.");</span>
-<span class="source-line-no">1342</span><span id="line-1342">        Objects.requireNonNull(regex, "A regular expression is needed to perform the test.");</span>
-<span class="source-line-no">1343</span><span id="line-1343">        boolean isSafe = false;</span>
-<span class="source-line-no">1344</span><span id="line-1344">        int executionTimeout = maximumRunningTimeInSeconds.orElse(4);</span>
-<span class="source-line-no">1345</span><span id="line-1345">        ExecutorService executor = Executors.newSingleThreadExecutor();</span>
-<span class="source-line-no">1346</span><span id="line-1346">        try {</span>
-<span class="source-line-no">1347</span><span id="line-1347">            Callable&lt;Boolean&gt; task = () -&gt; {</span>
-<span class="source-line-no">1348</span><span id="line-1348">                Pattern pattern = Pattern.compile(regex);</span>
-<span class="source-line-no">1349</span><span id="line-1349">                return pattern.matcher(data).matches();</span>
-<span class="source-line-no">1350</span><span id="line-1350">            };</span>
-<span class="source-line-no">1351</span><span id="line-1351">            List&lt;Future&lt;Boolean&gt;&gt; tasks = executor.invokeAll(List.of(task), executionTimeout, TimeUnit.SECONDS);</span>
-<span class="source-line-no">1352</span><span id="line-1352">            if (!tasks.getFirst().isCancelled()) {</span>
-<span class="source-line-no">1353</span><span id="line-1353">                isSafe = true;</span>
-<span class="source-line-no">1354</span><span id="line-1354">            }</span>
-<span class="source-line-no">1355</span><span id="line-1355">        } catch (Exception e) {</span>
-<span class="source-line-no">1356</span><span id="line-1356">            isSafe = false;</span>
-<span class="source-line-no">1357</span><span id="line-1357">        } finally {</span>
-<span class="source-line-no">1358</span><span id="line-1358">            executor.shutdownNow();</span>
-<span class="source-line-no">1359</span><span id="line-1359">        }</span>
-<span class="source-line-no">1360</span><span id="line-1360">        return isSafe;</span>
-<span class="source-line-no">1361</span><span id="line-1361">    }</span>
-<span class="source-line-no">1362</span><span id="line-1362"></span>
-<span class="source-line-no">1363</span><span id="line-1363">    /**</span>
-<span class="source-line-no">1364</span><span id="line-1364">     * Compute a UUID version 7 without using any external dependency.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1365</span><span id="line-1365">     * &lt;b&gt;Below are my personal point of view and perhaps I'm totally wrong!&lt;/b&gt;</span>
-<span class="source-line-no">1366</span><span id="line-1366">     * &lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1367</span><span id="line-1367">     * Why such method?</span>
-<span class="source-line-no">1368</span><span id="line-1368">     * &lt;ul&gt;</span>
-<span class="source-line-no">1369</span><span id="line-1369">     * &lt;li&gt;Java inferior or equals to 21 does not supports natively the generation of an UUID version 7.&lt;/li&gt;</span>
-<span class="source-line-no">1370</span><span id="line-1370">     * &lt;li&gt;Import a library just to generate such value is overkill for me.&lt;/li&gt;</span>
-<span class="source-line-no">1371</span><span id="line-1371">     * &lt;li&gt;Library that I have found, generating such version of an UUID, are not provided by entities commonly used in the java world, such as the SPRING framework provider.&lt;/li&gt;</span>
-<span class="source-line-no">1372</span><span id="line-1372">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1373</span><span id="line-1373">     * &lt;br&gt;</span>
-<span class="source-line-no">1374</span><span id="line-1374">     * &lt;b&gt;Full credits for this implementation goes to the authors and contributors of the &lt;a href="https://github.com/nalgeon/uuidv7"&gt;UUIDv7&lt;/a&gt; project.&lt;/b&gt;</span>
-<span class="source-line-no">1375</span><span id="line-1375">     * &lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1376</span><span id="line-1376">     * Below are the java libraries that I have found but, for which, I do not trust enough the provider to use them directly:</span>
-<span class="source-line-no">1377</span><span id="line-1377">     * &lt;ul&gt;</span>
-<span class="source-line-no">1378</span><span id="line-1378">     *     &lt;li&gt;&lt;a href="https://github.com/cowtowncoder/java-uuid-generator"&gt;java-uuid-generator&lt;/a&gt;&lt;/li&gt;</span>
-<span class="source-line-no">1379</span><span id="line-1379">     *     &lt;li&gt;&lt;a href="https://github.com/f4b6a3/uuid-creator"&gt;uuid-creator&lt;/a&gt;&lt;/li&gt;</span>
-<span class="source-line-no">1380</span><span id="line-1380">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1381</span><span id="line-1381">     *</span>
-<span class="source-line-no">1382</span><span id="line-1382">     * @return A UUID object representing the UUID v7.</span>
-<span class="source-line-no">1383</span><span id="line-1383">     * @see "https://uuid7.com/"</span>
-<span class="source-line-no">1384</span><span id="line-1384">     * @see "https://antonz.org/uuidv7/"</span>
-<span class="source-line-no">1385</span><span id="line-1385">     * @see "https://mccue.dev/pages/3-11-25-life-altering-postgresql-patterns"</span>
-<span class="source-line-no">1386</span><span id="line-1386">     * @see "https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html#name-uuid-version-7"</span>
-<span class="source-line-no">1387</span><span id="line-1387">     * @see "https://www.baeldung.com/java-generating-time-based-uuids"</span>
-<span class="source-line-no">1388</span><span id="line-1388">     * @see "https://en.wikipedia.org/wiki/Universally_unique_identifier"</span>
-<span class="source-line-no">1389</span><span id="line-1389">     * @see "https://buildkite.com/resources/blog/goodbye-integers-hello-uuids/"</span>
-<span class="source-line-no">1390</span><span id="line-1390">     */</span>
-<span class="source-line-no">1391</span><span id="line-1391">    public static UUID computeUUIDv7() {</span>
-<span class="source-line-no">1392</span><span id="line-1392">        SecureRandom secureRandom = new SecureRandom();</span>
-<span class="source-line-no">1393</span><span id="line-1393">        // Generate truly random bytes</span>
-<span class="source-line-no">1394</span><span id="line-1394">        byte[] value = new byte[16];</span>
-<span class="source-line-no">1395</span><span id="line-1395">        secureRandom.nextBytes(value);</span>
-<span class="source-line-no">1396</span><span id="line-1396">        // Get current timestamp in milliseconds</span>
-<span class="source-line-no">1397</span><span id="line-1397">        ByteBuffer timestamp = ByteBuffer.allocate(Long.BYTES);</span>
-<span class="source-line-no">1398</span><span id="line-1398">        timestamp.putLong(System.currentTimeMillis());</span>
-<span class="source-line-no">1399</span><span id="line-1399">        // Create the TIMESTAMP part of the UUID</span>
-<span class="source-line-no">1400</span><span id="line-1400">        System.arraycopy(timestamp.array(), 2, value, 0, 6);</span>
-<span class="source-line-no">1401</span><span id="line-1401">        // Create the VERSION and the VARIANT parts of the UUID</span>
-<span class="source-line-no">1402</span><span id="line-1402">        value[6] = (byte) ((value[6] &amp; 0x0F) | 0x70);</span>
-<span class="source-line-no">1403</span><span id="line-1403">        value[8] = (byte) ((value[8] &amp; 0x3F) | 0x80);</span>
-<span class="source-line-no">1404</span><span id="line-1404">        //Create the HIGH and LOW parts of the UUID</span>
-<span class="source-line-no">1405</span><span id="line-1405">        ByteBuffer buf = ByteBuffer.wrap(value);</span>
-<span class="source-line-no">1406</span><span id="line-1406">        long high = buf.getLong();</span>
-<span class="source-line-no">1407</span><span id="line-1407">        long low = buf.getLong();</span>
-<span class="source-line-no">1408</span><span id="line-1408">        //Create and return the UUID object</span>
-<span class="source-line-no">1409</span><span id="line-1409">        UUID uuidv7 = new UUID(high, low);</span>
-<span class="source-line-no">1410</span><span id="line-1410">        return uuidv7;</span>
-<span class="source-line-no">1411</span><span id="line-1411">    }</span>
-<span class="source-line-no">1412</span><span id="line-1412"></span>
-<span class="source-line-no">1413</span><span id="line-1413">    /**</span>
-<span class="source-line-no">1414</span><span id="line-1414">     * Ensure that an XSD file does not contain any include/import/redefine instruction (prevent exposure to SSRF).</span>
-<span class="source-line-no">1415</span><span id="line-1415">     *</span>
-<span class="source-line-no">1416</span><span id="line-1416">     * @param xsdFilePath Filename of the XSD file to check.</span>
-<span class="source-line-no">1417</span><span id="line-1417">     * @return True only if the file pass all validations.</span>
-<span class="source-line-no">1418</span><span id="line-1418">     * @see "https://portswigger.net/web-security/ssrf"</span>
-<span class="source-line-no">1419</span><span id="line-1419">     * @see "https://www.w3schools.com/Xml/el_import.asp"</span>
-<span class="source-line-no">1420</span><span id="line-1420">     * @see "https://www.w3schools.com/xml/el_include.asp"</span>
-<span class="source-line-no">1421</span><span id="line-1421">     * @see "https://www.linkedin.com/posts/righettod_appsec-appsecurity-java-activity-7344048434326188053-6Ru9"</span>
-<span class="source-line-no">1422</span><span id="line-1422">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/validation/SchemaFactory.html#setProperty(java.lang.String,java.lang.Object)"</span>
-<span class="source-line-no">1423</span><span id="line-1423">     */</span>
-<span class="source-line-no">1424</span><span id="line-1424">    public static boolean isXSDSafe(String xsdFilePath) {</span>
-<span class="source-line-no">1425</span><span id="line-1425">        boolean isSafe = false;</span>
-<span class="source-line-no">1426</span><span id="line-1426">        try {</span>
-<span class="source-line-no">1427</span><span id="line-1427">            File xsdFile = new File(xsdFilePath);</span>
-<span class="source-line-no">1428</span><span id="line-1428">            if (xsdFile.exists() &amp;&amp; xsdFile.canRead() &amp;&amp; xsdFile.isFile()) {</span>
-<span class="source-line-no">1429</span><span id="line-1429">                //Parse the XSD file, if an exception occur then it's imply that the XSD specified is not a valid ones</span>
-<span class="source-line-no">1430</span><span id="line-1430">                //Create an schema factory throwing Exception if a external schema is specified</span>
-<span class="source-line-no">1431</span><span id="line-1431">                SchemaFactory schemaFactory = SchemaFactory.newDefaultInstance();</span>
-<span class="source-line-no">1432</span><span id="line-1432">                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");</span>
-<span class="source-line-no">1433</span><span id="line-1433">                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");</span>
-<span class="source-line-no">1434</span><span id="line-1434">                //Parse the schema</span>
-<span class="source-line-no">1435</span><span id="line-1435">                Schema schema = schemaFactory.newSchema(xsdFile);</span>
-<span class="source-line-no">1436</span><span id="line-1436">                isSafe = (schema != null);</span>
-<span class="source-line-no">1437</span><span id="line-1437">            }</span>
-<span class="source-line-no">1438</span><span id="line-1438">        } catch (Exception e) {</span>
-<span class="source-line-no">1439</span><span id="line-1439">            isSafe = false;</span>
-<span class="source-line-no">1440</span><span id="line-1440">        }</span>
-<span class="source-line-no">1441</span><span id="line-1441">        return isSafe;</span>
-<span class="source-line-no">1442</span><span id="line-1442">    }</span>
-<span class="source-line-no">1443</span><span id="line-1443"></span>
-<span class="source-line-no">1444</span><span id="line-1444"></span>
-<span class="source-line-no">1445</span><span id="line-1445">    /**</span>
-<span class="source-line-no">1446</span><span id="line-1446">     * Extract all sensitive information from a string provided.&lt;br&gt;</span>
-<span class="source-line-no">1447</span><span id="line-1447">     * This can be used to identify any sensitive information into a &lt;a href="https://cwe.mitre.org/data/definitions/532.html"&gt;message expected to be written in a log&lt;/a&gt; and then replace every sensitive values by an obfuscated ones.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1448</span><span id="line-1448">     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1449</span><span id="line-1449">     * I delegated the validation of the IBAN to a dedicated library (&lt;a href="https://github.com/arturmkrtchyan/iban4j"&gt;iban4j&lt;/a&gt;) to not "reinvent the wheel" and then introduce buggy validation myself. I used &lt;b&gt;iban4j&lt;/b&gt; over the &lt;b&gt;&lt;a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/IBANValidator.html"&gt;IBANValidator&lt;/a&gt;&lt;/b&gt; class from the &lt;a href="https://commons.apache.org/proper/commons-validator/"&gt;&lt;b&gt;Apache Commons Validator&lt;/b&gt;&lt;/a&gt; library because &lt;b&gt;iban4j&lt;/b&gt; perform a full official IBAN specification validation so its reduce risks of false-positives by ensuring that an IBAN detected is a real IBAN.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1450</span><span id="line-1450">     * Same thing and reason regarding the validation of the bank card PAN using the  class &lt;a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html"&gt;CreditCardValidator&lt;/a&gt; from the &lt;b&gt;Apache Commons Validator&lt;/b&gt; library.</span>
-<span class="source-line-no">1451</span><span id="line-1451">     *</span>
-<span class="source-line-no">1452</span><span id="line-1452">     * @param content String in which sensitive information must be searched.</span>
-<span class="source-line-no">1453</span><span id="line-1453">     * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.</span>
-<span class="source-line-no">1454</span><span id="line-1454">     * @throws Exception If any error occurs during the processing.</span>
-<span class="source-line-no">1455</span><span id="line-1455">     * @see "https://guichet.public.lu/en/citoyens/citoyennete/registre-national/identification/demande-numero-rnpp.html"</span>
-<span class="source-line-no">1456</span><span id="line-1456">     * @see "https://cnpd.public.lu/fr/decisions-avis/2009/identifiant-unique.html"</span>
-<span class="source-line-no">1457</span><span id="line-1457">     * @see "https://cnpd.public.lu/content/dam/cnpd/fr/decisions-avis/2009/identifiant-unique/48_2009.pdf"</span>
-<span class="source-line-no">1458</span><span id="line-1458">     * @see "https://en.wikipedia.org/wiki/International_Bank_Account_Number"</span>
-<span class="source-line-no">1459</span><span id="line-1459">     * @see "https://www.iban.com/structure"</span>
-<span class="source-line-no">1460</span><span id="line-1460">     * @see "https://github.com/arturmkrtchyan/iban4j"</span>
-<span class="source-line-no">1461</span><span id="line-1461">     * @see "https://cwe.mitre.org/data/definitions/532.html"</span>
-<span class="source-line-no">1462</span><span id="line-1462">     * @see "https://www.baeldung.com/logback-mask-sensitive-data"</span>
-<span class="source-line-no">1463</span><span id="line-1463">     * @see "https://en.wikipedia.org/wiki/Payment_card_number"</span>
-<span class="source-line-no">1464</span><span id="line-1464">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html"</span>
-<span class="source-line-no">1465</span><span id="line-1465">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
-<span class="source-line-no">1466</span><span id="line-1466">     */</span>
-<span class="source-line-no">1467</span><span id="line-1467">    public static Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; extractAllSensitiveInformation(String content) throws Exception {</span>
-<span class="source-line-no">1468</span><span id="line-1468">        CreditCardValidator creditCardValidator = CreditCardValidator.genericCreditCardValidator();</span>
-<span class="source-line-no">1469</span><span id="line-1469">        Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");</span>
-<span class="source-line-no">1470</span><span id="line-1470">        Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1471</span><span id="line-1471">        Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);</span>
-<span class="source-line-no">1472</span><span id="line-1472">        Pattern panRegex = Pattern.compile("((?:\\d[ -]*?){13,19})");</span>
-<span class="source-line-no">1473</span><span id="line-1473">        Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; data = new HashMap&lt;&gt;();</span>
-<span class="source-line-no">1474</span><span id="line-1474">        data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet&lt;&gt;());</span>
-<span class="source-line-no">1475</span><span id="line-1475">        data.put(SensitiveInformationType.IBAN, new HashSet&lt;&gt;());</span>
-<span class="source-line-no">1476</span><span id="line-1476">        data.put(SensitiveInformationType.BANK_CARD_PAN, new HashSet&lt;&gt;());</span>
-<span class="source-line-no">1477</span><span id="line-1477"></span>
-<span class="source-line-no">1478</span><span id="line-1478">        if (content != null &amp;&amp; !content.isBlank()) {</span>
-<span class="source-line-no">1479</span><span id="line-1479">            /* Step 1: Search for LU national identifier */</span>
-<span class="source-line-no">1480</span><span id="line-1480">            //A national identifier have the following structure: [BIRTHDATE_YEAR_YYYY][BIRTHDATE_MONTH_MM][BIRTHDATE_DAY_DD][FIVE_INTEGER]</span>
-<span class="source-line-no">1481</span><span id="line-1481">            //Define minimal and maximal birth year base on current year</span>
-<span class="source-line-no">1482</span><span id="line-1482">            //Assume people live less than 120 years</span>
-<span class="source-line-no">1483</span><span id="line-1483">            int maxBirthYear = LocalDate.now(ZoneId.of("Europe/Luxembourg")).getYear();</span>
-<span class="source-line-no">1484</span><span id="line-1484">            int minBirthYear = maxBirthYear - 120;</span>
-<span class="source-line-no">1485</span><span id="line-1485">            Matcher matcher = nationalIdentifierRegex.matcher(content);</span>
-<span class="source-line-no">1486</span><span id="line-1486">            String nationalIdentierFull;</span>
-<span class="source-line-no">1487</span><span id="line-1487">            int nationalIdentierYear, nationalIdentierMonth, nationalIdentierDay;</span>
-<span class="source-line-no">1488</span><span id="line-1488">            while (matcher.find()) {</span>
-<span class="source-line-no">1489</span><span id="line-1489">                nationalIdentierFull = matcher.group(1);</span>
-<span class="source-line-no">1490</span><span id="line-1490">                //Check that the string is a valid national identifier and if yes then add it</span>
-<span class="source-line-no">1491</span><span id="line-1491">                nationalIdentierYear = Integer.parseInt(nationalIdentierFull.substring(0, 4));</span>
-<span class="source-line-no">1492</span><span id="line-1492">                nationalIdentierMonth = Integer.parseInt(nationalIdentierFull.substring(4, 6));</span>
-<span class="source-line-no">1493</span><span id="line-1493">                nationalIdentierDay = Integer.parseInt(nationalIdentierFull.substring(6, 8));</span>
-<span class="source-line-no">1494</span><span id="line-1494">                if (nationalIdentierYear &gt;= minBirthYear &amp;&amp; nationalIdentierYear &lt;= maxBirthYear) {</span>
-<span class="source-line-no">1495</span><span id="line-1495">                    if (nationalIdentierMonth &gt;= 1 &amp;&amp; nationalIdentierMonth &lt;= 12) {</span>
-<span class="source-line-no">1496</span><span id="line-1496">                        if (YearMonth.of(nationalIdentierYear, nationalIdentierMonth).isValidDay(nationalIdentierDay)) {</span>
-<span class="source-line-no">1497</span><span id="line-1497">                            data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).add(nationalIdentierFull);</span>
-<span class="source-line-no">1498</span><span id="line-1498">                        }</span>
-<span class="source-line-no">1499</span><span id="line-1499">                    }</span>
-<span class="source-line-no">1500</span><span id="line-1500">                }</span>
-<span class="source-line-no">1501</span><span id="line-1501">            }</span>
-<span class="source-line-no">1502</span><span id="line-1502"></span>
-<span class="source-line-no">1503</span><span id="line-1503">            /* Step 2a: Search for IBAN that are non human formatted */</span>
-<span class="source-line-no">1504</span><span id="line-1504">            matcher = ibanNonHumanFormattedRegex.matcher(content);</span>
-<span class="source-line-no">1505</span><span id="line-1505">            String iban, ibanUpperCased;</span>
-<span class="source-line-no">1506</span><span id="line-1506">            while (matcher.find()) {</span>
-<span class="source-line-no">1507</span><span id="line-1507">                iban = matcher.group(1);</span>
-<span class="source-line-no">1508</span><span id="line-1508">                ibanUpperCased = iban.toUpperCase(Locale.ROOT);</span>
-<span class="source-line-no">1509</span><span id="line-1509">                //Check that the string is a valid IBAN and if yes then add it</span>
-<span class="source-line-no">1510</span><span id="line-1510">                if (IbanUtil.isValid(ibanUpperCased)) {</span>
-<span class="source-line-no">1511</span><span id="line-1511">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
-<span class="source-line-no">1512</span><span id="line-1512">                }</span>
-<span class="source-line-no">1513</span><span id="line-1513">            }</span>
-<span class="source-line-no">1514</span><span id="line-1514"></span>
-<span class="source-line-no">1515</span><span id="line-1515">            /* Step 2b: Search for IBAN that are human formatted */</span>
-<span class="source-line-no">1516</span><span id="line-1516">            matcher = ibanHumanFormattedRegex.matcher(content);</span>
-<span class="source-line-no">1517</span><span id="line-1517">            String ibanUpperCasedNoSpace;</span>
-<span class="source-line-no">1518</span><span id="line-1518">            while (matcher.find()) {</span>
-<span class="source-line-no">1519</span><span id="line-1519">                iban = matcher.group(1);</span>
-<span class="source-line-no">1520</span><span id="line-1520">                ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");</span>
-<span class="source-line-no">1521</span><span id="line-1521">                //Check that the string is a valid IBAN and if yes then add it</span>
-<span class="source-line-no">1522</span><span id="line-1522">                if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {</span>
-<span class="source-line-no">1523</span><span id="line-1523">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
-<span class="source-line-no">1524</span><span id="line-1524">                }</span>
-<span class="source-line-no">1525</span><span id="line-1525">            }</span>
-<span class="source-line-no">1526</span><span id="line-1526"></span>
-<span class="source-line-no">1527</span><span id="line-1527">            /* Step 3: Search for bank card PAN */</span>
-<span class="source-line-no">1528</span><span id="line-1528">            matcher = panRegex.matcher(content);</span>
-<span class="source-line-no">1529</span><span id="line-1529">            String pan, panNoSeparator;</span>
-<span class="source-line-no">1530</span><span id="line-1530">            while (matcher.find()) {</span>
-<span class="source-line-no">1531</span><span id="line-1531">                pan = matcher.group(1);</span>
-<span class="source-line-no">1532</span><span id="line-1532">                panNoSeparator = pan.toUpperCase(Locale.ROOT).replace(" ", "").replace("-", "");</span>
-<span class="source-line-no">1533</span><span id="line-1533">                //Check that the string is a valid PAN and if yes then add it</span>
-<span class="source-line-no">1534</span><span id="line-1534">                if (creditCardValidator.isValid(panNoSeparator)) {</span>
-<span class="source-line-no">1535</span><span id="line-1535">                    data.get(SensitiveInformationType.BANK_CARD_PAN).add(pan);</span>
-<span class="source-line-no">1536</span><span id="line-1536">                }</span>
-<span class="source-line-no">1537</span><span id="line-1537">            }</span>
-<span class="source-line-no">1538</span><span id="line-1538"></span>
-<span class="source-line-no">1539</span><span id="line-1539">        }</span>
-<span class="source-line-no">1540</span><span id="line-1540"></span>
-<span class="source-line-no">1541</span><span id="line-1541">        //Cleanup if a set is empty</span>
-<span class="source-line-no">1542</span><span id="line-1542">        if (data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).isEmpty()) {</span>
-<span class="source-line-no">1543</span><span id="line-1543">            data.remove(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER);</span>
-<span class="source-line-no">1544</span><span id="line-1544">        }</span>
-<span class="source-line-no">1545</span><span id="line-1545">        if (data.get(SensitiveInformationType.IBAN).isEmpty()) {</span>
-<span class="source-line-no">1546</span><span id="line-1546">            data.remove(SensitiveInformationType.IBAN);</span>
-<span class="source-line-no">1547</span><span id="line-1547">        }</span>
-<span class="source-line-no">1548</span><span id="line-1548">        if (data.get(SensitiveInformationType.BANK_CARD_PAN).isEmpty()) {</span>
-<span class="source-line-no">1549</span><span id="line-1549">            data.remove(SensitiveInformationType.BANK_CARD_PAN);</span>
+<span class="source-line-no">1102</span><span id="line-1102">     * Section &lt;b&gt;3.5.1.2&lt;/b&gt; of the document &lt;a href="https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf"&gt;Documentation Framework&lt;/a&gt; version &lt;b&gt;1.6.3&lt;/b&gt;.</span>
+<span class="source-line-no">1103</span><span id="line-1103">     * &lt;br&gt;</span>
+<span class="source-line-no">1104</span><span id="line-1104">     * The problem is that, by design, the HTTP Signature specification is prone to blind SSRF.</span>
+<span class="source-line-no">1105</span><span id="line-1105">     * &lt;br&gt;</span>
+<span class="source-line-no">1106</span><span id="line-1106">     * URL example taken from the STET specification: &lt;code&gt;https://path.to/myQsealCertificate_714f8154ec259ac40b8a9786c9908488b2582b68b17e865fede4636d726b709f&lt;/code&gt;.</span>
+<span class="source-line-no">1107</span><span id="line-1107">     * &lt;br&gt;</span>
+<span class="source-line-no">1108</span><span id="line-1108">     * The objective of this code is to try to decrease the "exploitability/interest" of this SSRF for an attacker.</span>
+<span class="source-line-no">1109</span><span id="line-1109">     *</span>
+<span class="source-line-no">1110</span><span id="line-1110">     * @param certificateUrl Url pointing to a Qualified Certificate (QSealC) encoded in PEM format and respecting the ETSI/TS119495 technical Specification .</span>
+<span class="source-line-no">1111</span><span id="line-1111">     * @return TRUE only if the url point to a Qualified Certificate in PEM format.</span>
+<span class="source-line-no">1112</span><span id="line-1112">     * @see "https://www.stet.eu/en/psd2/"</span>
+<span class="source-line-no">1113</span><span id="line-1113">     * @see "https://www.stet.eu/assets/files/PSD2/1-6-3/api-dsp2-stet-v1.6.3.1-part-1-framework.pdf"</span>
+<span class="source-line-no">1114</span><span id="line-1114">     * @see "https://datatracker.ietf.org/doc/draft-cavage-http-signatures/"</span>
+<span class="source-line-no">1115</span><span id="line-1115">     * @see "https://datatracker.ietf.org/doc/rfc9421/"</span>
+<span class="source-line-no">1116</span><span id="line-1116">     * @see "https://openjdk.org/groups/net/httpclient/intro.html"</span>
+<span class="source-line-no">1117</span><span id="line-1117">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.net.http/java/net/http/package-summary.html"</span>
+<span class="source-line-no">1118</span><span id="line-1118">     * @see "https://portswigger.net/web-security/ssrf"</span>
+<span class="source-line-no">1119</span><span id="line-1119">     * @see "https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control"</span>
+<span class="source-line-no">1120</span><span id="line-1120">     */</span>
+<span class="source-line-no">1121</span><span id="line-1121">    public static boolean isPSD2StetSafeCertificateURL(String certificateUrl) {</span>
+<span class="source-line-no">1122</span><span id="line-1122">        boolean isValid = false;</span>
+<span class="source-line-no">1123</span><span id="line-1123">        long connectionTimeoutInSeconds = 10;</span>
+<span class="source-line-no">1124</span><span id="line-1124">        String userAgent = "PSD2-STET-HTTPSignature-CertificateRequest";</span>
+<span class="source-line-no">1125</span><span id="line-1125">        try {</span>
+<span class="source-line-no">1126</span><span id="line-1126">            //1. Ensure that the URL end with the SHA-256 fingerprint encoded in HEX of the certificate like requested by STET</span>
+<span class="source-line-no">1127</span><span id="line-1127">            if (certificateUrl != null &amp;&amp; certificateUrl.lastIndexOf("_") != -1) {</span>
+<span class="source-line-no">1128</span><span id="line-1128">                String digestPart = certificateUrl.substring(certificateUrl.lastIndexOf("_") + 1);</span>
+<span class="source-line-no">1129</span><span id="line-1129">                if (Pattern.matches("^[0-9a-f]{64}$", digestPart)) {</span>
+<span class="source-line-no">1130</span><span id="line-1130">                    //2. Ensure that the URL is a valid url by creating a instance of the class URI</span>
+<span class="source-line-no">1131</span><span id="line-1131">                    URI uri = URI.create(certificateUrl);</span>
+<span class="source-line-no">1132</span><span id="line-1132">                    //3. Require usage of HTTPS and reject any url containing query parameters</span>
+<span class="source-line-no">1133</span><span id="line-1133">                    if ("https".equalsIgnoreCase(uri.getScheme()) &amp;&amp; uri.getQuery() == null) {</span>
+<span class="source-line-no">1134</span><span id="line-1134">                        //4. Perform a HTTP HEAD request in order to get the content type of the remote resource</span>
+<span class="source-line-no">1135</span><span id="line-1135">                        //and limit the interest to use the SSRF because to pass the check the url need to:</span>
+<span class="source-line-no">1136</span><span id="line-1136">                        //- Do not having any query parameters.</span>
+<span class="source-line-no">1137</span><span id="line-1137">                        //- Use HTTPS protocol.</span>
+<span class="source-line-no">1138</span><span id="line-1138">                        //- End with a string having the format "_[0-9a-f]{64}".</span>
+<span class="source-line-no">1139</span><span id="line-1139">                        //- Trigger the malicious action that the attacker want but with a HTTP HEAD without any redirect and parameters.</span>
+<span class="source-line-no">1140</span><span id="line-1140">                        HttpResponse&lt;String&gt; response;</span>
+<span class="source-line-no">1141</span><span id="line-1141">                        try (HttpClient client = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build()) {</span>
+<span class="source-line-no">1142</span><span id="line-1142">                            HttpRequest request = HttpRequest.newBuilder().uri(uri).timeout(Duration.ofSeconds(connectionTimeoutInSeconds)).method("HEAD", HttpRequest.BodyPublishers.noBody()).header("User-Agent", userAgent)//To provide an hint to the target about the initiator of the request</span>
+<span class="source-line-no">1143</span><span id="line-1143">                                    .header("Cache-Control", "no-store, max-age=0")//To prevent caching issues or abuses</span>
+<span class="source-line-no">1144</span><span id="line-1144">                                    .build();</span>
+<span class="source-line-no">1145</span><span id="line-1145">                            response = client.send(request, HttpResponse.BodyHandlers.ofString());</span>
+<span class="source-line-no">1146</span><span id="line-1146">                            if (response.statusCode() == 200) {</span>
+<span class="source-line-no">1147</span><span id="line-1147">                                //5. Ensure that the response content type is "text/plain"</span>
+<span class="source-line-no">1148</span><span id="line-1148">                                Optional&lt;String&gt; contentType = response.headers().firstValue("Content-Type");</span>
+<span class="source-line-no">1149</span><span id="line-1149">                                isValid = (contentType.isPresent() &amp;&amp; contentType.get().trim().toLowerCase(Locale.ENGLISH).startsWith("text/plain"));</span>
+<span class="source-line-no">1150</span><span id="line-1150">                            }</span>
+<span class="source-line-no">1151</span><span id="line-1151">                        }</span>
+<span class="source-line-no">1152</span><span id="line-1152">                    }</span>
+<span class="source-line-no">1153</span><span id="line-1153">                }</span>
+<span class="source-line-no">1154</span><span id="line-1154">            }</span>
+<span class="source-line-no">1155</span><span id="line-1155">        } catch (Exception e) {</span>
+<span class="source-line-no">1156</span><span id="line-1156">            isValid = false;</span>
+<span class="source-line-no">1157</span><span id="line-1157">        }</span>
+<span class="source-line-no">1158</span><span id="line-1158">        return isValid;</span>
+<span class="source-line-no">1159</span><span id="line-1159">    }</span>
+<span class="source-line-no">1160</span><span id="line-1160"></span>
+<span class="source-line-no">1161</span><span id="line-1161">    /**</span>
+<span class="source-line-no">1162</span><span id="line-1162">     * Perform sequential URL decoding operations against a URL encoded data until the data is not URL encoded anymore or if the specified threshold is reached.</span>
+<span class="source-line-no">1163</span><span id="line-1163">     *</span>
+<span class="source-line-no">1164</span><span id="line-1164">     * @param encodedData            URL encoded data.</span>
+<span class="source-line-no">1165</span><span id="line-1165">     * @param decodingRoundThreshold Threshold above which decoding will fail.</span>
+<span class="source-line-no">1166</span><span id="line-1166">     * @return The decoded data.</span>
+<span class="source-line-no">1167</span><span id="line-1167">     * @throws SecurityException If the threshold is reached.</span>
+<span class="source-line-no">1168</span><span id="line-1168">     * @see "https://en.wikipedia.org/wiki/Percent-encoding"</span>
+<span class="source-line-no">1169</span><span id="line-1169">     * @see "https://owasp.org/www-community/Double_Encoding"</span>
+<span class="source-line-no">1170</span><span id="line-1170">     * @see "https://portswigger.net/web-security/essential-skills/obfuscating-attacks-using-encodings"</span>
+<span class="source-line-no">1171</span><span id="line-1171">     * @see "https://capec.mitre.org/data/definitions/120.html"</span>
+<span class="source-line-no">1172</span><span id="line-1172">     */</span>
+<span class="source-line-no">1173</span><span id="line-1173">    public static String applyURLDecoding(String encodedData, int decodingRoundThreshold) throws SecurityException {</span>
+<span class="source-line-no">1174</span><span id="line-1174">        if (decodingRoundThreshold &lt; 1) {</span>
+<span class="source-line-no">1175</span><span id="line-1175">            throw new IllegalArgumentException("Threshold must be a positive number !");</span>
+<span class="source-line-no">1176</span><span id="line-1176">        }</span>
+<span class="source-line-no">1177</span><span id="line-1177">        if (encodedData == null) {</span>
+<span class="source-line-no">1178</span><span id="line-1178">            throw new IllegalArgumentException("Data provided must not be null !");</span>
+<span class="source-line-no">1179</span><span id="line-1179">        }</span>
+<span class="source-line-no">1180</span><span id="line-1180">        Charset charset = StandardCharsets.UTF_8;</span>
+<span class="source-line-no">1181</span><span id="line-1181">        int currentDecodingRound = 0;</span>
+<span class="source-line-no">1182</span><span id="line-1182">        boolean isFinished = false;</span>
+<span class="source-line-no">1183</span><span id="line-1183">        String currentRoundData = encodedData;</span>
+<span class="source-line-no">1184</span><span id="line-1184">        String previousRoundData = encodedData;</span>
+<span class="source-line-no">1185</span><span id="line-1185">        while (!isFinished) {</span>
+<span class="source-line-no">1186</span><span id="line-1186">            if (currentDecodingRound &gt; decodingRoundThreshold) {</span>
+<span class="source-line-no">1187</span><span id="line-1187">                throw new SecurityException(String.format("Decoding round threshold of %s reached!", decodingRoundThreshold));</span>
+<span class="source-line-no">1188</span><span id="line-1188">            }</span>
+<span class="source-line-no">1189</span><span id="line-1189">            currentRoundData = URLDecoder.decode(currentRoundData, charset);</span>
+<span class="source-line-no">1190</span><span id="line-1190">            isFinished = currentRoundData.equals(previousRoundData);</span>
+<span class="source-line-no">1191</span><span id="line-1191">            previousRoundData = currentRoundData;</span>
+<span class="source-line-no">1192</span><span id="line-1192">            currentDecodingRound++;</span>
+<span class="source-line-no">1193</span><span id="line-1193">        }</span>
+<span class="source-line-no">1194</span><span id="line-1194">        return currentRoundData;</span>
+<span class="source-line-no">1195</span><span id="line-1195">    }</span>
+<span class="source-line-no">1196</span><span id="line-1196"></span>
+<span class="source-line-no">1197</span><span id="line-1197">    /**</span>
+<span class="source-line-no">1198</span><span id="line-1198">     * Apply a collection of validations on a string expected to be an system file/folder path:</span>
+<span class="source-line-no">1199</span><span id="line-1199">     * &lt;ul&gt;</span>
+<span class="source-line-no">1200</span><span id="line-1200">     * &lt;li&gt;Does not contains path traversal payload.&lt;/li&gt;</span>
+<span class="source-line-no">1201</span><span id="line-1201">     * &lt;li&gt;The canonical path is equals to the absolute path.&lt;/li&gt;</span>
+<span class="source-line-no">1202</span><span id="line-1202">     * &lt;/ul&gt;&lt;br&gt;</span>
+<span class="source-line-no">1203</span><span id="line-1203">     *</span>
+<span class="source-line-no">1204</span><span id="line-1204">     * @param path String expected to be a valid system file/folder path.</span>
+<span class="source-line-no">1205</span><span id="line-1205">     * @return True only if the string pass all validations.</span>
+<span class="source-line-no">1206</span><span id="line-1206">     * @see "https://portswigger.net/web-security/file-path-traversal"</span>
+<span class="source-line-no">1207</span><span id="line-1207">     * @see "https://learn.snyk.io/lesson/directory-traversal/"</span>
+<span class="source-line-no">1208</span><span id="line-1208">     * @see "https://capec.mitre.org/data/definitions/126.html"</span>
+<span class="source-line-no">1209</span><span id="line-1209">     * @see "https://owasp.org/www-community/attacks/Path_Traversal"</span>
+<span class="source-line-no">1210</span><span id="line-1210">     */</span>
+<span class="source-line-no">1211</span><span id="line-1211">    public static boolean isPathSafe(String path) {</span>
+<span class="source-line-no">1212</span><span id="line-1212">        boolean isSafe = false;</span>
+<span class="source-line-no">1213</span><span id="line-1213">        int decodingRoundThreshold = 3;</span>
+<span class="source-line-no">1214</span><span id="line-1214">        try {</span>
+<span class="source-line-no">1215</span><span id="line-1215">            if (path != null &amp;&amp; !path.isEmpty()) {</span>
+<span class="source-line-no">1216</span><span id="line-1216">                //URL decode the path if case of data coming from a web context</span>
+<span class="source-line-no">1217</span><span id="line-1217">                String decodedPath = applyURLDecoding(path, decodingRoundThreshold);</span>
+<span class="source-line-no">1218</span><span id="line-1218">                //Ensure that no path traversal expression is present</span>
+<span class="source-line-no">1219</span><span id="line-1219">                if (!decodedPath.contains("..")) {</span>
+<span class="source-line-no">1220</span><span id="line-1220">                    File f = new File(decodedPath);</span>
+<span class="source-line-no">1221</span><span id="line-1221">                    String canonicalPath = f.getCanonicalPath();</span>
+<span class="source-line-no">1222</span><span id="line-1222">                    String absolutePath = f.getAbsolutePath();</span>
+<span class="source-line-no">1223</span><span id="line-1223">                    isSafe = canonicalPath.equals(absolutePath);</span>
+<span class="source-line-no">1224</span><span id="line-1224">                }</span>
+<span class="source-line-no">1225</span><span id="line-1225">            }</span>
+<span class="source-line-no">1226</span><span id="line-1226">        } catch (Exception e) {</span>
+<span class="source-line-no">1227</span><span id="line-1227">            isSafe = false;</span>
+<span class="source-line-no">1228</span><span id="line-1228">        }</span>
+<span class="source-line-no">1229</span><span id="line-1229">        return isSafe;</span>
+<span class="source-line-no">1230</span><span id="line-1230">    }</span>
+<span class="source-line-no">1231</span><span id="line-1231"></span>
+<span class="source-line-no">1232</span><span id="line-1232">    /**</span>
+<span class="source-line-no">1233</span><span id="line-1233">     * Identify if an XML contains any XML comments or have any XSL processing instructions.&lt;br&gt;</span>
+<span class="source-line-no">1234</span><span id="line-1234">     * Stream reader based parsing is used to support large XML tree.</span>
+<span class="source-line-no">1235</span><span id="line-1235">     *</span>
+<span class="source-line-no">1236</span><span id="line-1236">     * @param xmlFilePath Filename of the XML file to check.</span>
+<span class="source-line-no">1237</span><span id="line-1237">     * @return True only if XML comments or XSL processing instructions are identified.</span>
+<span class="source-line-no">1238</span><span id="line-1238">     * @see "https://www.tutorialspoint.com/xml/xml_processing.htm"</span>
+<span class="source-line-no">1239</span><span id="line-1239">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/stream/XMLInputFactory.html"</span>
+<span class="source-line-no">1240</span><span id="line-1240">     * @see "https://portswigger.net/kb/issues/00400700_xml-entity-expansion"</span>
+<span class="source-line-no">1241</span><span id="line-1241">     * @see "https://www.w3.org/Style/styling-XML.en.html"</span>
+<span class="source-line-no">1242</span><span id="line-1242">     */</span>
+<span class="source-line-no">1243</span><span id="line-1243">    public static boolean isXMLHaveCommentsOrXSLProcessingInstructions(String xmlFilePath) {</span>
+<span class="source-line-no">1244</span><span id="line-1244">        boolean itemsDetected = false;</span>
+<span class="source-line-no">1245</span><span id="line-1245">        try {</span>
+<span class="source-line-no">1246</span><span id="line-1246">            //Ensure that the parser will not be prone XML external entity (XXE) injection or XML entity expansion (XEE) attacks</span>
+<span class="source-line-no">1247</span><span id="line-1247">            XMLInputFactory xmlInputFactory = XMLInputFactory.newFactory();</span>
+<span class="source-line-no">1248</span><span id="line-1248">            xmlInputFactory.setProperty(XMLInputFactory.SUPPORT_DTD, false);</span>
+<span class="source-line-no">1249</span><span id="line-1249">            xmlInputFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");</span>
+<span class="source-line-no">1250</span><span id="line-1250">            xmlInputFactory.setProperty(XMLInputFactory.IS_REPLACING_ENTITY_REFERENCES, false);</span>
+<span class="source-line-no">1251</span><span id="line-1251">            xmlInputFactory.setProperty(XMLInputFactory.IS_SUPPORTING_EXTERNAL_ENTITIES, false);</span>
+<span class="source-line-no">1252</span><span id="line-1252"></span>
+<span class="source-line-no">1253</span><span id="line-1253">            //Parse file</span>
+<span class="source-line-no">1254</span><span id="line-1254">            try (FileInputStream fis = new FileInputStream(xmlFilePath)) {</span>
+<span class="source-line-no">1255</span><span id="line-1255">                XMLStreamReader reader = xmlInputFactory.createXMLStreamReader(fis);</span>
+<span class="source-line-no">1256</span><span id="line-1256">                int eventType;</span>
+<span class="source-line-no">1257</span><span id="line-1257">                while (reader.hasNext() &amp;&amp; !itemsDetected) {</span>
+<span class="source-line-no">1258</span><span id="line-1258">                    eventType = reader.next();</span>
+<span class="source-line-no">1259</span><span id="line-1259">                    if (eventType == XMLEvent.COMMENT) {</span>
+<span class="source-line-no">1260</span><span id="line-1260">                        itemsDetected = true;</span>
+<span class="source-line-no">1261</span><span id="line-1261">                    } else if (eventType == XMLEvent.PROCESSING_INSTRUCTION &amp;&amp; "xml-stylesheet".equalsIgnoreCase(reader.getPITarget())) {</span>
+<span class="source-line-no">1262</span><span id="line-1262">                        itemsDetected = true;</span>
+<span class="source-line-no">1263</span><span id="line-1263">                    }</span>
+<span class="source-line-no">1264</span><span id="line-1264">                }</span>
+<span class="source-line-no">1265</span><span id="line-1265">            }</span>
+<span class="source-line-no">1266</span><span id="line-1266">        } catch (Exception e) {</span>
+<span class="source-line-no">1267</span><span id="line-1267">            //In case of error then assume that the check failed</span>
+<span class="source-line-no">1268</span><span id="line-1268">            itemsDetected = true;</span>
+<span class="source-line-no">1269</span><span id="line-1269">        }</span>
+<span class="source-line-no">1270</span><span id="line-1270">        return itemsDetected;</span>
+<span class="source-line-no">1271</span><span id="line-1271">    }</span>
+<span class="source-line-no">1272</span><span id="line-1272"></span>
+<span class="source-line-no">1273</span><span id="line-1273"></span>
+<span class="source-line-no">1274</span><span id="line-1274">    /**</span>
+<span class="source-line-no">1275</span><span id="line-1275">     * Perform a set of additional validations against a JWT token:</span>
+<span class="source-line-no">1276</span><span id="line-1276">     * &lt;ul&gt;</span>
+<span class="source-line-no">1277</span><span id="line-1277">     *     &lt;li&gt;Do not use the &lt;b&gt;NONE&lt;/b&gt; signature algorithm.&lt;/li&gt;</span>
+<span class="source-line-no">1278</span><span id="line-1278">     *     &lt;li&gt;Have a &lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;EXP claim&lt;/a&gt; defined.&lt;/li&gt;</span>
+<span class="source-line-no">1279</span><span id="line-1279">     *     &lt;li&gt;The token identifier (&lt;a href="https://www.iana.org/assignments/jwt/jwt.xhtml"&gt;JTI claim&lt;/a&gt;) is NOT part of the list of revoked token.&lt;/li&gt;</span>
+<span class="source-line-no">1280</span><span id="line-1280">     *     &lt;li&gt;Match the expected type of token: ACCESS or ID or REFRESH.&lt;/li&gt;</span>
+<span class="source-line-no">1281</span><span id="line-1281">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1282</span><span id="line-1282">     *</span>
+<span class="source-line-no">1283</span><span id="line-1283">     * @param token               JWT token for which &lt;b&gt;signature was already validated&lt;/b&gt; and on which a set of additional validations will be applied.</span>
+<span class="source-line-no">1284</span><span id="line-1284">     * @param expectedTokenType   The type of expected token using the enumeration provided.</span>
+<span class="source-line-no">1285</span><span id="line-1285">     * @param revokedTokenJTIList A list of token identifier (&lt;b&gt;JTI&lt;/b&gt; claim) referring to tokens that were revoked and to which the JTI claim of the token will be compared to.</span>
+<span class="source-line-no">1286</span><span id="line-1286">     * @return True only the token pass all the validations.</span>
+<span class="source-line-no">1287</span><span id="line-1287">     * @see "https://www.iana.org/assignments/jwt/jwt.xhtml"</span>
+<span class="source-line-no">1288</span><span id="line-1288">     * @see "https://auth0.com/docs/secure/tokens/access-tokens"</span>
+<span class="source-line-no">1289</span><span id="line-1289">     * @see "https://auth0.com/docs/secure/tokens/id-tokens"</span>
+<span class="source-line-no">1290</span><span id="line-1290">     * @see "https://auth0.com/docs/secure/tokens/refresh-tokens"</span>
+<span class="source-line-no">1291</span><span id="line-1291">     * @see "https://auth0.com/blog/id-token-access-token-what-is-the-difference/"</span>
+<span class="source-line-no">1292</span><span id="line-1292">     * @see "https://jwt.io/libraries?language=Java"</span>
+<span class="source-line-no">1293</span><span id="line-1293">     * @see "https://pentesterlab.com/blog/secure-jwt-library-design"</span>
+<span class="source-line-no">1294</span><span id="line-1294">     * @see "https://github.com/auth0/java-jwt"</span>
+<span class="source-line-no">1295</span><span id="line-1295">     */</span>
+<span class="source-line-no">1296</span><span id="line-1296">    public static boolean applyJWTExtraValidation(DecodedJWT token, TokenType expectedTokenType, List&lt;String&gt; revokedTokenJTIList) {</span>
+<span class="source-line-no">1297</span><span id="line-1297">        boolean isValid = false;</span>
+<span class="source-line-no">1298</span><span id="line-1298">        TokenType tokenType;</span>
+<span class="source-line-no">1299</span><span id="line-1299">        try {</span>
+<span class="source-line-no">1300</span><span id="line-1300">            if (!"none".equalsIgnoreCase(token.getAlgorithm().trim())) {</span>
+<span class="source-line-no">1301</span><span id="line-1301">                if (!token.getClaim("exp").isMissing() &amp;&amp; token.getExpiresAt() != null) {</span>
+<span class="source-line-no">1302</span><span id="line-1302">                    String jti = token.getId();</span>
+<span class="source-line-no">1303</span><span id="line-1303">                    if (jti != null &amp;&amp; !jti.trim().isEmpty()) {</span>
+<span class="source-line-no">1304</span><span id="line-1304">                        boolean jtiIsRevoked = revokedTokenJTIList.stream().anyMatch(jti::equalsIgnoreCase);</span>
+<span class="source-line-no">1305</span><span id="line-1305">                        if (!jtiIsRevoked) {</span>
+<span class="source-line-no">1306</span><span id="line-1306">                            //Determine the token type based on the presence of specifics claims</span>
+<span class="source-line-no">1307</span><span id="line-1307">                            if (!token.getClaim("scope").isMissing()) {</span>
+<span class="source-line-no">1308</span><span id="line-1308">                                tokenType = TokenType.ACCESS;</span>
+<span class="source-line-no">1309</span><span id="line-1309">                            } else if (!token.getClaim("name").isMissing() || !token.getClaim("email").isMissing()) {</span>
+<span class="source-line-no">1310</span><span id="line-1310">                                tokenType = TokenType.ID;</span>
+<span class="source-line-no">1311</span><span id="line-1311">                            } else {</span>
+<span class="source-line-no">1312</span><span id="line-1312">                                tokenType = TokenType.REFRESH;</span>
+<span class="source-line-no">1313</span><span id="line-1313">                            }</span>
+<span class="source-line-no">1314</span><span id="line-1314">                            isValid = (tokenType.equals(expectedTokenType));</span>
+<span class="source-line-no">1315</span><span id="line-1315">                        }</span>
+<span class="source-line-no">1316</span><span id="line-1316">                    }</span>
+<span class="source-line-no">1317</span><span id="line-1317">                }</span>
+<span class="source-line-no">1318</span><span id="line-1318">            }</span>
+<span class="source-line-no">1319</span><span id="line-1319"></span>
+<span class="source-line-no">1320</span><span id="line-1320">        } catch (Exception e) {</span>
+<span class="source-line-no">1321</span><span id="line-1321">            //In case of error then assume that the check failed</span>
+<span class="source-line-no">1322</span><span id="line-1322">            isValid = false;</span>
+<span class="source-line-no">1323</span><span id="line-1323">        }</span>
+<span class="source-line-no">1324</span><span id="line-1324">        return isValid;</span>
+<span class="source-line-no">1325</span><span id="line-1325">    }</span>
+<span class="source-line-no">1326</span><span id="line-1326"></span>
+<span class="source-line-no">1327</span><span id="line-1327">    /**</span>
+<span class="source-line-no">1328</span><span id="line-1328">     * Apply a validations on a regular expression to ensure that is not prone to the ReDOS attack.</span>
+<span class="source-line-no">1329</span><span id="line-1329">     * &lt;br&gt;If your technology is supported by &lt;a href="https://github.com/doyensec/regexploit"&gt;regexploit&lt;/a&gt; then &lt;b&gt;use it instead of this method!&lt;/b&gt;</span>
+<span class="source-line-no">1330</span><span id="line-1330">     * &lt;br&gt;Indeed, the &lt;a href="https://www.doyensec.com/"&gt;Doyensec&lt;/a&gt; team has made an intensive and amazing work on this topic and created this effective tool.</span>
+<span class="source-line-no">1331</span><span id="line-1331">     *</span>
+<span class="source-line-no">1332</span><span id="line-1332">     * @param regex                       String expected to be a valid regular expression (regex).</span>
+<span class="source-line-no">1333</span><span id="line-1333">     * @param data                        Test data on which the regular expression is executed for the test.</span>
+<span class="source-line-no">1334</span><span id="line-1334">     * @param maximumRunningTimeInSeconds Optional parameter to specify a number of seconds above which a regex execution time is considered as not safe (default to 4 seconds when not specified).</span>
+<span class="source-line-no">1335</span><span id="line-1335">     * @return True only if the string pass all validations.</span>
+<span class="source-line-no">1336</span><span id="line-1336">     * @see "https://github.blog/security/how-to-fix-a-redos/"</span>
+<span class="source-line-no">1337</span><span id="line-1337">     * @see "https://learn.snyk.io/lesson/redos"</span>
+<span class="source-line-no">1338</span><span id="line-1338">     * @see "https://rules.sonarsource.com/java/RSPEC-2631/"</span>
+<span class="source-line-no">1339</span><span id="line-1339">     * @see "https://github.com/doyensec/regexploit"</span>
+<span class="source-line-no">1340</span><span id="line-1340">     * @see "https://github.com/makenowjust-labs/recheck"</span>
+<span class="source-line-no">1341</span><span id="line-1341">     * @see "https://github.com/tjenkinson/redos-detector"</span>
+<span class="source-line-no">1342</span><span id="line-1342">     * @see "https://wiki.owasp.org/images/2/23/OWASP_IL_2009_ReDoS.pdf"</span>
+<span class="source-line-no">1343</span><span id="line-1343">     * @see "https://owasp.org/www-community/attacks/Regular_expression_Denial_of_Service_-_ReDoS"</span>
+<span class="source-line-no">1344</span><span id="line-1344">     */</span>
+<span class="source-line-no">1345</span><span id="line-1345">    public static boolean isRegexSafe(String regex, String data, Optional&lt;Integer&gt; maximumRunningTimeInSeconds) {</span>
+<span class="source-line-no">1346</span><span id="line-1346">        Objects.requireNonNull(maximumRunningTimeInSeconds, "Use 'Optional.empty()' to leverage the default value.");</span>
+<span class="source-line-no">1347</span><span id="line-1347">        Objects.requireNonNull(data, "A sample data is needed to perform the test.");</span>
+<span class="source-line-no">1348</span><span id="line-1348">        Objects.requireNonNull(regex, "A regular expression is needed to perform the test.");</span>
+<span class="source-line-no">1349</span><span id="line-1349">        boolean isSafe = false;</span>
+<span class="source-line-no">1350</span><span id="line-1350">        int executionTimeout = maximumRunningTimeInSeconds.orElse(4);</span>
+<span class="source-line-no">1351</span><span id="line-1351">        ExecutorService executor = Executors.newSingleThreadExecutor();</span>
+<span class="source-line-no">1352</span><span id="line-1352">        try {</span>
+<span class="source-line-no">1353</span><span id="line-1353">            Callable&lt;Boolean&gt; task = () -&gt; {</span>
+<span class="source-line-no">1354</span><span id="line-1354">                Pattern pattern = Pattern.compile(regex);</span>
+<span class="source-line-no">1355</span><span id="line-1355">                return pattern.matcher(data).matches();</span>
+<span class="source-line-no">1356</span><span id="line-1356">            };</span>
+<span class="source-line-no">1357</span><span id="line-1357">            List&lt;Future&lt;Boolean&gt;&gt; tasks = executor.invokeAll(List.of(task), executionTimeout, TimeUnit.SECONDS);</span>
+<span class="source-line-no">1358</span><span id="line-1358">            if (!tasks.getFirst().isCancelled()) {</span>
+<span class="source-line-no">1359</span><span id="line-1359">                isSafe = true;</span>
+<span class="source-line-no">1360</span><span id="line-1360">            }</span>
+<span class="source-line-no">1361</span><span id="line-1361">        } catch (Exception e) {</span>
+<span class="source-line-no">1362</span><span id="line-1362">            isSafe = false;</span>
+<span class="source-line-no">1363</span><span id="line-1363">        } finally {</span>
+<span class="source-line-no">1364</span><span id="line-1364">            executor.shutdownNow();</span>
+<span class="source-line-no">1365</span><span id="line-1365">        }</span>
+<span class="source-line-no">1366</span><span id="line-1366">        return isSafe;</span>
+<span class="source-line-no">1367</span><span id="line-1367">    }</span>
+<span class="source-line-no">1368</span><span id="line-1368"></span>
+<span class="source-line-no">1369</span><span id="line-1369">    /**</span>
+<span class="source-line-no">1370</span><span id="line-1370">     * Compute a UUID version 7 without using any external dependency.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1371</span><span id="line-1371">     * &lt;b&gt;Below are my personal point of view and perhaps I'm totally wrong!&lt;/b&gt;</span>
+<span class="source-line-no">1372</span><span id="line-1372">     * &lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1373</span><span id="line-1373">     * Why such method?</span>
+<span class="source-line-no">1374</span><span id="line-1374">     * &lt;ul&gt;</span>
+<span class="source-line-no">1375</span><span id="line-1375">     * &lt;li&gt;Java inferior or equals to 21 does not supports natively the generation of an UUID version 7.&lt;/li&gt;</span>
+<span class="source-line-no">1376</span><span id="line-1376">     * &lt;li&gt;Import a library just to generate such value is overkill for me.&lt;/li&gt;</span>
+<span class="source-line-no">1377</span><span id="line-1377">     * &lt;li&gt;Library that I have found, generating such version of an UUID, are not provided by entities commonly used in the java world, such as the SPRING framework provider.&lt;/li&gt;</span>
+<span class="source-line-no">1378</span><span id="line-1378">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1379</span><span id="line-1379">     * &lt;br&gt;</span>
+<span class="source-line-no">1380</span><span id="line-1380">     * &lt;b&gt;Full credits for this implementation goes to the authors and contributors of the &lt;a href="https://github.com/nalgeon/uuidv7"&gt;UUIDv7&lt;/a&gt; project.&lt;/b&gt;</span>
+<span class="source-line-no">1381</span><span id="line-1381">     * &lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1382</span><span id="line-1382">     * Below are the java libraries that I have found but, for which, I do not trust enough the provider to use them directly:</span>
+<span class="source-line-no">1383</span><span id="line-1383">     * &lt;ul&gt;</span>
+<span class="source-line-no">1384</span><span id="line-1384">     *     &lt;li&gt;&lt;a href="https://github.com/cowtowncoder/java-uuid-generator"&gt;java-uuid-generator&lt;/a&gt;&lt;/li&gt;</span>
+<span class="source-line-no">1385</span><span id="line-1385">     *     &lt;li&gt;&lt;a href="https://github.com/f4b6a3/uuid-creator"&gt;uuid-creator&lt;/a&gt;&lt;/li&gt;</span>
+<span class="source-line-no">1386</span><span id="line-1386">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1387</span><span id="line-1387">     *</span>
+<span class="source-line-no">1388</span><span id="line-1388">     * @return A UUID object representing the UUID v7.</span>
+<span class="source-line-no">1389</span><span id="line-1389">     * @see "https://uuid7.com/"</span>
+<span class="source-line-no">1390</span><span id="line-1390">     * @see "https://antonz.org/uuidv7/"</span>
+<span class="source-line-no">1391</span><span id="line-1391">     * @see "https://mccue.dev/pages/3-11-25-life-altering-postgresql-patterns"</span>
+<span class="source-line-no">1392</span><span id="line-1392">     * @see "https://www.ietf.org/archive/id/draft-peabody-dispatch-new-uuid-format-04.html#name-uuid-version-7"</span>
+<span class="source-line-no">1393</span><span id="line-1393">     * @see "https://www.baeldung.com/java-generating-time-based-uuids"</span>
+<span class="source-line-no">1394</span><span id="line-1394">     * @see "https://en.wikipedia.org/wiki/Universally_unique_identifier"</span>
+<span class="source-line-no">1395</span><span id="line-1395">     * @see "https://buildkite.com/resources/blog/goodbye-integers-hello-uuids/"</span>
+<span class="source-line-no">1396</span><span id="line-1396">     */</span>
+<span class="source-line-no">1397</span><span id="line-1397">    public static UUID computeUUIDv7() {</span>
+<span class="source-line-no">1398</span><span id="line-1398">        SecureRandom secureRandom = new SecureRandom();</span>
+<span class="source-line-no">1399</span><span id="line-1399">        // Generate truly random bytes</span>
+<span class="source-line-no">1400</span><span id="line-1400">        byte[] value = new byte[16];</span>
+<span class="source-line-no">1401</span><span id="line-1401">        secureRandom.nextBytes(value);</span>
+<span class="source-line-no">1402</span><span id="line-1402">        // Get current timestamp in milliseconds</span>
+<span class="source-line-no">1403</span><span id="line-1403">        ByteBuffer timestamp = ByteBuffer.allocate(Long.BYTES);</span>
+<span class="source-line-no">1404</span><span id="line-1404">        timestamp.putLong(System.currentTimeMillis());</span>
+<span class="source-line-no">1405</span><span id="line-1405">        // Create the TIMESTAMP part of the UUID</span>
+<span class="source-line-no">1406</span><span id="line-1406">        System.arraycopy(timestamp.array(), 2, value, 0, 6);</span>
+<span class="source-line-no">1407</span><span id="line-1407">        // Create the VERSION and the VARIANT parts of the UUID</span>
+<span class="source-line-no">1408</span><span id="line-1408">        value[6] = (byte) ((value[6] &amp; 0x0F) | 0x70);</span>
+<span class="source-line-no">1409</span><span id="line-1409">        value[8] = (byte) ((value[8] &amp; 0x3F) | 0x80);</span>
+<span class="source-line-no">1410</span><span id="line-1410">        //Create the HIGH and LOW parts of the UUID</span>
+<span class="source-line-no">1411</span><span id="line-1411">        ByteBuffer buf = ByteBuffer.wrap(value);</span>
+<span class="source-line-no">1412</span><span id="line-1412">        long high = buf.getLong();</span>
+<span class="source-line-no">1413</span><span id="line-1413">        long low = buf.getLong();</span>
+<span class="source-line-no">1414</span><span id="line-1414">        //Create and return the UUID object</span>
+<span class="source-line-no">1415</span><span id="line-1415">        UUID uuidv7 = new UUID(high, low);</span>
+<span class="source-line-no">1416</span><span id="line-1416">        return uuidv7;</span>
+<span class="source-line-no">1417</span><span id="line-1417">    }</span>
+<span class="source-line-no">1418</span><span id="line-1418"></span>
+<span class="source-line-no">1419</span><span id="line-1419">    /**</span>
+<span class="source-line-no">1420</span><span id="line-1420">     * Ensure that an XSD file does not contain any include/import/redefine instruction (prevent exposure to SSRF).</span>
+<span class="source-line-no">1421</span><span id="line-1421">     *</span>
+<span class="source-line-no">1422</span><span id="line-1422">     * @param xsdFilePath Filename of the XSD file to check.</span>
+<span class="source-line-no">1423</span><span id="line-1423">     * @return True only if the file pass all validations.</span>
+<span class="source-line-no">1424</span><span id="line-1424">     * @see "https://portswigger.net/web-security/ssrf"</span>
+<span class="source-line-no">1425</span><span id="line-1425">     * @see "https://www.w3schools.com/Xml/el_import.asp"</span>
+<span class="source-line-no">1426</span><span id="line-1426">     * @see "https://www.w3schools.com/xml/el_include.asp"</span>
+<span class="source-line-no">1427</span><span id="line-1427">     * @see "https://www.linkedin.com/posts/righettod_appsec-appsecurity-java-activity-7344048434326188053-6Ru9"</span>
+<span class="source-line-no">1428</span><span id="line-1428">     * @see "https://docs.oracle.com/en/java/javase/21/docs/api/java.xml/javax/xml/validation/SchemaFactory.html#setProperty(java.lang.String,java.lang.Object)"</span>
+<span class="source-line-no">1429</span><span id="line-1429">     */</span>
+<span class="source-line-no">1430</span><span id="line-1430">    public static boolean isXSDSafe(String xsdFilePath) {</span>
+<span class="source-line-no">1431</span><span id="line-1431">        boolean isSafe = false;</span>
+<span class="source-line-no">1432</span><span id="line-1432">        try {</span>
+<span class="source-line-no">1433</span><span id="line-1433">            File xsdFile = new File(xsdFilePath);</span>
+<span class="source-line-no">1434</span><span id="line-1434">            if (xsdFile.exists() &amp;&amp; xsdFile.canRead() &amp;&amp; xsdFile.isFile()) {</span>
+<span class="source-line-no">1435</span><span id="line-1435">                //Parse the XSD file, if an exception occur then it's imply that the XSD specified is not a valid ones</span>
+<span class="source-line-no">1436</span><span id="line-1436">                //Create an schema factory throwing Exception if a external schema is specified</span>
+<span class="source-line-no">1437</span><span id="line-1437">                SchemaFactory schemaFactory = SchemaFactory.newDefaultInstance();</span>
+<span class="source-line-no">1438</span><span id="line-1438">                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_DTD, "");</span>
+<span class="source-line-no">1439</span><span id="line-1439">                schemaFactory.setProperty(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "");</span>
+<span class="source-line-no">1440</span><span id="line-1440">                //Parse the schema</span>
+<span class="source-line-no">1441</span><span id="line-1441">                Schema schema = schemaFactory.newSchema(xsdFile);</span>
+<span class="source-line-no">1442</span><span id="line-1442">                isSafe = (schema != null);</span>
+<span class="source-line-no">1443</span><span id="line-1443">            }</span>
+<span class="source-line-no">1444</span><span id="line-1444">        } catch (Exception e) {</span>
+<span class="source-line-no">1445</span><span id="line-1445">            isSafe = false;</span>
+<span class="source-line-no">1446</span><span id="line-1446">        }</span>
+<span class="source-line-no">1447</span><span id="line-1447">        return isSafe;</span>
+<span class="source-line-no">1448</span><span id="line-1448">    }</span>
+<span class="source-line-no">1449</span><span id="line-1449"></span>
+<span class="source-line-no">1450</span><span id="line-1450"></span>
+<span class="source-line-no">1451</span><span id="line-1451">    /**</span>
+<span class="source-line-no">1452</span><span id="line-1452">     * Extract all sensitive information from a string provided.&lt;br&gt;</span>
+<span class="source-line-no">1453</span><span id="line-1453">     * This can be used to identify any sensitive information into a &lt;a href="https://cwe.mitre.org/data/definitions/532.html"&gt;message expected to be written in a log&lt;/a&gt; and then replace every sensitive values by an obfuscated ones.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1454</span><span id="line-1454">     * For the luxembourg national identification number, this method focus on detecting identifiers for a physical entity (people) and not a moral one (company).&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1455</span><span id="line-1455">     * I delegated the validation of the IBAN to a dedicated library (&lt;a href="https://github.com/arturmkrtchyan/iban4j"&gt;iban4j&lt;/a&gt;) to not "reinvent the wheel" and then introduce buggy validation myself. I used &lt;b&gt;iban4j&lt;/b&gt; over the &lt;b&gt;&lt;a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/IBANValidator.html"&gt;IBANValidator&lt;/a&gt;&lt;/b&gt; class from the &lt;a href="https://commons.apache.org/proper/commons-validator/"&gt;&lt;b&gt;Apache Commons Validator&lt;/b&gt;&lt;/a&gt; library because &lt;b&gt;iban4j&lt;/b&gt; perform a full official IBAN specification validation so its reduce risks of false-positives by ensuring that an IBAN detected is a real IBAN.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1456</span><span id="line-1456">     * Same thing and reason regarding the validation of the bank card PAN using the  class &lt;a href="https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html"&gt;CreditCardValidator&lt;/a&gt; from the &lt;b&gt;Apache Commons Validator&lt;/b&gt; library.</span>
+<span class="source-line-no">1457</span><span id="line-1457">     *</span>
+<span class="source-line-no">1458</span><span id="line-1458">     * @param content String in which sensitive information must be searched.</span>
+<span class="source-line-no">1459</span><span id="line-1459">     * @return A map with the collection of identified sensitive information gathered by sensitive information type. If nothing is found then the map is empty. A type of sensitive information is only present if there is at least one item found. A set is used to not store duplicates occurrence of the same sensitive information.</span>
+<span class="source-line-no">1460</span><span id="line-1460">     * @throws Exception If any error occurs during the processing.</span>
+<span class="source-line-no">1461</span><span id="line-1461">     * @see "https://guichet.public.lu/en/citoyens/citoyennete/registre-national/identification/demande-numero-rnpp.html"</span>
+<span class="source-line-no">1462</span><span id="line-1462">     * @see "https://cnpd.public.lu/fr/decisions-avis/2009/identifiant-unique.html"</span>
+<span class="source-line-no">1463</span><span id="line-1463">     * @see "https://cnpd.public.lu/content/dam/cnpd/fr/decisions-avis/2009/identifiant-unique/48_2009.pdf"</span>
+<span class="source-line-no">1464</span><span id="line-1464">     * @see "https://en.wikipedia.org/wiki/International_Bank_Account_Number"</span>
+<span class="source-line-no">1465</span><span id="line-1465">     * @see "https://www.iban.com/structure"</span>
+<span class="source-line-no">1466</span><span id="line-1466">     * @see "https://github.com/arturmkrtchyan/iban4j"</span>
+<span class="source-line-no">1467</span><span id="line-1467">     * @see "https://cwe.mitre.org/data/definitions/532.html"</span>
+<span class="source-line-no">1468</span><span id="line-1468">     * @see "https://www.baeldung.com/logback-mask-sensitive-data"</span>
+<span class="source-line-no">1469</span><span id="line-1469">     * @see "https://en.wikipedia.org/wiki/Payment_card_number"</span>
+<span class="source-line-no">1470</span><span id="line-1470">     * @see "https://commons.apache.org/proper/commons-validator/apidocs/org/apache/commons/validator/routines/CreditCardValidator.html"</span>
+<span class="source-line-no">1471</span><span id="line-1471">     * @see "https://commons.apache.org/proper/commons-validator/"</span>
+<span class="source-line-no">1472</span><span id="line-1472">     */</span>
+<span class="source-line-no">1473</span><span id="line-1473">    public static Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; extractAllSensitiveInformation(String content) throws Exception {</span>
+<span class="source-line-no">1474</span><span id="line-1474">        CreditCardValidator creditCardValidator = CreditCardValidator.genericCreditCardValidator();</span>
+<span class="source-line-no">1475</span><span id="line-1475">        Pattern nationalIdentifierRegex = Pattern.compile("([0-9]{13})");</span>
+<span class="source-line-no">1476</span><span id="line-1476">        Pattern ibanNonHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}[A-Z0-9]{11,30})", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1477</span><span id="line-1477">        Pattern ibanHumanFormattedRegex = Pattern.compile("([A-Z]{2}[0-9]{2}(?:\\s[A-Z0-9]{4}){2,7}\\s[A-Z0-9]{1,4})", Pattern.CASE_INSENSITIVE);</span>
+<span class="source-line-no">1478</span><span id="line-1478">        Pattern panRegex = Pattern.compile("((?:\\d[ -]*?){13,19})");</span>
+<span class="source-line-no">1479</span><span id="line-1479">        Map&lt;SensitiveInformationType, Set&lt;String&gt;&gt; data = new HashMap&lt;&gt;();</span>
+<span class="source-line-no">1480</span><span id="line-1480">        data.put(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER, new HashSet&lt;&gt;());</span>
+<span class="source-line-no">1481</span><span id="line-1481">        data.put(SensitiveInformationType.IBAN, new HashSet&lt;&gt;());</span>
+<span class="source-line-no">1482</span><span id="line-1482">        data.put(SensitiveInformationType.BANK_CARD_PAN, new HashSet&lt;&gt;());</span>
+<span class="source-line-no">1483</span><span id="line-1483"></span>
+<span class="source-line-no">1484</span><span id="line-1484">        if (content != null &amp;&amp; !content.isBlank()) {</span>
+<span class="source-line-no">1485</span><span id="line-1485">            /* Step 1: Search for LU national identifier */</span>
+<span class="source-line-no">1486</span><span id="line-1486">            //A national identifier have the following structure: [BIRTHDATE_YEAR_YYYY][BIRTHDATE_MONTH_MM][BIRTHDATE_DAY_DD][FIVE_INTEGER]</span>
+<span class="source-line-no">1487</span><span id="line-1487">            //Define minimal and maximal birth year base on current year</span>
+<span class="source-line-no">1488</span><span id="line-1488">            //Assume people live less than 120 years</span>
+<span class="source-line-no">1489</span><span id="line-1489">            int maxBirthYear = LocalDate.now(ZoneId.of("Europe/Luxembourg")).getYear();</span>
+<span class="source-line-no">1490</span><span id="line-1490">            int minBirthYear = maxBirthYear - 120;</span>
+<span class="source-line-no">1491</span><span id="line-1491">            Matcher matcher = nationalIdentifierRegex.matcher(content);</span>
+<span class="source-line-no">1492</span><span id="line-1492">            String nationalIdentierFull;</span>
+<span class="source-line-no">1493</span><span id="line-1493">            int nationalIdentierYear, nationalIdentierMonth, nationalIdentierDay;</span>
+<span class="source-line-no">1494</span><span id="line-1494">            while (matcher.find()) {</span>
+<span class="source-line-no">1495</span><span id="line-1495">                nationalIdentierFull = matcher.group(1);</span>
+<span class="source-line-no">1496</span><span id="line-1496">                //Check that the string is a valid national identifier and if yes then add it</span>
+<span class="source-line-no">1497</span><span id="line-1497">                nationalIdentierYear = Integer.parseInt(nationalIdentierFull.substring(0, 4));</span>
+<span class="source-line-no">1498</span><span id="line-1498">                nationalIdentierMonth = Integer.parseInt(nationalIdentierFull.substring(4, 6));</span>
+<span class="source-line-no">1499</span><span id="line-1499">                nationalIdentierDay = Integer.parseInt(nationalIdentierFull.substring(6, 8));</span>
+<span class="source-line-no">1500</span><span id="line-1500">                if (nationalIdentierYear &gt;= minBirthYear &amp;&amp; nationalIdentierYear &lt;= maxBirthYear) {</span>
+<span class="source-line-no">1501</span><span id="line-1501">                    if (nationalIdentierMonth &gt;= 1 &amp;&amp; nationalIdentierMonth &lt;= 12) {</span>
+<span class="source-line-no">1502</span><span id="line-1502">                        if (YearMonth.of(nationalIdentierYear, nationalIdentierMonth).isValidDay(nationalIdentierDay)) {</span>
+<span class="source-line-no">1503</span><span id="line-1503">                            data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).add(nationalIdentierFull);</span>
+<span class="source-line-no">1504</span><span id="line-1504">                        }</span>
+<span class="source-line-no">1505</span><span id="line-1505">                    }</span>
+<span class="source-line-no">1506</span><span id="line-1506">                }</span>
+<span class="source-line-no">1507</span><span id="line-1507">            }</span>
+<span class="source-line-no">1508</span><span id="line-1508"></span>
+<span class="source-line-no">1509</span><span id="line-1509">            /* Step 2a: Search for IBAN that are non human formatted */</span>
+<span class="source-line-no">1510</span><span id="line-1510">            matcher = ibanNonHumanFormattedRegex.matcher(content);</span>
+<span class="source-line-no">1511</span><span id="line-1511">            String iban, ibanUpperCased;</span>
+<span class="source-line-no">1512</span><span id="line-1512">            while (matcher.find()) {</span>
+<span class="source-line-no">1513</span><span id="line-1513">                iban = matcher.group(1);</span>
+<span class="source-line-no">1514</span><span id="line-1514">                ibanUpperCased = iban.toUpperCase(Locale.ROOT);</span>
+<span class="source-line-no">1515</span><span id="line-1515">                //Check that the string is a valid IBAN and if yes then add it</span>
+<span class="source-line-no">1516</span><span id="line-1516">                if (IbanUtil.isValid(ibanUpperCased)) {</span>
+<span class="source-line-no">1517</span><span id="line-1517">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
+<span class="source-line-no">1518</span><span id="line-1518">                }</span>
+<span class="source-line-no">1519</span><span id="line-1519">            }</span>
+<span class="source-line-no">1520</span><span id="line-1520"></span>
+<span class="source-line-no">1521</span><span id="line-1521">            /* Step 2b: Search for IBAN that are human formatted */</span>
+<span class="source-line-no">1522</span><span id="line-1522">            matcher = ibanHumanFormattedRegex.matcher(content);</span>
+<span class="source-line-no">1523</span><span id="line-1523">            String ibanUpperCasedNoSpace;</span>
+<span class="source-line-no">1524</span><span id="line-1524">            while (matcher.find()) {</span>
+<span class="source-line-no">1525</span><span id="line-1525">                iban = matcher.group(1);</span>
+<span class="source-line-no">1526</span><span id="line-1526">                ibanUpperCasedNoSpace = iban.toUpperCase(Locale.ROOT).replace(" ", "");</span>
+<span class="source-line-no">1527</span><span id="line-1527">                //Check that the string is a valid IBAN and if yes then add it</span>
+<span class="source-line-no">1528</span><span id="line-1528">                if (IbanUtil.isValid(ibanUpperCasedNoSpace)) {</span>
+<span class="source-line-no">1529</span><span id="line-1529">                    data.get(SensitiveInformationType.IBAN).add(iban);</span>
+<span class="source-line-no">1530</span><span id="line-1530">                }</span>
+<span class="source-line-no">1531</span><span id="line-1531">            }</span>
+<span class="source-line-no">1532</span><span id="line-1532"></span>
+<span class="source-line-no">1533</span><span id="line-1533">            /* Step 3: Search for bank card PAN */</span>
+<span class="source-line-no">1534</span><span id="line-1534">            matcher = panRegex.matcher(content);</span>
+<span class="source-line-no">1535</span><span id="line-1535">            String pan, panNoSeparator;</span>
+<span class="source-line-no">1536</span><span id="line-1536">            while (matcher.find()) {</span>
+<span class="source-line-no">1537</span><span id="line-1537">                pan = matcher.group(1);</span>
+<span class="source-line-no">1538</span><span id="line-1538">                panNoSeparator = pan.toUpperCase(Locale.ROOT).replace(" ", "").replace("-", "");</span>
+<span class="source-line-no">1539</span><span id="line-1539">                //Check that the string is a valid PAN and if yes then add it</span>
+<span class="source-line-no">1540</span><span id="line-1540">                if (creditCardValidator.isValid(panNoSeparator)) {</span>
+<span class="source-line-no">1541</span><span id="line-1541">                    data.get(SensitiveInformationType.BANK_CARD_PAN).add(pan);</span>
+<span class="source-line-no">1542</span><span id="line-1542">                }</span>
+<span class="source-line-no">1543</span><span id="line-1543">            }</span>
+<span class="source-line-no">1544</span><span id="line-1544"></span>
+<span class="source-line-no">1545</span><span id="line-1545">        }</span>
+<span class="source-line-no">1546</span><span id="line-1546"></span>
+<span class="source-line-no">1547</span><span id="line-1547">        //Cleanup if a set is empty</span>
+<span class="source-line-no">1548</span><span id="line-1548">        if (data.get(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER).isEmpty()) {</span>
+<span class="source-line-no">1549</span><span id="line-1549">            data.remove(SensitiveInformationType.LUXEMBOURG_NATIONAL_IDENTIFICATION_NUMBER);</span>
 <span class="source-line-no">1550</span><span id="line-1550">        }</span>
-<span class="source-line-no">1551</span><span id="line-1551"></span>
-<span class="source-line-no">1552</span><span id="line-1552">        return data;</span>
-<span class="source-line-no">1553</span><span id="line-1553">    }</span>
-<span class="source-line-no">1554</span><span id="line-1554"></span>
-<span class="source-line-no">1555</span><span id="line-1555">    /**</span>
-<span class="source-line-no">1556</span><span id="line-1556">     * Apply a collection of validations on a bytes array provided representing GZIP compressed data:</span>
-<span class="source-line-no">1557</span><span id="line-1557">     * &lt;ul&gt;</span>
-<span class="source-line-no">1558</span><span id="line-1558">     * &lt;li&gt;Are valid GZIP compressed data.&lt;/li&gt;</span>
-<span class="source-line-no">1559</span><span id="line-1559">     * &lt;li&gt;The number of bytes once decompressed is under the specified limit.&lt;/li&gt;</span>
-<span class="source-line-no">1560</span><span id="line-1560">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1561</span><span id="line-1561">     * &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; The value &lt;code&gt;Integer.MAX_VALUE - 8&lt;/code&gt; was chosen because during my tests on Java 25 (JDK 64 bits on Windows 11 Pro), it was possible to decompress such amount of data with the default JVM settings without causing an &lt;a href="https://docs.oracle.com/en/java/javase/25/docs/api//java.base/java/lang/OutOfMemoryError.html"&gt;Out Of Memory error&lt;/a&gt;.</span>
-<span class="source-line-no">1562</span><span id="line-1562">     *</span>
-<span class="source-line-no">1563</span><span id="line-1563">     * @param compressedBytes                    Array of bytes containing the GZIP compressed data to check.</span>
-<span class="source-line-no">1564</span><span id="line-1564">     * @param maxCountOfDecompressedBytesAllowed Maximum number of decompressed bytes allowed. Default to 10 MB if the specified value is inferior to 1 or superior to Integer.MAX_VALUE - 8.</span>
-<span class="source-line-no">1565</span><span id="line-1565">     * @return True only if the file pass all validations.</span>
-<span class="source-line-no">1566</span><span id="line-1566">     * @see "https://en.wikipedia.org/wiki/Gzip"</span>
-<span class="source-line-no">1567</span><span id="line-1567">     * @see "https://www.rapid7.com/db/modules/auxiliary/dos/http/gzip_bomb_dos/"</span>
-<span class="source-line-no">1568</span><span id="line-1568">     */</span>
-<span class="source-line-no">1569</span><span id="line-1569">    public static boolean isGZIPCompressedDataSafe(byte[] compressedBytes, long maxCountOfDecompressedBytesAllowed) {</span>
-<span class="source-line-no">1570</span><span id="line-1570">        boolean isSafe = false;</span>
-<span class="source-line-no">1571</span><span id="line-1571"></span>
-<span class="source-line-no">1572</span><span id="line-1572">        try {</span>
-<span class="source-line-no">1573</span><span id="line-1573">            long limit = maxCountOfDecompressedBytesAllowed;</span>
-<span class="source-line-no">1574</span><span id="line-1574">            long totalRead = 0L;</span>
-<span class="source-line-no">1575</span><span id="line-1575">            byte[] buffer = new byte[8 * 1024];</span>
-<span class="source-line-no">1576</span><span id="line-1576">            int read;</span>
-<span class="source-line-no">1577</span><span id="line-1577">            if (limit &lt; 1 || limit &gt; (Integer.MAX_VALUE - 8)) {</span>
-<span class="source-line-no">1578</span><span id="line-1578">                limit = 10_000_000;</span>
-<span class="source-line-no">1579</span><span id="line-1579">            }</span>
-<span class="source-line-no">1580</span><span id="line-1580">            try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedBytes); GZIPInputStream gzipInputStream = new GZIPInputStream(new BufferedInputStream(bis))) {</span>
-<span class="source-line-no">1581</span><span id="line-1581">                while ((read = gzipInputStream.read(buffer)) != -1) {</span>
-<span class="source-line-no">1582</span><span id="line-1582">                    totalRead += read;</span>
-<span class="source-line-no">1583</span><span id="line-1583">                    if (totalRead &gt; limit) {</span>
-<span class="source-line-no">1584</span><span id="line-1584">                        throw new Exception();</span>
-<span class="source-line-no">1585</span><span id="line-1585">                    }</span>
-<span class="source-line-no">1586</span><span id="line-1586">                }</span>
-<span class="source-line-no">1587</span><span id="line-1587">            }</span>
-<span class="source-line-no">1588</span><span id="line-1588">            isSafe = true;</span>
-<span class="source-line-no">1589</span><span id="line-1589">        } catch (Exception e) {</span>
-<span class="source-line-no">1590</span><span id="line-1590">            isSafe = false;</span>
-<span class="source-line-no">1591</span><span id="line-1591">        }</span>
-<span class="source-line-no">1592</span><span id="line-1592"></span>
-<span class="source-line-no">1593</span><span id="line-1593">        return isSafe;</span>
-<span class="source-line-no">1594</span><span id="line-1594">    }</span>
-<span class="source-line-no">1595</span><span id="line-1595"></span>
-<span class="source-line-no">1596</span><span id="line-1596">    /**</span>
-<span class="source-line-no">1597</span><span id="line-1597">     * Process a string, intended to be written in a log, to remove as much as possible information that can lead to an exposure to a log injection vulnerability.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1598</span><span id="line-1598">     * &lt;b&gt;Log injection&lt;/b&gt; is also called &lt;b&gt;log forging&lt;/b&gt;.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1599</span><span id="line-1599">     * The following information are removed:</span>
-<span class="source-line-no">1600</span><span id="line-1600">     * &lt;ul&gt;</span>
-<span class="source-line-no">1601</span><span id="line-1601">     *     &lt;li&gt;Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).&lt;/li&gt;</span>
-<span class="source-line-no">1602</span><span id="line-1602">     *     &lt;li&gt;Leading and trailing spaces.&lt;/li&gt;</span>
-<span class="source-line-no">1603</span><span id="line-1603">     *     &lt;li&gt;Any HTML tags.&lt;/li&gt;</span>
-<span class="source-line-no">1604</span><span id="line-1604">     * &lt;/ul&gt;&lt;br&gt;</span>
-<span class="source-line-no">1605</span><span id="line-1605">     * A parameter is also used to limit the maximum length of the sanitized message.</span>
-<span class="source-line-no">1606</span><span id="line-1606">     * To remove any HTML tags, the OWASP project &lt;a href="https://owasp.org/www-project-java-html-sanitizer/"&gt;Java HTML Sanitizer&lt;/a&gt; is leveraged.&lt;br&gt;</span>
-<span class="source-line-no">1607</span><span id="line-1607">     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.</span>
-<span class="source-line-no">1608</span><span id="line-1608">     *</span>
-<span class="source-line-no">1609</span><span id="line-1609">     * @param message          The original string message intended to be written in a log.</span>
-<span class="source-line-no">1610</span><span id="line-1610">     * @param maxMessageLength The maximum number of characters after which the sanitized message must be truncated. If inferior to 1 then default to the value of 500.</span>
-<span class="source-line-no">1611</span><span id="line-1611">     * @return The string message cleaned.</span>
-<span class="source-line-no">1612</span><span id="line-1612">     * @see "https://www.wallarm.com/what/log-forging-attack"</span>
-<span class="source-line-no">1613</span><span id="line-1613">     * @see "https://www.invicti.com/learn/crlf-injection"</span>
-<span class="source-line-no">1614</span><span id="line-1614">     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"</span>
-<span class="source-line-no">1615</span><span id="line-1615">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
-<span class="source-line-no">1616</span><span id="line-1616">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
-<span class="source-line-no">1617</span><span id="line-1617">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
-<span class="source-line-no">1618</span><span id="line-1618">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
-<span class="source-line-no">1619</span><span id="line-1619">     */</span>
-<span class="source-line-no">1620</span><span id="line-1620">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
-<span class="source-line-no">1621</span><span id="line-1621">        String sanitized = message;</span>
-<span class="source-line-no">1622</span><span id="line-1622">        int maxSanitizedMessageLength = maxMessageLength;</span>
-<span class="source-line-no">1623</span><span id="line-1623"></span>
-<span class="source-line-no">1624</span><span id="line-1624">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
-<span class="source-line-no">1625</span><span id="line-1625">            if (maxSanitizedMessageLength &lt; 1) {</span>
-<span class="source-line-no">1626</span><span id="line-1626">                maxSanitizedMessageLength = 500;</span>
-<span class="source-line-no">1627</span><span id="line-1627">            }</span>
-<span class="source-line-no">1628</span><span id="line-1628">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
-<span class="source-line-no">1629</span><span id="line-1629">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
-<span class="source-line-no">1630</span><span id="line-1630">            //Step 2: Remove any HTML tags</span>
-<span class="source-line-no">1631</span><span id="line-1631">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
-<span class="source-line-no">1632</span><span id="line-1632">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
-<span class="source-line-no">1633</span><span id="line-1633">            //Step 3: Truncate the string in case of need</span>
-<span class="source-line-no">1634</span><span id="line-1634">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
-<span class="source-line-no">1635</span><span id="line-1635">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
-<span class="source-line-no">1636</span><span id="line-1636">            }</span>
-<span class="source-line-no">1637</span><span id="line-1637">        }</span>
-<span class="source-line-no">1638</span><span id="line-1638"></span>
-<span class="source-line-no">1639</span><span id="line-1639">        return sanitized;</span>
-<span class="source-line-no">1640</span><span id="line-1640">    }</span>
-<span class="source-line-no">1641</span><span id="line-1641"></span>
-<span class="source-line-no">1642</span><span id="line-1642">    /**</span>
-<span class="source-line-no">1643</span><span id="line-1643">     * Identify if an XML is an SVG image.&lt;br&gt;</span>
-<span class="source-line-no">1644</span><span id="line-1644">     * The goal of this method is to prevent to leverage SVG, as an vector, to achieve a XSS when XML format is accepted.&lt;br&gt;</span>
-<span class="source-line-no">1645</span><span id="line-1645">     * Leverage &lt;a href="https://xmlgraphics.apache.org/batik/"&gt;Apache Batik&lt;/a&gt; to delegate the parsing and support for the SVG format.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1646</span><span id="line-1646">     * &lt;b&gt;Due to the intended usage of the method, the following choice were made:&lt;/b&gt;</span>
-<span class="source-line-no">1647</span><span id="line-1647">     * &lt;ul&gt;</span>
-<span class="source-line-no">1648</span><span id="line-1648">     * &lt;li&gt;Raise an exception when a non SVG related external references is identified.&lt;/li&gt;</span>
-<span class="source-line-no">1649</span><span id="line-1649">     * &lt;li&gt;Throw any exception that can occur if the provided content is invalid like for example an invalid XML file or a non existing file.&lt;/li&gt;</span>
-<span class="source-line-no">1650</span><span id="line-1650">     * &lt;li&gt;Explicitly check the XML prior to pass it to Batik even if Batik seems not prone to XXE/SSRF classes of vulnerability.&lt;/li&gt;</span>
-<span class="source-line-no">1651</span><span id="line-1651">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1652</span><span id="line-1652">     *</span>
-<span class="source-line-no">1653</span><span id="line-1653">     * @param xmlFilePath Filename of the XML file to check.</span>
-<span class="source-line-no">1654</span><span id="line-1654">     * @return True only if XML is an valid SVG image.</span>
-<span class="source-line-no">1655</span><span id="line-1655">     * @throws SecurityException If a non SVG external references is detected into the XML content.</span>
-<span class="source-line-no">1656</span><span id="line-1656">     * @throws Exception         If a error occur due to an invalid content provided.</span>
-<span class="source-line-no">1657</span><span id="line-1657">     * @see "https://developer.mozilla.org/en-US/docs/Web/SVG"</span>
-<span class="source-line-no">1658</span><span id="line-1658">     * @see "https://www.fortinet.com/blog/threat-research/scalable-vector-graphics-attack-surface-anatomy"</span>
-<span class="source-line-no">1659</span><span id="line-1659">     * @see "https://portswigger.net/web-security/cross-site-scripting"</span>
-<span class="source-line-no">1660</span><span id="line-1660">     * @see "https://xmlgraphics.apache.org/batik/"</span>
-<span class="source-line-no">1661</span><span id="line-1661">     * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"</span>
-<span class="source-line-no">1662</span><span id="line-1662">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-dom"</span>
-<span class="source-line-no">1663</span><span id="line-1663">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-anim"</span>
-<span class="source-line-no">1664</span><span id="line-1664">     * @see "https://portswigger.net/web-security/xxe"</span>
-<span class="source-line-no">1665</span><span id="line-1665">     * @see "https://portswigger.net/web-security/ssrf"</span>
-<span class="source-line-no">1666</span><span id="line-1666">     */</span>
-<span class="source-line-no">1667</span><span id="line-1667">    public static boolean isXMLSVGImage(String xmlFilePath) throws Exception {</span>
-<span class="source-line-no">1668</span><span id="line-1668">        boolean isSvg = true;</span>
-<span class="source-line-no">1669</span><span id="line-1669">        List&lt;String&gt; svgValidSystemIDs = List.of("http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd", "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd");</span>
-<span class="source-line-no">1670</span><span id="line-1670"></span>
-<span class="source-line-no">1671</span><span id="line-1671">        //Load the XML content into a reader</span>
-<span class="source-line-no">1672</span><span id="line-1672">        String xmlContent = Files.readString(Paths.get(xmlFilePath));</span>
-<span class="source-line-no">1673</span><span id="line-1673">        //Then ensure that the XML document does not contains any non SVG external references</span>
-<span class="source-line-no">1674</span><span id="line-1674">        try (Reader reader = StringReader.of(xmlContent)) {</span>
-<span class="source-line-no">1675</span><span id="line-1675">            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();</span>
-<span class="source-line-no">1676</span><span id="line-1676">            DocumentBuilder docBuilder = xmlFactory.newDocumentBuilder();</span>
-<span class="source-line-no">1677</span><span id="line-1677">            docBuilder.setEntityResolver((publicId, systemId) -&gt; {</span>
-<span class="source-line-no">1678</span><span id="line-1678">                if (systemId != null &amp;&amp; !svgValidSystemIDs.contains(systemId)) {</span>
-<span class="source-line-no">1679</span><span id="line-1679">                    throw new SecurityException("External references detected: " + systemId);</span>
-<span class="source-line-no">1680</span><span id="line-1680">                }</span>
-<span class="source-line-no">1681</span><span id="line-1681">                return new InputSource(new ByteArrayInputStream("".getBytes()));</span>
-<span class="source-line-no">1682</span><span id="line-1682">            });</span>
-<span class="source-line-no">1683</span><span id="line-1683">            docBuilder.parse(new InputSource(reader));</span>
-<span class="source-line-no">1684</span><span id="line-1684">        }</span>
-<span class="source-line-no">1685</span><span id="line-1685">        //Then parse the XML with Apache Batik</span>
-<span class="source-line-no">1686</span><span id="line-1686">        try (Reader reader = StringReader.of(xmlContent)) {</span>
-<span class="source-line-no">1687</span><span id="line-1687">            //Method SAXDocumentFactory.createDocument() do not load external DTD or entities.</span>
-<span class="source-line-no">1688</span><span id="line-1688">            String parserClassName = XMLResourceDescriptor.getXMLParserClassName();</span>
-<span class="source-line-no">1689</span><span id="line-1689">            SAXSVGDocumentFactory svgFactory = new SAXSVGDocumentFactory(parserClassName);</span>
-<span class="source-line-no">1690</span><span id="line-1690">            //Method svgFactory.createSVGDocument() raise an IO exception if the XML is not a valid SVG image</span>
-<span class="source-line-no">1691</span><span id="line-1691">            try {</span>
-<span class="source-line-no">1692</span><span id="line-1692">                SVGDocument doc = svgFactory.createSVGDocument(null, reader);</span>
-<span class="source-line-no">1693</span><span id="line-1693">                isSvg = (doc != null &amp;&amp; doc.getRootElement() != null);</span>
-<span class="source-line-no">1694</span><span id="line-1694">            } catch (IOException e) {</span>
-<span class="source-line-no">1695</span><span id="line-1695">                isSvg = false;</span>
-<span class="source-line-no">1696</span><span id="line-1696">            }</span>
-<span class="source-line-no">1697</span><span id="line-1697">        }</span>
-<span class="source-line-no">1698</span><span id="line-1698"></span>
-<span class="source-line-no">1699</span><span id="line-1699">        return isSvg;</span>
-<span class="source-line-no">1700</span><span id="line-1700">    }</span>
-<span class="source-line-no">1701</span><span id="line-1701">}</span>
+<span class="source-line-no">1551</span><span id="line-1551">        if (data.get(SensitiveInformationType.IBAN).isEmpty()) {</span>
+<span class="source-line-no">1552</span><span id="line-1552">            data.remove(SensitiveInformationType.IBAN);</span>
+<span class="source-line-no">1553</span><span id="line-1553">        }</span>
+<span class="source-line-no">1554</span><span id="line-1554">        if (data.get(SensitiveInformationType.BANK_CARD_PAN).isEmpty()) {</span>
+<span class="source-line-no">1555</span><span id="line-1555">            data.remove(SensitiveInformationType.BANK_CARD_PAN);</span>
+<span class="source-line-no">1556</span><span id="line-1556">        }</span>
+<span class="source-line-no">1557</span><span id="line-1557"></span>
+<span class="source-line-no">1558</span><span id="line-1558">        return data;</span>
+<span class="source-line-no">1559</span><span id="line-1559">    }</span>
+<span class="source-line-no">1560</span><span id="line-1560"></span>
+<span class="source-line-no">1561</span><span id="line-1561">    /**</span>
+<span class="source-line-no">1562</span><span id="line-1562">     * Apply a collection of validations on a bytes array provided representing GZIP compressed data:</span>
+<span class="source-line-no">1563</span><span id="line-1563">     * &lt;ul&gt;</span>
+<span class="source-line-no">1564</span><span id="line-1564">     * &lt;li&gt;Are valid GZIP compressed data.&lt;/li&gt;</span>
+<span class="source-line-no">1565</span><span id="line-1565">     * &lt;li&gt;The number of bytes once decompressed is under the specified limit.&lt;/li&gt;</span>
+<span class="source-line-no">1566</span><span id="line-1566">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1567</span><span id="line-1567">     * &lt;br&gt;&lt;b&gt;Note:&lt;/b&gt; The value &lt;code&gt;Integer.MAX_VALUE - 8&lt;/code&gt; was chosen because during my tests on Java 25 (JDK 64 bits on Windows 11 Pro), it was possible to decompress such amount of data with the default JVM settings without causing an &lt;a href="https://docs.oracle.com/en/java/javase/25/docs/api//java.base/java/lang/OutOfMemoryError.html"&gt;Out Of Memory error&lt;/a&gt;.</span>
+<span class="source-line-no">1568</span><span id="line-1568">     *</span>
+<span class="source-line-no">1569</span><span id="line-1569">     * @param compressedBytes                    Array of bytes containing the GZIP compressed data to check.</span>
+<span class="source-line-no">1570</span><span id="line-1570">     * @param maxCountOfDecompressedBytesAllowed Maximum number of decompressed bytes allowed. Default to 10 MB if the specified value is inferior to 1 or superior to Integer.MAX_VALUE - 8.</span>
+<span class="source-line-no">1571</span><span id="line-1571">     * @return True only if the file pass all validations.</span>
+<span class="source-line-no">1572</span><span id="line-1572">     * @see "https://en.wikipedia.org/wiki/Gzip"</span>
+<span class="source-line-no">1573</span><span id="line-1573">     * @see "https://www.rapid7.com/db/modules/auxiliary/dos/http/gzip_bomb_dos/"</span>
+<span class="source-line-no">1574</span><span id="line-1574">     */</span>
+<span class="source-line-no">1575</span><span id="line-1575">    public static boolean isGZIPCompressedDataSafe(byte[] compressedBytes, long maxCountOfDecompressedBytesAllowed) {</span>
+<span class="source-line-no">1576</span><span id="line-1576">        boolean isSafe = false;</span>
+<span class="source-line-no">1577</span><span id="line-1577"></span>
+<span class="source-line-no">1578</span><span id="line-1578">        try {</span>
+<span class="source-line-no">1579</span><span id="line-1579">            long limit = maxCountOfDecompressedBytesAllowed;</span>
+<span class="source-line-no">1580</span><span id="line-1580">            long totalRead = 0L;</span>
+<span class="source-line-no">1581</span><span id="line-1581">            byte[] buffer = new byte[8 * 1024];</span>
+<span class="source-line-no">1582</span><span id="line-1582">            int read;</span>
+<span class="source-line-no">1583</span><span id="line-1583">            if (limit &lt; 1 || limit &gt; (Integer.MAX_VALUE - 8)) {</span>
+<span class="source-line-no">1584</span><span id="line-1584">                limit = 10_000_000;</span>
+<span class="source-line-no">1585</span><span id="line-1585">            }</span>
+<span class="source-line-no">1586</span><span id="line-1586">            try (ByteArrayInputStream bis = new ByteArrayInputStream(compressedBytes); GZIPInputStream gzipInputStream = new GZIPInputStream(new BufferedInputStream(bis))) {</span>
+<span class="source-line-no">1587</span><span id="line-1587">                while ((read = gzipInputStream.read(buffer)) != -1) {</span>
+<span class="source-line-no">1588</span><span id="line-1588">                    totalRead += read;</span>
+<span class="source-line-no">1589</span><span id="line-1589">                    if (totalRead &gt; limit) {</span>
+<span class="source-line-no">1590</span><span id="line-1590">                        throw new Exception();</span>
+<span class="source-line-no">1591</span><span id="line-1591">                    }</span>
+<span class="source-line-no">1592</span><span id="line-1592">                }</span>
+<span class="source-line-no">1593</span><span id="line-1593">            }</span>
+<span class="source-line-no">1594</span><span id="line-1594">            isSafe = true;</span>
+<span class="source-line-no">1595</span><span id="line-1595">        } catch (Exception e) {</span>
+<span class="source-line-no">1596</span><span id="line-1596">            isSafe = false;</span>
+<span class="source-line-no">1597</span><span id="line-1597">        }</span>
+<span class="source-line-no">1598</span><span id="line-1598"></span>
+<span class="source-line-no">1599</span><span id="line-1599">        return isSafe;</span>
+<span class="source-line-no">1600</span><span id="line-1600">    }</span>
+<span class="source-line-no">1601</span><span id="line-1601"></span>
+<span class="source-line-no">1602</span><span id="line-1602">    /**</span>
+<span class="source-line-no">1603</span><span id="line-1603">     * Process a string, intended to be written in a log, to remove as much as possible information that can lead to an exposure to a log injection vulnerability.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1604</span><span id="line-1604">     * &lt;b&gt;Log injection&lt;/b&gt; is also called &lt;b&gt;log forging&lt;/b&gt;.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1605</span><span id="line-1605">     * The following information are removed:</span>
+<span class="source-line-no">1606</span><span id="line-1606">     * &lt;ul&gt;</span>
+<span class="source-line-no">1607</span><span id="line-1607">     *     &lt;li&gt;Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).&lt;/li&gt;</span>
+<span class="source-line-no">1608</span><span id="line-1608">     *     &lt;li&gt;Leading and trailing spaces.&lt;/li&gt;</span>
+<span class="source-line-no">1609</span><span id="line-1609">     *     &lt;li&gt;Any HTML tags.&lt;/li&gt;</span>
+<span class="source-line-no">1610</span><span id="line-1610">     * &lt;/ul&gt;&lt;br&gt;</span>
+<span class="source-line-no">1611</span><span id="line-1611">     * A parameter is also used to limit the maximum length of the sanitized message.</span>
+<span class="source-line-no">1612</span><span id="line-1612">     * To remove any HTML tags, the OWASP project &lt;a href="https://owasp.org/www-project-java-html-sanitizer/"&gt;Java HTML Sanitizer&lt;/a&gt; is leveraged.&lt;br&gt;</span>
+<span class="source-line-no">1613</span><span id="line-1613">     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.</span>
+<span class="source-line-no">1614</span><span id="line-1614">     *</span>
+<span class="source-line-no">1615</span><span id="line-1615">     * @param message          The original string message intended to be written in a log.</span>
+<span class="source-line-no">1616</span><span id="line-1616">     * @param maxMessageLength The maximum number of characters after which the sanitized message must be truncated. If inferior to 1 then default to the value of 500.</span>
+<span class="source-line-no">1617</span><span id="line-1617">     * @return The string message cleaned.</span>
+<span class="source-line-no">1618</span><span id="line-1618">     * @see "https://www.wallarm.com/what/log-forging-attack"</span>
+<span class="source-line-no">1619</span><span id="line-1619">     * @see "https://www.invicti.com/learn/crlf-injection"</span>
+<span class="source-line-no">1620</span><span id="line-1620">     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"</span>
+<span class="source-line-no">1621</span><span id="line-1621">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
+<span class="source-line-no">1622</span><span id="line-1622">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
+<span class="source-line-no">1623</span><span id="line-1623">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
+<span class="source-line-no">1624</span><span id="line-1624">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
+<span class="source-line-no">1625</span><span id="line-1625">     */</span>
+<span class="source-line-no">1626</span><span id="line-1626">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
+<span class="source-line-no">1627</span><span id="line-1627">        String sanitized = message;</span>
+<span class="source-line-no">1628</span><span id="line-1628">        int maxSanitizedMessageLength = maxMessageLength;</span>
+<span class="source-line-no">1629</span><span id="line-1629"></span>
+<span class="source-line-no">1630</span><span id="line-1630">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
+<span class="source-line-no">1631</span><span id="line-1631">            if (maxSanitizedMessageLength &lt; 1) {</span>
+<span class="source-line-no">1632</span><span id="line-1632">                maxSanitizedMessageLength = 500;</span>
+<span class="source-line-no">1633</span><span id="line-1633">            }</span>
+<span class="source-line-no">1634</span><span id="line-1634">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
+<span class="source-line-no">1635</span><span id="line-1635">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
+<span class="source-line-no">1636</span><span id="line-1636">            //Step 2: Remove any HTML tags</span>
+<span class="source-line-no">1637</span><span id="line-1637">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
+<span class="source-line-no">1638</span><span id="line-1638">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
+<span class="source-line-no">1639</span><span id="line-1639">            //Step 3: Truncate the string in case of need</span>
+<span class="source-line-no">1640</span><span id="line-1640">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
+<span class="source-line-no">1641</span><span id="line-1641">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
+<span class="source-line-no">1642</span><span id="line-1642">            }</span>
+<span class="source-line-no">1643</span><span id="line-1643">        }</span>
+<span class="source-line-no">1644</span><span id="line-1644"></span>
+<span class="source-line-no">1645</span><span id="line-1645">        return sanitized;</span>
+<span class="source-line-no">1646</span><span id="line-1646">    }</span>
+<span class="source-line-no">1647</span><span id="line-1647"></span>
+<span class="source-line-no">1648</span><span id="line-1648">    /**</span>
+<span class="source-line-no">1649</span><span id="line-1649">     * Identify if an XML is an SVG image.&lt;br&gt;</span>
+<span class="source-line-no">1650</span><span id="line-1650">     * The goal of this method is to prevent to leverage SVG, as an vector, to achieve a XSS when XML format is accepted.&lt;br&gt;</span>
+<span class="source-line-no">1651</span><span id="line-1651">     * Leverage &lt;a href="https://xmlgraphics.apache.org/batik/"&gt;Apache Batik&lt;/a&gt; to delegate the parsing and support for the SVG format.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1652</span><span id="line-1652">     * &lt;b&gt;Due to the intended usage of the method, the following choice were made:&lt;/b&gt;</span>
+<span class="source-line-no">1653</span><span id="line-1653">     * &lt;ul&gt;</span>
+<span class="source-line-no">1654</span><span id="line-1654">     * &lt;li&gt;Raise an exception when a non SVG related external references is identified.&lt;/li&gt;</span>
+<span class="source-line-no">1655</span><span id="line-1655">     * &lt;li&gt;Throw any exception that can occur if the provided content is invalid like for example an invalid XML file or a non existing file.&lt;/li&gt;</span>
+<span class="source-line-no">1656</span><span id="line-1656">     * &lt;li&gt;Explicitly check the XML prior to pass it to Batik even if Batik seems not prone to XXE/SSRF classes of vulnerability.&lt;/li&gt;</span>
+<span class="source-line-no">1657</span><span id="line-1657">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1658</span><span id="line-1658">     *</span>
+<span class="source-line-no">1659</span><span id="line-1659">     * @param xmlFilePath Filename of the XML file to check.</span>
+<span class="source-line-no">1660</span><span id="line-1660">     * @return True only if XML is an valid SVG image.</span>
+<span class="source-line-no">1661</span><span id="line-1661">     * @throws SecurityException If a non SVG external references is detected into the XML content.</span>
+<span class="source-line-no">1662</span><span id="line-1662">     * @throws Exception         If a error occur due to an invalid content provided.</span>
+<span class="source-line-no">1663</span><span id="line-1663">     * @see "https://developer.mozilla.org/en-US/docs/Web/SVG"</span>
+<span class="source-line-no">1664</span><span id="line-1664">     * @see "https://www.fortinet.com/blog/threat-research/scalable-vector-graphics-attack-surface-anatomy"</span>
+<span class="source-line-no">1665</span><span id="line-1665">     * @see "https://portswigger.net/web-security/cross-site-scripting"</span>
+<span class="source-line-no">1666</span><span id="line-1666">     * @see "https://xmlgraphics.apache.org/batik/"</span>
+<span class="source-line-no">1667</span><span id="line-1667">     * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"</span>
+<span class="source-line-no">1668</span><span id="line-1668">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-dom"</span>
+<span class="source-line-no">1669</span><span id="line-1669">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-anim"</span>
+<span class="source-line-no">1670</span><span id="line-1670">     * @see "https://portswigger.net/web-security/xxe"</span>
+<span class="source-line-no">1671</span><span id="line-1671">     * @see "https://portswigger.net/web-security/ssrf"</span>
+<span class="source-line-no">1672</span><span id="line-1672">     */</span>
+<span class="source-line-no">1673</span><span id="line-1673">    public static boolean isXMLSVGImage(String xmlFilePath) throws Exception {</span>
+<span class="source-line-no">1674</span><span id="line-1674">        boolean isSvg = true;</span>
+<span class="source-line-no">1675</span><span id="line-1675">        List&lt;String&gt; svgValidSystemIDs = List.of("http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd", "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd");</span>
+<span class="source-line-no">1676</span><span id="line-1676"></span>
+<span class="source-line-no">1677</span><span id="line-1677">        //Load the XML content into a reader</span>
+<span class="source-line-no">1678</span><span id="line-1678">        String xmlContent = Files.readString(Paths.get(xmlFilePath));</span>
+<span class="source-line-no">1679</span><span id="line-1679">        //Then ensure that the XML document does not contains any non SVG external references</span>
+<span class="source-line-no">1680</span><span id="line-1680">        try (Reader reader = StringReader.of(xmlContent)) {</span>
+<span class="source-line-no">1681</span><span id="line-1681">            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();</span>
+<span class="source-line-no">1682</span><span id="line-1682">            DocumentBuilder docBuilder = xmlFactory.newDocumentBuilder();</span>
+<span class="source-line-no">1683</span><span id="line-1683">            docBuilder.setEntityResolver((publicId, systemId) -&gt; {</span>
+<span class="source-line-no">1684</span><span id="line-1684">                if (systemId != null &amp;&amp; !svgValidSystemIDs.contains(systemId)) {</span>
+<span class="source-line-no">1685</span><span id="line-1685">                    throw new SecurityException("External references detected: " + systemId);</span>
+<span class="source-line-no">1686</span><span id="line-1686">                }</span>
+<span class="source-line-no">1687</span><span id="line-1687">                return new InputSource(new ByteArrayInputStream("".getBytes()));</span>
+<span class="source-line-no">1688</span><span id="line-1688">            });</span>
+<span class="source-line-no">1689</span><span id="line-1689">            docBuilder.parse(new InputSource(reader));</span>
+<span class="source-line-no">1690</span><span id="line-1690">        }</span>
+<span class="source-line-no">1691</span><span id="line-1691">        //Then parse the XML with Apache Batik</span>
+<span class="source-line-no">1692</span><span id="line-1692">        try (Reader reader = StringReader.of(xmlContent)) {</span>
+<span class="source-line-no">1693</span><span id="line-1693">            //Method SAXDocumentFactory.createDocument() do not load external DTD or entities.</span>
+<span class="source-line-no">1694</span><span id="line-1694">            String parserClassName = XMLResourceDescriptor.getXMLParserClassName();</span>
+<span class="source-line-no">1695</span><span id="line-1695">            SAXSVGDocumentFactory svgFactory = new SAXSVGDocumentFactory(parserClassName);</span>
+<span class="source-line-no">1696</span><span id="line-1696">            //Method svgFactory.createSVGDocument() raise an IO exception if the XML is not a valid SVG image</span>
+<span class="source-line-no">1697</span><span id="line-1697">            try {</span>
+<span class="source-line-no">1698</span><span id="line-1698">                SVGDocument doc = svgFactory.createSVGDocument(null, reader);</span>
+<span class="source-line-no">1699</span><span id="line-1699">                isSvg = (doc != null &amp;&amp; doc.getRootElement() != null);</span>
+<span class="source-line-no">1700</span><span id="line-1700">            } catch (IOException e) {</span>
+<span class="source-line-no">1701</span><span id="line-1701">                isSvg = false;</span>
+<span class="source-line-no">1702</span><span id="line-1702">            }</span>
+<span class="source-line-no">1703</span><span id="line-1703">        }</span>
+<span class="source-line-no">1704</span><span id="line-1704"></span>
+<span class="source-line-no">1705</span><span id="line-1705">        return isSvg;</span>
+<span class="source-line-no">1706</span><span id="line-1706">    }</span>
+<span class="source-line-no">1707</span><span id="line-1707">}</span>
 
 
 
