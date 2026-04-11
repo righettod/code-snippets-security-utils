@@ -1018,14 +1018,20 @@ public class SecurityUtils {
                 Image initialSizedImage = resizedImage.getScaledInstance(originalWidth, originalHeight, Image.SCALE_SMOOTH);
                 // Save image to a bytes buffer
                 int bufferedImageType = BufferedImage.TYPE_INT_ARGB;//By default use a format supporting transparency
-                if ("jpeg".equalsIgnoreCase(originalFormat) || "bmp".equalsIgnoreCase(originalFormat)) {
+                //Sometimes for BMP, the format detected is "bmp; format=compressed"
+                if ("jpeg".equalsIgnoreCase(originalFormat) || "bmp".equalsIgnoreCase(originalFormat) || originalFormat.startsWith("bmp;")) {
                     bufferedImageType = BufferedImage.TYPE_INT_RGB;
                 }
                 BufferedImage sanitizedImage = new BufferedImage(initialSizedImage.getWidth(null), initialSizedImage.getHeight(null), bufferedImageType);
                 Graphics2D drawer = sanitizedImage.createGraphics();
                 drawer.drawImage(initialSizedImage, 0, 0, null);
                 drawer.dispose();
-                ImageIO.write(sanitizedImage, originalFormat, sanitizedContent);
+                //Handle "bmp; format=compressed" case
+                String formatToUse = originalFormat;
+                if (formatToUse.startsWith("bmp;")) {
+                    formatToUse = formatToUse.split(";")[0].trim();
+                }
+                ImageIO.write(sanitizedImage, formatToUse, sanitizedContent);
             }
             default -> throw new IllegalArgumentException("Type of file not supported !");
         }
