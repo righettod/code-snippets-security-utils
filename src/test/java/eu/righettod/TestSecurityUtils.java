@@ -798,6 +798,8 @@ public class TestSecurityUtils {
         cases.add(new String[]{"1000", "     test<xss>msg</xss>\n1\r2\t3\t4\n5\r6\t7\t\r\n     ", "testmsg1234567"});
         cases.add(new String[]{"0", "<b>test msg</b><script>alert(1)</script>", "test msg"});
         cases.add(new String[]{"10", "AAAAAAAAAACCC<script src='https://evil.com/a.js'></script>BBBBBBBBBB", "AAAAAAAAAA"});
+        cases.add(new String[]{"100", "hello\u2028world\u2029end", "helloworldend"});
+        cases.add(new String[]{"100", "hello\u001B[31mworld\u001Bend", "helloworldend"});
         cases.forEach(caseData -> {
             int maxMessageLength = Integer.parseInt(caseData[0].trim());
             String originalMessage = caseData[1];

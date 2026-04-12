@@ -1605,6 +1605,8 @@ public class SecurityUtils {
      * The following information are removed:
      * <ul>
      *     <li>Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).</li>
+     *     <li>Characters: Unicode LINE SEPARATOR and Unicode PARAGRAPH SEPARATOR.</li>
+     *     <li>Characters: CSI sequences and bare ESC.</li>
      *     <li>Leading and trailing spaces.</li>
      *     <li>Any HTML tags.</li>
      * </ul><br>
@@ -1633,10 +1635,14 @@ public class SecurityUtils {
             }
             //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces
             sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();
-            //Step 2: Remove any HTML tags
+            //Step 2: Remove any Unicode LINE SEPARATOR or Unicode PARAGRAPH SEPARATOR as well as leading and trailing spaces
+            sanitized = sanitized.replace("\u2028", "").replace("\u2029", "").trim();
+            //Step 3: Remove ANSI escape sequences as well as leading and trailing spaces
+            sanitized = sanitized.replaceAll("\u001B\\[[\\d;]*[a-zA-Z]", "").replace("\u001B", "").trim();
+            //Step 4: Remove any HTML tags
             PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();
             sanitized = htmlSanitizerPolicy.sanitize(sanitized);
-            //Step 3: Truncate the string in case of need
+            //Step 5: Truncate the string in case of need
             if (sanitized.length() > maxSanitizedMessageLength) {
                 sanitized = sanitized.substring(0, maxSanitizedMessageLength);
             }
