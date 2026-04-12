@@ -1618,106 +1618,112 @@
 <span class="source-line-no">1605</span><span id="line-1605">     * The following information are removed:</span>
 <span class="source-line-no">1606</span><span id="line-1606">     * &lt;ul&gt;</span>
 <span class="source-line-no">1607</span><span id="line-1607">     *     &lt;li&gt;Characters: Carriage Return (CR), Linefeed (LF) and Tabulation (TAB).&lt;/li&gt;</span>
-<span class="source-line-no">1608</span><span id="line-1608">     *     &lt;li&gt;Leading and trailing spaces.&lt;/li&gt;</span>
-<span class="source-line-no">1609</span><span id="line-1609">     *     &lt;li&gt;Any HTML tags.&lt;/li&gt;</span>
-<span class="source-line-no">1610</span><span id="line-1610">     * &lt;/ul&gt;&lt;br&gt;</span>
-<span class="source-line-no">1611</span><span id="line-1611">     * A parameter is also used to limit the maximum length of the sanitized message.</span>
-<span class="source-line-no">1612</span><span id="line-1612">     * To remove any HTML tags, the OWASP project &lt;a href="https://owasp.org/www-project-java-html-sanitizer/"&gt;Java HTML Sanitizer&lt;/a&gt; is leveraged.&lt;br&gt;</span>
-<span class="source-line-no">1613</span><span id="line-1613">     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.</span>
-<span class="source-line-no">1614</span><span id="line-1614">     *</span>
-<span class="source-line-no">1615</span><span id="line-1615">     * @param message          The original string message intended to be written in a log.</span>
-<span class="source-line-no">1616</span><span id="line-1616">     * @param maxMessageLength The maximum number of characters after which the sanitized message must be truncated. If inferior to 1 then default to the value of 500.</span>
-<span class="source-line-no">1617</span><span id="line-1617">     * @return The string message cleaned.</span>
-<span class="source-line-no">1618</span><span id="line-1618">     * @see "https://www.wallarm.com/what/log-forging-attack"</span>
-<span class="source-line-no">1619</span><span id="line-1619">     * @see "https://www.invicti.com/learn/crlf-injection"</span>
-<span class="source-line-no">1620</span><span id="line-1620">     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"</span>
-<span class="source-line-no">1621</span><span id="line-1621">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
-<span class="source-line-no">1622</span><span id="line-1622">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
-<span class="source-line-no">1623</span><span id="line-1623">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
-<span class="source-line-no">1624</span><span id="line-1624">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
-<span class="source-line-no">1625</span><span id="line-1625">     */</span>
-<span class="source-line-no">1626</span><span id="line-1626">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
-<span class="source-line-no">1627</span><span id="line-1627">        String sanitized = message;</span>
-<span class="source-line-no">1628</span><span id="line-1628">        int maxSanitizedMessageLength = maxMessageLength;</span>
-<span class="source-line-no">1629</span><span id="line-1629"></span>
-<span class="source-line-no">1630</span><span id="line-1630">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
-<span class="source-line-no">1631</span><span id="line-1631">            if (maxSanitizedMessageLength &lt; 1) {</span>
-<span class="source-line-no">1632</span><span id="line-1632">                maxSanitizedMessageLength = 500;</span>
-<span class="source-line-no">1633</span><span id="line-1633">            }</span>
-<span class="source-line-no">1634</span><span id="line-1634">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
-<span class="source-line-no">1635</span><span id="line-1635">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
-<span class="source-line-no">1636</span><span id="line-1636">            //Step 2: Remove any HTML tags</span>
-<span class="source-line-no">1637</span><span id="line-1637">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
-<span class="source-line-no">1638</span><span id="line-1638">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
-<span class="source-line-no">1639</span><span id="line-1639">            //Step 3: Truncate the string in case of need</span>
-<span class="source-line-no">1640</span><span id="line-1640">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
-<span class="source-line-no">1641</span><span id="line-1641">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
-<span class="source-line-no">1642</span><span id="line-1642">            }</span>
-<span class="source-line-no">1643</span><span id="line-1643">        }</span>
-<span class="source-line-no">1644</span><span id="line-1644"></span>
-<span class="source-line-no">1645</span><span id="line-1645">        return sanitized;</span>
-<span class="source-line-no">1646</span><span id="line-1646">    }</span>
-<span class="source-line-no">1647</span><span id="line-1647"></span>
-<span class="source-line-no">1648</span><span id="line-1648">    /**</span>
-<span class="source-line-no">1649</span><span id="line-1649">     * Identify if an XML is an SVG image.&lt;br&gt;</span>
-<span class="source-line-no">1650</span><span id="line-1650">     * The goal of this method is to prevent to leverage SVG, as an vector, to achieve a XSS when XML format is accepted.&lt;br&gt;</span>
-<span class="source-line-no">1651</span><span id="line-1651">     * Leverage &lt;a href="https://xmlgraphics.apache.org/batik/"&gt;Apache Batik&lt;/a&gt; to delegate the parsing and support for the SVG format.&lt;br&gt;&lt;br&gt;</span>
-<span class="source-line-no">1652</span><span id="line-1652">     * &lt;b&gt;Due to the intended usage of the method, the following choice were made:&lt;/b&gt;</span>
-<span class="source-line-no">1653</span><span id="line-1653">     * &lt;ul&gt;</span>
-<span class="source-line-no">1654</span><span id="line-1654">     * &lt;li&gt;Raise an exception when a non SVG related external references is identified.&lt;/li&gt;</span>
-<span class="source-line-no">1655</span><span id="line-1655">     * &lt;li&gt;Throw any exception that can occur if the provided content is invalid like for example an invalid XML file or a non existing file.&lt;/li&gt;</span>
-<span class="source-line-no">1656</span><span id="line-1656">     * &lt;li&gt;Explicitly check the XML prior to pass it to Batik even if Batik seems not prone to XXE/SSRF classes of vulnerability.&lt;/li&gt;</span>
-<span class="source-line-no">1657</span><span id="line-1657">     * &lt;/ul&gt;</span>
-<span class="source-line-no">1658</span><span id="line-1658">     *</span>
-<span class="source-line-no">1659</span><span id="line-1659">     * @param xmlFilePath Filename of the XML file to check.</span>
-<span class="source-line-no">1660</span><span id="line-1660">     * @return True only if XML is an valid SVG image.</span>
-<span class="source-line-no">1661</span><span id="line-1661">     * @throws SecurityException If a non SVG external references is detected into the XML content.</span>
-<span class="source-line-no">1662</span><span id="line-1662">     * @throws Exception         If a error occur due to an invalid content provided.</span>
-<span class="source-line-no">1663</span><span id="line-1663">     * @see "https://developer.mozilla.org/en-US/docs/Web/SVG"</span>
-<span class="source-line-no">1664</span><span id="line-1664">     * @see "https://www.fortinet.com/blog/threat-research/scalable-vector-graphics-attack-surface-anatomy"</span>
-<span class="source-line-no">1665</span><span id="line-1665">     * @see "https://portswigger.net/web-security/cross-site-scripting"</span>
-<span class="source-line-no">1666</span><span id="line-1666">     * @see "https://xmlgraphics.apache.org/batik/"</span>
-<span class="source-line-no">1667</span><span id="line-1667">     * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"</span>
-<span class="source-line-no">1668</span><span id="line-1668">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-dom"</span>
-<span class="source-line-no">1669</span><span id="line-1669">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-anim"</span>
-<span class="source-line-no">1670</span><span id="line-1670">     * @see "https://portswigger.net/web-security/xxe"</span>
-<span class="source-line-no">1671</span><span id="line-1671">     * @see "https://portswigger.net/web-security/ssrf"</span>
-<span class="source-line-no">1672</span><span id="line-1672">     */</span>
-<span class="source-line-no">1673</span><span id="line-1673">    public static boolean isXMLSVGImage(String xmlFilePath) throws Exception {</span>
-<span class="source-line-no">1674</span><span id="line-1674">        boolean isSvg = true;</span>
-<span class="source-line-no">1675</span><span id="line-1675">        List&lt;String&gt; svgValidSystemIDs = List.of("http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd", "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd");</span>
-<span class="source-line-no">1676</span><span id="line-1676"></span>
-<span class="source-line-no">1677</span><span id="line-1677">        //Load the XML content into a reader</span>
-<span class="source-line-no">1678</span><span id="line-1678">        String xmlContent = Files.readString(Paths.get(xmlFilePath));</span>
-<span class="source-line-no">1679</span><span id="line-1679">        //Then ensure that the XML document does not contains any non SVG external references</span>
-<span class="source-line-no">1680</span><span id="line-1680">        try (Reader reader = StringReader.of(xmlContent)) {</span>
-<span class="source-line-no">1681</span><span id="line-1681">            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();</span>
-<span class="source-line-no">1682</span><span id="line-1682">            DocumentBuilder docBuilder = xmlFactory.newDocumentBuilder();</span>
-<span class="source-line-no">1683</span><span id="line-1683">            docBuilder.setEntityResolver((publicId, systemId) -&gt; {</span>
-<span class="source-line-no">1684</span><span id="line-1684">                if (systemId != null &amp;&amp; !svgValidSystemIDs.contains(systemId)) {</span>
-<span class="source-line-no">1685</span><span id="line-1685">                    throw new SecurityException("External references detected: " + systemId);</span>
-<span class="source-line-no">1686</span><span id="line-1686">                }</span>
-<span class="source-line-no">1687</span><span id="line-1687">                return new InputSource(new ByteArrayInputStream("".getBytes()));</span>
-<span class="source-line-no">1688</span><span id="line-1688">            });</span>
-<span class="source-line-no">1689</span><span id="line-1689">            docBuilder.parse(new InputSource(reader));</span>
-<span class="source-line-no">1690</span><span id="line-1690">        }</span>
-<span class="source-line-no">1691</span><span id="line-1691">        //Then parse the XML with Apache Batik</span>
-<span class="source-line-no">1692</span><span id="line-1692">        try (Reader reader = StringReader.of(xmlContent)) {</span>
-<span class="source-line-no">1693</span><span id="line-1693">            //Method SAXDocumentFactory.createDocument() do not load external DTD or entities.</span>
-<span class="source-line-no">1694</span><span id="line-1694">            String parserClassName = XMLResourceDescriptor.getXMLParserClassName();</span>
-<span class="source-line-no">1695</span><span id="line-1695">            SAXSVGDocumentFactory svgFactory = new SAXSVGDocumentFactory(parserClassName);</span>
-<span class="source-line-no">1696</span><span id="line-1696">            //Method svgFactory.createSVGDocument() raise an IO exception if the XML is not a valid SVG image</span>
-<span class="source-line-no">1697</span><span id="line-1697">            try {</span>
-<span class="source-line-no">1698</span><span id="line-1698">                SVGDocument doc = svgFactory.createSVGDocument(null, reader);</span>
-<span class="source-line-no">1699</span><span id="line-1699">                isSvg = (doc != null &amp;&amp; doc.getRootElement() != null);</span>
-<span class="source-line-no">1700</span><span id="line-1700">            } catch (IOException e) {</span>
-<span class="source-line-no">1701</span><span id="line-1701">                isSvg = false;</span>
-<span class="source-line-no">1702</span><span id="line-1702">            }</span>
-<span class="source-line-no">1703</span><span id="line-1703">        }</span>
-<span class="source-line-no">1704</span><span id="line-1704"></span>
-<span class="source-line-no">1705</span><span id="line-1705">        return isSvg;</span>
-<span class="source-line-no">1706</span><span id="line-1706">    }</span>
-<span class="source-line-no">1707</span><span id="line-1707">}</span>
+<span class="source-line-no">1608</span><span id="line-1608">     *     &lt;li&gt;Characters: Unicode LINE SEPARATOR and Unicode PARAGRAPH SEPARATOR.&lt;/li&gt;</span>
+<span class="source-line-no">1609</span><span id="line-1609">     *     &lt;li&gt;Characters: CSI sequences and bare ESC.&lt;/li&gt;</span>
+<span class="source-line-no">1610</span><span id="line-1610">     *     &lt;li&gt;Leading and trailing spaces.&lt;/li&gt;</span>
+<span class="source-line-no">1611</span><span id="line-1611">     *     &lt;li&gt;Any HTML tags.&lt;/li&gt;</span>
+<span class="source-line-no">1612</span><span id="line-1612">     * &lt;/ul&gt;&lt;br&gt;</span>
+<span class="source-line-no">1613</span><span id="line-1613">     * A parameter is also used to limit the maximum length of the sanitized message.</span>
+<span class="source-line-no">1614</span><span id="line-1614">     * To remove any HTML tags, the OWASP project &lt;a href="https://owasp.org/www-project-java-html-sanitizer/"&gt;Java HTML Sanitizer&lt;/a&gt; is leveraged.&lt;br&gt;</span>
+<span class="source-line-no">1615</span><span id="line-1615">     * I delegated such removal to a dedicated library to prevent missing of edge cases as well as potential bypasses.</span>
+<span class="source-line-no">1616</span><span id="line-1616">     *</span>
+<span class="source-line-no">1617</span><span id="line-1617">     * @param message          The original string message intended to be written in a log.</span>
+<span class="source-line-no">1618</span><span id="line-1618">     * @param maxMessageLength The maximum number of characters after which the sanitized message must be truncated. If inferior to 1 then default to the value of 500.</span>
+<span class="source-line-no">1619</span><span id="line-1619">     * @return The string message cleaned.</span>
+<span class="source-line-no">1620</span><span id="line-1620">     * @see "https://www.wallarm.com/what/log-forging-attack"</span>
+<span class="source-line-no">1621</span><span id="line-1621">     * @see "https://www.invicti.com/learn/crlf-injection"</span>
+<span class="source-line-no">1622</span><span id="line-1622">     * @see "https://knowledge-base.secureflag.com/vulnerabilities/inadequate_input_validation/log_injection_vulnerability.html"</span>
+<span class="source-line-no">1623</span><span id="line-1623">     * @see "https://capec.mitre.org/data/definitions/93.html"</span>
+<span class="source-line-no">1624</span><span id="line-1624">     * @see "https://codeql.github.com/codeql-query-help/javascript/js-log-injection/"</span>
+<span class="source-line-no">1625</span><span id="line-1625">     * @see "https://owasp.org/www-project-java-html-sanitizer/"</span>
+<span class="source-line-no">1626</span><span id="line-1626">     * @see "https://github.com/OWASP/java-html-sanitizer"</span>
+<span class="source-line-no">1627</span><span id="line-1627">     */</span>
+<span class="source-line-no">1628</span><span id="line-1628">    public static String sanitizeLogMessage(String message, int maxMessageLength) {</span>
+<span class="source-line-no">1629</span><span id="line-1629">        String sanitized = message;</span>
+<span class="source-line-no">1630</span><span id="line-1630">        int maxSanitizedMessageLength = maxMessageLength;</span>
+<span class="source-line-no">1631</span><span id="line-1631"></span>
+<span class="source-line-no">1632</span><span id="line-1632">        if (sanitized != null &amp;&amp; !sanitized.isBlank()) {</span>
+<span class="source-line-no">1633</span><span id="line-1633">            if (maxSanitizedMessageLength &lt; 1) {</span>
+<span class="source-line-no">1634</span><span id="line-1634">                maxSanitizedMessageLength = 500;</span>
+<span class="source-line-no">1635</span><span id="line-1635">            }</span>
+<span class="source-line-no">1636</span><span id="line-1636">            //Step 1: Remove any CR/LR/TAB characters as well as leading and trailing spaces</span>
+<span class="source-line-no">1637</span><span id="line-1637">            sanitized = sanitized.replaceAll("[\\n\\r\\t]", "").trim();</span>
+<span class="source-line-no">1638</span><span id="line-1638">            //Step 2: Remove any Unicode LINE SEPARATOR or Unicode PARAGRAPH SEPARATOR as well as leading and trailing spaces</span>
+<span class="source-line-no">1639</span><span id="line-1639">            sanitized = sanitized.replace("\u2028", "").replace("\u2029", "").trim();</span>
+<span class="source-line-no">1640</span><span id="line-1640">            //Step 3: Remove ANSI escape sequences as well as leading and trailing spaces</span>
+<span class="source-line-no">1641</span><span id="line-1641">            sanitized = sanitized.replaceAll("\u001B\\[[\\d;]*[a-zA-Z]", "").replace("\u001B", "").trim();</span>
+<span class="source-line-no">1642</span><span id="line-1642">            //Step 4: Remove any HTML tags</span>
+<span class="source-line-no">1643</span><span id="line-1643">            PolicyFactory htmlSanitizerPolicy = new HtmlPolicyBuilder().toFactory();</span>
+<span class="source-line-no">1644</span><span id="line-1644">            sanitized = htmlSanitizerPolicy.sanitize(sanitized);</span>
+<span class="source-line-no">1645</span><span id="line-1645">            //Step 5: Truncate the string in case of need</span>
+<span class="source-line-no">1646</span><span id="line-1646">            if (sanitized.length() &gt; maxSanitizedMessageLength) {</span>
+<span class="source-line-no">1647</span><span id="line-1647">                sanitized = sanitized.substring(0, maxSanitizedMessageLength);</span>
+<span class="source-line-no">1648</span><span id="line-1648">            }</span>
+<span class="source-line-no">1649</span><span id="line-1649">        }</span>
+<span class="source-line-no">1650</span><span id="line-1650"></span>
+<span class="source-line-no">1651</span><span id="line-1651">        return sanitized;</span>
+<span class="source-line-no">1652</span><span id="line-1652">    }</span>
+<span class="source-line-no">1653</span><span id="line-1653"></span>
+<span class="source-line-no">1654</span><span id="line-1654">    /**</span>
+<span class="source-line-no">1655</span><span id="line-1655">     * Identify if an XML is an SVG image.&lt;br&gt;</span>
+<span class="source-line-no">1656</span><span id="line-1656">     * The goal of this method is to prevent to leverage SVG, as an vector, to achieve a XSS when XML format is accepted.&lt;br&gt;</span>
+<span class="source-line-no">1657</span><span id="line-1657">     * Leverage &lt;a href="https://xmlgraphics.apache.org/batik/"&gt;Apache Batik&lt;/a&gt; to delegate the parsing and support for the SVG format.&lt;br&gt;&lt;br&gt;</span>
+<span class="source-line-no">1658</span><span id="line-1658">     * &lt;b&gt;Due to the intended usage of the method, the following choice were made:&lt;/b&gt;</span>
+<span class="source-line-no">1659</span><span id="line-1659">     * &lt;ul&gt;</span>
+<span class="source-line-no">1660</span><span id="line-1660">     * &lt;li&gt;Raise an exception when a non SVG related external references is identified.&lt;/li&gt;</span>
+<span class="source-line-no">1661</span><span id="line-1661">     * &lt;li&gt;Throw any exception that can occur if the provided content is invalid like for example an invalid XML file or a non existing file.&lt;/li&gt;</span>
+<span class="source-line-no">1662</span><span id="line-1662">     * &lt;li&gt;Explicitly check the XML prior to pass it to Batik even if Batik seems not prone to XXE/SSRF classes of vulnerability.&lt;/li&gt;</span>
+<span class="source-line-no">1663</span><span id="line-1663">     * &lt;/ul&gt;</span>
+<span class="source-line-no">1664</span><span id="line-1664">     *</span>
+<span class="source-line-no">1665</span><span id="line-1665">     * @param xmlFilePath Filename of the XML file to check.</span>
+<span class="source-line-no">1666</span><span id="line-1666">     * @return True only if XML is an valid SVG image.</span>
+<span class="source-line-no">1667</span><span id="line-1667">     * @throws SecurityException If a non SVG external references is detected into the XML content.</span>
+<span class="source-line-no">1668</span><span id="line-1668">     * @throws Exception         If a error occur due to an invalid content provided.</span>
+<span class="source-line-no">1669</span><span id="line-1669">     * @see "https://developer.mozilla.org/en-US/docs/Web/SVG"</span>
+<span class="source-line-no">1670</span><span id="line-1670">     * @see "https://www.fortinet.com/blog/threat-research/scalable-vector-graphics-attack-surface-anatomy"</span>
+<span class="source-line-no">1671</span><span id="line-1671">     * @see "https://portswigger.net/web-security/cross-site-scripting"</span>
+<span class="source-line-no">1672</span><span id="line-1672">     * @see "https://xmlgraphics.apache.org/batik/"</span>
+<span class="source-line-no">1673</span><span id="line-1673">     * @see "https://github.com/apache/xmlgraphics-batik/blob/main/batik-dom/src/main/java/org/apache/batik/dom/util/SAXDocumentFactory.java#L420"</span>
+<span class="source-line-no">1674</span><span id="line-1674">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-dom"</span>
+<span class="source-line-no">1675</span><span id="line-1675">     * @see "https://mvnrepository.com/artifact/org.apache.xmlgraphics/batik-anim"</span>
+<span class="source-line-no">1676</span><span id="line-1676">     * @see "https://portswigger.net/web-security/xxe"</span>
+<span class="source-line-no">1677</span><span id="line-1677">     * @see "https://portswigger.net/web-security/ssrf"</span>
+<span class="source-line-no">1678</span><span id="line-1678">     */</span>
+<span class="source-line-no">1679</span><span id="line-1679">    public static boolean isXMLSVGImage(String xmlFilePath) throws Exception {</span>
+<span class="source-line-no">1680</span><span id="line-1680">        boolean isSvg = true;</span>
+<span class="source-line-no">1681</span><span id="line-1681">        List&lt;String&gt; svgValidSystemIDs = List.of("http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-basic.dtd", "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11-tiny.dtd", "http://www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd");</span>
+<span class="source-line-no">1682</span><span id="line-1682"></span>
+<span class="source-line-no">1683</span><span id="line-1683">        //Load the XML content into a reader</span>
+<span class="source-line-no">1684</span><span id="line-1684">        String xmlContent = Files.readString(Paths.get(xmlFilePath));</span>
+<span class="source-line-no">1685</span><span id="line-1685">        //Then ensure that the XML document does not contains any non SVG external references</span>
+<span class="source-line-no">1686</span><span id="line-1686">        try (Reader reader = StringReader.of(xmlContent)) {</span>
+<span class="source-line-no">1687</span><span id="line-1687">            DocumentBuilderFactory xmlFactory = DocumentBuilderFactory.newInstance();</span>
+<span class="source-line-no">1688</span><span id="line-1688">            DocumentBuilder docBuilder = xmlFactory.newDocumentBuilder();</span>
+<span class="source-line-no">1689</span><span id="line-1689">            docBuilder.setEntityResolver((publicId, systemId) -&gt; {</span>
+<span class="source-line-no">1690</span><span id="line-1690">                if (systemId != null &amp;&amp; !svgValidSystemIDs.contains(systemId)) {</span>
+<span class="source-line-no">1691</span><span id="line-1691">                    throw new SecurityException("External references detected: " + systemId);</span>
+<span class="source-line-no">1692</span><span id="line-1692">                }</span>
+<span class="source-line-no">1693</span><span id="line-1693">                return new InputSource(new ByteArrayInputStream("".getBytes()));</span>
+<span class="source-line-no">1694</span><span id="line-1694">            });</span>
+<span class="source-line-no">1695</span><span id="line-1695">            docBuilder.parse(new InputSource(reader));</span>
+<span class="source-line-no">1696</span><span id="line-1696">        }</span>
+<span class="source-line-no">1697</span><span id="line-1697">        //Then parse the XML with Apache Batik</span>
+<span class="source-line-no">1698</span><span id="line-1698">        try (Reader reader = StringReader.of(xmlContent)) {</span>
+<span class="source-line-no">1699</span><span id="line-1699">            //Method SAXDocumentFactory.createDocument() do not load external DTD or entities.</span>
+<span class="source-line-no">1700</span><span id="line-1700">            String parserClassName = XMLResourceDescriptor.getXMLParserClassName();</span>
+<span class="source-line-no">1701</span><span id="line-1701">            SAXSVGDocumentFactory svgFactory = new SAXSVGDocumentFactory(parserClassName);</span>
+<span class="source-line-no">1702</span><span id="line-1702">            //Method svgFactory.createSVGDocument() raise an IO exception if the XML is not a valid SVG image</span>
+<span class="source-line-no">1703</span><span id="line-1703">            try {</span>
+<span class="source-line-no">1704</span><span id="line-1704">                SVGDocument doc = svgFactory.createSVGDocument(null, reader);</span>
+<span class="source-line-no">1705</span><span id="line-1705">                isSvg = (doc != null &amp;&amp; doc.getRootElement() != null);</span>
+<span class="source-line-no">1706</span><span id="line-1706">            } catch (IOException e) {</span>
+<span class="source-line-no">1707</span><span id="line-1707">                isSvg = false;</span>
+<span class="source-line-no">1708</span><span id="line-1708">            }</span>
+<span class="source-line-no">1709</span><span id="line-1709">        }</span>
+<span class="source-line-no">1710</span><span id="line-1710"></span>
+<span class="source-line-no">1711</span><span id="line-1711">        return isSvg;</span>
+<span class="source-line-no">1712</span><span id="line-1712">    }</span>
+<span class="source-line-no">1713</span><span id="line-1713">}</span>
 
 
 
