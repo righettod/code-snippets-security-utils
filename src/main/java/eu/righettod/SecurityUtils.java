@@ -1052,6 +1052,10 @@ public class SecurityUtils {
      * <li>Is not using address literals.</li>
      * <li>Is not using source routes.</li>
      * <li>Is not using the "percent hack".</li>
+     * <li>Does not contain newline or carriage-return characters (CRLF injection prevention).</li>
+     * <li>The domain part contains at least one dot (reject single-label domains such as localhost or internal hostnames).</li>
+     * <li>The local part is not a quoted string (i.e. not wrapped in double quotes).</li>
+     * <li>Respect the RFC 5321 length limits: local part ≤ 64 characters, domain ≤ 255 characters, total address ≤ 320 characters.</li>
      * </ul><br>
      * This is based on the research work from <a href="https://portswigger.net/research/gareth-heyes">Gareth Heyes</a> added in references (Portswigger).<br><br>
      *
@@ -1070,7 +1074,7 @@ public class SecurityUtils {
         boolean isValid = false;
         String work = addr.toLowerCase(Locale.ROOT);
         Pattern encodedWordRegex = Pattern.compile("[=?]+", Pattern.CASE_INSENSITIVE);
-        Pattern forbiddenCharacterRegex = Pattern.compile("[():!%\\[\\],;]+", Pattern.CASE_INSENSITIVE);
+        Pattern forbiddenCharacterRegex = Pattern.compile("[():!%\\[\\],;\"\n\r]+", Pattern.CASE_INSENSITIVE);
         try {
             //Start with the use of the dedicated EmailValidator from Apache Commons Validator
             if (EmailValidator.getInstance(true, true).isValid(work)) {
@@ -1085,10 +1089,24 @@ public class SecurityUtils {
                         // Source routes,
                         // The percent hack.
                         if (!forbiddenCharacterRegex.matcher(work).find()) {
-                            isValid = true;
+                            //If OK ensure that the domain part contains at least one dot
+                            long arobaseCount = addr.chars().filter(c -> c == '@').count();
+                            if (arobaseCount == 1) {
+                                String[] parts = addr.split("@");
+                                String localPart = parts[0];
+                                String domainPart = parts[1];
+                                if (domainPart.contains(".")) {
+                                    //If OK the check the respect to the RFC 5321 length limits:
+                                    // local part ≤ 64 characters, domain ≤ 255 characters, total address ≤ 320 characters.
+                                    if (localPart.length() <= 64 && domainPart.length() <= 255 && addr.length() <= 320) {
+                                        isValid = true;
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+
             }
         } catch (Exception e) {
             isValid = false;

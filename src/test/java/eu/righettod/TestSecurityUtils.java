@@ -477,12 +477,42 @@ public class TestSecurityUtils {
         final String templateMsgFalseNegative = "Email address '%s' must be detected as invalid!";
         final String templateMsgFalsePositive = "Email address '%s' must be detected as valid!";
         //Test invalid email addresses
-        List<String> invalidEmailAddressesList = Arrays.asList("=?utf-8?q?=41=42=43?=test@test.com", "=?utf-7?q?=41GYAbwBvAGIAYBy-?=@test@com", "=?utf-8?b?Zm9vYmFy?=@test.com", "@mail.mit.edu:peter@hotmail.com", "peter%hotmail.com@mail.mit.edu", "rusx!umoskva!kgbvax!dimitri@gateway.ru", "test@example.com@evil.com", "(foo)user@(bar)example.com", "postmaster@[123.123.123.123]", "postmaster@[IPv6:2001:0db8:85a3:0000:0000:8a2e:0370:7334]", "foo@xn--mnchen-2ya.com");
+        List<String> invalidEmailAddressesList = Arrays.asList(
+                "notanemail",
+                "@domain.com",
+                "user@",
+                "user@@domain.com",
+                "user @domain.com",
+                "=?utf-8?B?dXNlcg==?=@domain.com",
+                "user@=?utf-8?Q?domain?=.com",
+                "user(comment)@domain.com",
+                "user@domain(comment).com",
+                "user@xn--nxasmq6b.com",
+                "user@xn--p1ai.xn--e1afmapc.com",
+                "relay!user@domain.com",
+                "host1!host2!user@domain.com",
+                "user@[192.168.1.1]",
+                "user@[IPv6:2001:db8::1]",
+                "@relay.com:user@domain.com",
+                "@r1.com,@r2.com:user@domain.com",
+                "user%admin@domain.com",
+                "foo%bar%baz@domain.com",
+                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa@domain.com", "user@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com", "user@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb.com",
+                "\"user\"@domain.com",
+                "\"user name\"@domain.com",
+                "\"user@evil.com\"@domain.com",
+                "user@localhost",
+                "user@internalhost",
+                "user@com",
+                "user\r\n@domain.com",
+                "user\n@domain.com",
+                "user@domain\r.com"
+        );
         invalidEmailAddressesList.forEach(addr -> {
             assertFalse(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalseNegative, addr));
         });
         //Test valid email addresses
-        List<String> validEmailAddressesList = Arrays.asList("test@test.com", "test-test@test.com", "test.test@test.com", "test_test@test.com", "test132@test.com", "test+label@test.com", "\"John..Doe\"@example.com", "\"@\"@example.com");
+        List<String> validEmailAddressesList = Arrays.asList("test@test.com", "test-test@test.com", "test.test@test.com", "test_test@test.com", "test132@test.com", "test+label@test.com");
         validEmailAddressesList.forEach(addr -> {
             assertTrue(SecurityUtils.isEmailAddress(addr), String.format(templateMsgFalsePositive, addr));
         });
