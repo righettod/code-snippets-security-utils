@@ -166,11 +166,11 @@ public class TestSecurityUtils {
 
     @Test
     public void isRelativeURL() {
-        List<String> nonRelativeURLList = Arrays.asList("//righettod.eu", "http://righettod.eu", "https://righettod.eu", "ssh://righettod.eu", "http://login:pass@righettod.eu");
+        List<String> nonRelativeURLList = Arrays.asList("//righettod.eu", "http://righettod.eu", "https://righettod.eu", "ssh://righettod.eu", "ssh://righettod.eu%23");
         nonRelativeURLList.forEach(u -> {
             assertFalse(SecurityUtils.isRelativeURL(u), String.format("URL '%s' must be detected as NOT relative!", u));
         });
-        List<String> relativeURLList = Arrays.asList("/righettod.eu", "/test.jsp");
+        List<String> relativeURLList = Arrays.asList("/righettod.eu", "/test.jsp", "/test.jsp?a=b");
         relativeURLList.forEach(u -> {
             assertTrue(SecurityUtils.isRelativeURL(u), String.format("URL '%s' must be detected as relative!", u));
         });

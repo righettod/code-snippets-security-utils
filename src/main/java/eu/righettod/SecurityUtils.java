@@ -401,19 +401,25 @@ public class SecurityUtils {
      */
     public static boolean isRelativeURL(String targetUrl) {
         boolean isValid = false;
-        //Reject any URL encoded content and URL starting with a double slash
-        //Reject any URL contains credentials or fragment to prevent potential bypasses
         String work = targetUrl;
-        if (!work.contains("%") && !work.contains("@") && !work.contains("#") && !work.startsWith("//")) {
-            //Creation of a URL object must fail
-            try {
-                new URL(work);
-                isValid = false;
-            } catch (MalformedURLException mf) {
-                //Last check to be sure (for prod usage compile the pattern one time)
-                isValid = Pattern.compile("^/[a-z0-9]+", Pattern.CASE_INSENSITIVE).matcher(work).find();
+        Pattern startingPrefix = Pattern.compile("^[/a-zA-Z0-9\\-_].*");
+        //Reject any URL no starting with a slash, letter, number, dash, or underscore
+        if (startingPrefix.matcher(work).find()) {
+            //Reject any URL encoded content and URL starting with a double slash
+            if (!work.startsWith("//") && !work.contains("%")) {
+                //Try to create en URI object
+                try {
+                    URI u = new URI(work);
+                    //Scheme must be null
+                    if (u.getScheme() == null) {
+                        isValid = (!u.isAbsolute());
+                    }
+                } catch (URISyntaxException mf) {
+                    isValid = false;
+                }
             }
         }
+
         return isValid;
     }
 
