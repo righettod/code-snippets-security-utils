@@ -33,6 +33,7 @@ import org.apache.tika.io.TikaInputStream;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
 import org.apache.tika.mime.MimeTypes;
+import org.apache.tika.parser.ParseContext;
 import org.iban4j.IbanUtil;
 import org.owasp.html.HtmlPolicyBuilder;
 import org.owasp.html.PolicyFactory;
@@ -515,7 +516,7 @@ public class SecurityUtils {
             Metadata metadata = new Metadata();
             try {
                 try (TemporaryResources temporaryResources = new TemporaryResources(); TikaInputStream tikaInputStream = TikaInputStream.get(new ByteArrayInputStream(content), temporaryResources, metadata)) {
-                    MediaType mt = detector.detect(tikaInputStream, metadata);
+                    MediaType mt = detector.detect(tikaInputStream, metadata, new ParseContext());
                     if (mt != null) {
                         mimeType = mt.toString().toLowerCase(Locale.ROOT);
                     }
